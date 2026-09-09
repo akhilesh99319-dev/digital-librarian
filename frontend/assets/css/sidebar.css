@@ -1,0 +1,408 @@
+/* =========================================
+   LMS COMMON SIDEBAR
+   Library Management System
+========================================= */
+
+:root {
+    --sidebar-width: 306px;
+    --sidebar-bg: #0f172a;
+    --sidebar-text: #cbd5e1;
+    --sidebar-muted: #64748b;
+    --sidebar-hover: #1e293b;
+    --sidebar-active: #2563eb;
+    --sidebar-border: rgba(255, 255, 255, 0.08);
+    --sidebar-white: #ffffff;
+}
+
+
+/* =========================================
+   SIDEBAR
+========================================= */
+
+.dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: var(--sidebar-width);
+    height: 100vh;
+
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+
+    display: flex;
+    flex-direction: column;
+
+    z-index: 1000;
+
+    border-right: 1px solid var(--sidebar-border);
+}
+
+
+/* =========================================
+   SIDEBAR BRAND
+========================================= */
+
+.sidebar-brand {
+    height: 106px;
+
+    padding: 0 24px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    border-bottom: 1px solid var(--sidebar-border);
+}
+
+
+.sidebar-brand-icon {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 25px;
+
+    background: #eff6ff;
+
+    border-radius: 12px;
+}
+
+
+.sidebar-brand-name {
+    color: var(--sidebar-white);
+
+    font-size: 20px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================
+   USER PROFILE
+========================================= */
+
+.sidebar-user {
+    padding: 20px 18px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    border-bottom: 1px solid var(--sidebar-border);
+}
+
+
+.sidebar-user-avatar {
+    width: 44px;
+    height: 44px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #e0e7ff;
+
+    border-radius: 50%;
+
+    font-size: 22px;
+}
+
+
+.sidebar-user-info {
+    min-width: 0;
+}
+
+
+.sidebar-user-name {
+    color: var(--sidebar-white);
+
+    font-size: 14px;
+    font-weight: 700;
+
+    margin-bottom: 4px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+.sidebar-user-role {
+    color: #94a3b8;
+
+    font-size: 12px;
+}
+
+
+/* =========================================
+   SIDEBAR NAVIGATION
+========================================= */
+
+.sidebar-nav {
+    flex: 1;
+
+    padding: 18px 12px;
+
+    overflow-y: auto;
+}
+
+
+.sidebar-section-title {
+    padding: 0 14px;
+
+    margin: 12px 0 8px;
+
+    color: #64748b;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    text-transform: uppercase;
+}
+
+
+/* =========================================
+   NAV LINK
+========================================= */
+
+.sidebar-link {
+    position: relative;
+
+    width: 100%;
+
+    min-height: 48px;
+
+    padding: 0 16px;
+
+    margin-bottom: 5px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+
+    color: var(--sidebar-text);
+
+    text-decoration: none;
+
+    border-radius: 9px;
+
+    font-size: 15px;
+    font-weight: 500;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.sidebar-link-icon {
+    width: 22px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+}
+
+
+.sidebar-link:hover {
+    background: var(--sidebar-hover);
+
+    color: var(--sidebar-white);
+
+    transform: translateX(2px);
+}
+
+
+/* =========================================
+   ACTIVE LINK
+========================================= */
+
+.sidebar-link.active {
+    background: var(--sidebar-active);
+
+    color: #ffffff;
+
+    font-weight: 600;
+
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+}
+
+
+.sidebar-link.active:hover {
+    background: #1d4ed8;
+
+    transform: none;
+}
+
+
+/* =========================================
+   NOTIFICATION BADGE
+========================================= */
+
+.sidebar-badge {
+    margin-left: auto;
+
+    min-width: 20px;
+    height: 20px;
+
+    padding: 0 6px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ef4444;
+
+    color: #ffffff;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+
+/* =========================================
+   SIDEBAR FOOTER
+========================================= */
+
+.sidebar-footer {
+    padding: 14px 12px;
+
+    border-top: 1px solid var(--sidebar-border);
+}
+
+
+.sidebar-logout {
+    width: 100%;
+
+    min-height: 46px;
+
+    padding: 0 16px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+
+    background: transparent;
+
+    color: #cbd5e1;
+
+    border: 0;
+
+    border-radius: 9px;
+
+    font-size: 15px;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    transition: 0.2s ease;
+}
+
+
+.sidebar-logout:hover {
+    background: rgba(239, 68, 68, 0.12);
+
+    color: #f87171;
+}
+
+
+/* =========================================
+   MAIN CONTENT OFFSET
+========================================= */
+
+.dashboard-layout {
+    min-height: 100vh;
+
+    padding-left: var(--sidebar-width);
+}
+
+
+.dashboard-content {
+    min-height: 100vh;
+}
+
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+.sidebar-nav::-webkit-scrollbar {
+    width: 5px;
+}
+
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: #334155;
+
+    border-radius: 10px;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1100px) {
+
+    :root {
+        --sidebar-width: 250px;
+    }
+
+    .sidebar-brand {
+        padding: 0 18px;
+    }
+
+    .sidebar-brand-name {
+        font-size: 17px;
+    }
+
+}
+
+
+@media (max-width: 768px) {
+
+    :root {
+        --sidebar-width: 0px;
+    }
+
+    .dashboard-sidebar {
+        width: 260px;
+
+        transform: translateX(-100%);
+
+        transition: transform 0.3s ease;
+    }
+
+    .dashboard-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .dashboard-layout {
+        padding-left: 0;
+    }
+
+}

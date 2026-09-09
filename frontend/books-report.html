@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Books Report | Library Management System</title>
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Report CSS -->
+    <link rel="stylesheet" href="assets/css/books-report.css">
+
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         HEADER / NAVBAR
+    ========================================== -->
+
+    <header>
+
+        <nav>
+
+            <!-- Logo -->
+
+            <div class="dashboard-logo">
+
+                📚 Library Management System
+
+            </div>
+
+
+            <!-- Navigation -->
+
+            <div class="dashboard-nav-links">
+
+                <a href="dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="books.html">
+                    Books
+                </a>
+
+                <a href="members.html">
+                    Members
+                </a>
+
+                <a href="books-report.html" class="active">
+                    Reports
+                </a>
+
+                <a href="profile.html">
+                    Profile
+                </a>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+
+    <!-- =========================================
+         MAIN CONTENT
+    ========================================== -->
+
+    <main class="report-page">
+
+
+        <!-- =====================================
+             PAGE HEADER
+        ====================================== -->
+
+        <section class="report-header">
+
+            <div>
+
+                <span class="page-label">
+                    📊 LIBRARY REPORTS
+                </span>
+
+                <h1>
+                    Books Report
+                </h1>
+
+                <p>
+                    View and analyze your library book records,
+                    availability and issue status.
+                </p>
+
+            </div>
+
+
+            <div class="report-actions">
+
+                <button
+                    type="button"
+                    id="printReportButton"
+                    class="print-button">
+
+                    🖨️ Print Report
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             STATISTICS
+        ====================================== -->
+
+        <section class="report-statistics">
+
+
+            <!-- TOTAL BOOKS -->
+
+            <div class="report-stat-card">
+
+                <div class="stat-icon">
+                    📚
+                </div>
+
+                <div>
+
+                    <span>
+                        Total Books
+                    </span>
+
+                    <strong id="totalBooks">
+                        120
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- AVAILABLE -->
+
+            <div class="report-stat-card">
+
+                <div class="stat-icon">
+                    ✅
+                </div>
+
+                <div>
+
+                    <span>
+                        Available Books
+                    </span>
+
+                    <strong id="availableBooks">
+                        85
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- ISSUED -->
+
+            <div class="report-stat-card">
+
+                <div class="stat-icon">
+                    📤
+                </div>
+
+                <div>
+
+                    <span>
+                        Issued Books
+                    </span>
+
+                    <strong id="issuedBooks">
+                        35
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- MEMBERS -->
+
+            <div class="report-stat-card">
+
+                <div class="stat-icon">
+                    👥
+                </div>
+
+                <div>
+
+                    <span>
+                        Total Members
+                    </span>
+
+                    <strong id="totalMembers">
+                        50
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             FILTER SECTION
+        ====================================== -->
+
+        <section class="report-filter">
+
+
+            <div class="filter-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        SEARCH & FILTER
+                    </span>
+
+                    <h2>
+                        Find Book Records
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="filter-grid">
+
+
+                <!-- SEARCH -->
+
+                <div class="filter-group">
+
+                    <label for="searchBook">
+                        Search Book
+                    </label>
+
+                    <input
+                        type="text"
+                        id="searchBook"
+                        placeholder="Search by title, author or ISBN">
+
+                </div>
+
+
+                <!-- CATEGORY -->
+
+                <div class="filter-group">
+
+                    <label for="categoryFilter">
+                        Category
+                    </label>
+
+                    <select id="categoryFilter">
+
+                        <option value="all">
+                            All Categories
+                        </option>
+
+                        <option value="programming">
+                            Programming
+                        </option>
+
+                        <option value="database">
+                            Database
+                        </option>
+
+                        <option value="science">
+                            Science
+                        </option>
+
+                        <option value="mathematics">
+                            Mathematics
+                        </option>
+
+                        <option value="fiction">
+                            Fiction
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                <div class="filter-group">
+
+                    <label for="statusFilter">
+                        Status
+                    </label>
+
+                    <select id="statusFilter">
+
+                        <option value="all">
+                            All Status
+                        </option>
+
+                        <option value="available">
+                            Available
+                        </option>
+
+                        <option value="issued">
+                            Issued
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- RESET -->
+
+                <div class="filter-group filter-button-group">
+
+                    <button
+                        type="button"
+                        id="resetFilterButton"
+                        class="reset-button">
+
+                        Reset Filters
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             BOOK REPORT TABLE
+        ====================================== -->
+
+        <section class="report-table-section">
+
+
+            <div class="table-header">
+
+                <div>
+
+                    <span class="section-label">
+                        BOOK RECORDS
+                    </span>
+
+                    <h2>
+                        Library Book Report
+                    </h2>
+
+                </div>
+
+
+                <span
+                    id="recordCount"
+                    class="record-count">
+
+                    Showing 6 records
+
+                </span>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                #
+                            </th>
+
+                            <th>
+                                Book ID
+                            </th>
+
+                            <th>
+                                Book Title
+                            </th>
+
+                            <th>
+                                Author
+                            </th>
+
+                            <th>
+                                Category
+                            </th>
+
+                            <th>
+                                ISBN
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Issued To
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="bookReportTableBody">
+
+
+                        <!-- BOOK 1 -->
+
+                        <tr
+                            data-category="programming"
+                            data-status="available">
+
+                            <td>
+                                1
+                            </td>
+
+                            <td>
+                                BK001
+                            </td>
+
+                            <td>
+                                Python Programming
+                            </td>
+
+                            <td>
+                                Mark Lutz
+                            </td>
+
+                            <td>
+                                Programming
+                            </td>
+
+                            <td>
+                                9789355421234
+                            </td>
+
+                            <td>
+
+                                <span class="status available">
+                                    Available
+                                </span>
+
+                            </td>
+
+                            <td>
+                                —
+                            </td>
+
+                        </tr>
+
+
+                        <!-- BOOK 2 -->
+
+                        <tr
+                            data-category="database"
+                            data-status="issued">
+
+                            <td>
+                                2
+                            </td>
+
+                            <td>
+                                BK002
+                            </td>
+
+                            <td>
+                                Database System Concepts
+                            </td>
+
+                            <td>
+                                Abraham Silberschatz
+                            </td>
+
+                            <td>
+                                Database
+                            </td>
+
+                            <td>
+                                9780073523323
+                            </td>
+
+                            <td>
+
+                                <span class="status issued">
+                                    Issued
+                                </span>
+
+                            </td>
+
+                            <td>
+                                Akhilesh Kumar
+                            </td>
+
+                        </tr>
+
+
+                        <!-- BOOK 3 -->
+
+                        <tr
+                            data-category="science"
+                            data-status="available">
+
+                            <td>
+                                3
+                            </td>
+
+                            <td>
+                                BK003
+                            </td>
+
+                            <td>
+                                A Brief History of Time
+                            </td>
+
+                            <td>
+                                Stephen Hawking
+                            </td>
+
+                            <td>
+                                Science
+                            </td>
+
+                            <td>
+                                9780553380163
+                            </td>
+
+                            <td>
+
+                                <span class="status available">
+                                    Available
+                                </span>
+
+                            </td>
+
+                            <td>
+                                —
+                            </td>
+
+                        </tr>
+
+
+                        <!-- BOOK 4 -->
+
+                        <tr
+                            data-category="mathematics"
+                            data-status="issued">
+
+                            <td>
+                                4
+                            </td>
+
+                            <td>
+                                BK004
+                            </td>
+
+                            <td>
+                                Higher Engineering Mathematics
+                            </td>
+
+                            <td>
+                                B. S. Grewal
+                            </td>
+
+                            <td>
+                                Mathematics
+                            </td>
+
+                            <td>
+                                9788174091953
+                            </td>
+
+                            <td>
+
+                                <span class="status issued">
+                                    Issued
+                                </span>
+
+                            </td>
+
+                            <td>
+                                Chandra Mohan Thakur
+                            </td>
+
+                        </tr>
+
+
+                        <!-- BOOK 5 -->
+
+                        <tr
+                            data-category="fiction"
+                            data-status="available">
+
+                            <td>
+                                5
+                            </td>
+
+                            <td>
+                                BK005
+                            </td>
+
+                            <td>
+                                The Alchemist
+                            </td>
+
+                            <td>
+                                Paulo Coelho
+                            </td>
+
+                            <td>
+                                Fiction
+                            </td>
+
+                            <td>
+                                9780061122415
+                            </td>
+
+                            <td>
+
+                                <span class="status available">
+                                    Available
+                                </span>
+
+                            </td>
+
+                            <td>
+                                —
+                            </td>
+
+                        </tr>
+
+
+                        <!-- BOOK 6 -->
+
+                        <tr
+                            data-category="programming"
+                            data-status="issued">
+
+                            <td>
+                                6
+                            </td>
+
+                            <td>
+                                BK006
+                            </td>
+
+                            <td>
+                                Java: The Complete Reference
+                            </td>
+
+                            <td>
+                                Herbert Schildt
+                            </td>
+
+                            <td>
+                                Programming
+                            </td>
+
+                            <td>
+                                9781260440232
+                            </td>
+
+                            <td>
+
+                                <span class="status issued">
+                                    Issued
+                                </span>
+
+                            </td>
+
+                            <td>
+                                Aman Kumar
+                            </td>
+
+                        </tr>
+
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- NO RESULTS -->
+
+            <div
+                id="noResults"
+                class="no-results">
+
+                <div>
+                    🔍
+                </div>
+
+                <h3>
+                    No Books Found
+                </h3>
+
+                <p>
+                    No book records match your search or filters.
+                </p>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             REPORT SUMMARY
+        ====================================== -->
+
+        <section class="report-summary">
+
+
+            <div>
+
+                <span class="section-label">
+                    REPORT SUMMARY
+                </span>
+
+                <h2>
+                    Library Overview
+                </h2>
+
+                <p>
+                    This report provides an overview of books currently
+                    available and issued in the library.
+                </p>
+
+            </div>
+
+
+            <div class="summary-items">
+
+
+                <div>
+
+                    <span>
+                        Available Percentage
+                    </span>
+
+                    <strong id="availablePercentage">
+                        70.8%
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Issued Percentage
+                    </span>
+
+                    <strong id="issuedPercentage">
+                        29.2%
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer>
+
+        <p>
+            © 2026 Library Management System.
+            All Rights Reserved.
+        </p>
+
+    </footer>
+
+
+
+    <!-- REPORT JAVASCRIPT -->
+
+    <script src="assets/js/books-report.js"></script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,592 @@
+/* =========================================
+   ISSUE BOOK PAGE
+========================================= */
+
+.issue-page {
+    min-height: 100vh;
+
+    padding: 60px 30px 80px;
+
+    background: #f8fafc;
+}
+
+
+/* =========================================
+   PAGE HEADER
+========================================= */
+
+.issue-header {
+    max-width: 1200px;
+
+    margin: 0 auto 35px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 30px;
+}
+
+.page-label,
+.section-label {
+    font-size: 12px;
+
+    font-weight: 700;
+
+    color: #2563eb;
+
+    letter-spacing: 1px;
+}
+
+.issue-header h1 {
+    margin: 8px 0 10px;
+
+    font-size: 42px;
+
+    color: #0f172a;
+}
+
+.issue-header p {
+    margin: 0;
+
+    max-width: 700px;
+
+    color: #64748b;
+}
+
+
+/* =========================================
+   REPORT BUTTON
+========================================= */
+
+.report-button {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 12px 18px;
+
+    background: #0f172a;
+
+    color: #ffffff;
+
+    text-decoration: none;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    transition: 0.3s ease;
+}
+
+.report-button:hover {
+    background: #1e293b;
+
+    transform: translateY(-2px);
+}
+
+
+/* =========================================
+   STATISTICS
+========================================= */
+
+.issue-statistics {
+    max-width: 1200px;
+
+    margin: 0 auto 30px;
+
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 20px;
+}
+
+.issue-stat-card {
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    padding: 22px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+}
+
+.issue-stat-icon {
+    width: 50px;
+
+    height: 50px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #eff6ff;
+
+    font-size: 23px;
+}
+
+.issue-stat-card span {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+.issue-stat-card strong {
+    display: block;
+
+    color: #0f172a;
+
+    font-size: 25px;
+}
+
+
+/* =========================================
+   ISSUE FORM SECTION
+========================================= */
+
+.issue-form-section {
+    max-width: 1200px;
+
+    margin: 0 auto 30px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    padding: 30px;
+}
+
+.section-heading {
+    margin-bottom: 25px;
+}
+
+.section-heading h2,
+.issued-section-header h2 {
+    margin: 6px 0;
+
+    color: #0f172a;
+
+    font-size: 24px;
+}
+
+.section-heading p,
+.issued-section-header p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 14px;
+}
+
+
+/* =========================================
+   FORM GRID
+========================================= */
+
+.issue-form-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 22px;
+}
+
+.form-group {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.form-group label {
+    color: #334155;
+
+    font-size: 13px;
+
+    font-weight: 700;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+
+    height: 45px;
+
+    padding: 0 12px;
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 7px;
+
+    background: #ffffff;
+
+    color: #1e293b;
+
+    outline: none;
+
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group small {
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+
+/* =========================================
+   FORM ACTIONS
+========================================= */
+
+.form-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 25px;
+}
+
+.primary-button,
+.secondary-button {
+    border-radius: 7px;
+
+    padding: 12px 20px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.3s ease;
+}
+
+.primary-button {
+    border: none;
+
+    background: #2563eb;
+
+    color: #ffffff;
+}
+
+.primary-button:hover {
+    background: #1d4ed8;
+
+    transform: translateY(-2px);
+}
+
+.secondary-button {
+    border: 1px solid #cbd5e1;
+
+    background: #ffffff;
+
+    color: #475569;
+}
+
+.secondary-button:hover {
+    background: #f8fafc;
+}
+
+
+/* =========================================
+   ISSUED BOOKS SECTION
+========================================= */
+
+.issued-books-section {
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+}
+
+.issued-section-header {
+    padding: 25px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 25px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+
+/* =========================================
+   SEARCH
+========================================= */
+
+.issue-search {
+    width: 320px;
+
+    height: 44px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    padding: 0 13px;
+
+    background: #ffffff;
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 7px;
+}
+
+.issue-search input {
+    width: 100%;
+
+    border: none;
+
+    outline: none;
+
+    font-size: 14px;
+
+    color: #334155;
+}
+
+
+/* =========================================
+   TABLE
+========================================= */
+
+.table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+}
+
+#issuedBooksTable {
+    width: 100%;
+
+    min-width: 900px;
+
+    border-collapse: collapse;
+}
+
+#issuedBooksTable th {
+    padding: 15px 18px;
+
+    background: #f8fafc;
+
+    border-bottom: 1px solid #e2e8f0;
+
+    color: #475569;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    text-align: left;
+}
+
+#issuedBooksTable td {
+    padding: 16px 18px;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    color: #334155;
+
+    font-size: 14px;
+}
+
+#issuedBooksTable tbody tr:hover {
+    background: #f8fafc;
+}
+
+
+/* =========================================
+   STATUS
+========================================= */
+
+.issue-status {
+    display: inline-flex;
+
+    align-items: center;
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+.status-issued {
+    background: #dbeafe;
+
+    color: #1d4ed8;
+}
+
+.status-overdue {
+    background: #fee2e2;
+
+    color: #991b1b;
+}
+
+
+/* =========================================
+   RETURN BUTTON
+========================================= */
+
+.return-button {
+    border: none;
+
+    padding: 7px 11px;
+
+    border-radius: 6px;
+
+    background: #ecfdf5;
+
+    color: #047857;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.return-button:hover {
+    background: #d1fae5;
+}
+
+
+/* =========================================
+   EMPTY STATE
+========================================= */
+
+.issue-empty-state {
+    padding: 50px 20px;
+
+    text-align: center;
+
+    color: #64748b;
+}
+
+.issue-empty-state-icon {
+    margin-bottom: 10px;
+
+    font-size: 40px;
+}
+
+.issue-empty-state h3 {
+    margin: 0 0 5px;
+
+    color: #334155;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 950px) {
+
+    .issue-statistics {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .issue-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .issued-section-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .issue-search {
+        width: 100%;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .issue-page {
+        padding: 40px 15px 60px;
+    }
+
+    .issue-header h1 {
+        font-size: 32px;
+    }
+
+    .issue-statistics {
+        grid-template-columns: 1fr;
+    }
+
+    .issue-form-section {
+        padding: 20px;
+    }
+
+    .issue-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+
+}

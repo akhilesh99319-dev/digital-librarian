@@ -1,0 +1,1239 @@
+/* =========================================
+   ADD BOOK PAGE
+========================================= */
+
+.add-book-page {
+    min-height: 100vh;
+    padding: 60px 30px 80px;
+    background: #f8fafc;
+}
+
+
+/* =========================================
+   PAGE HEADER
+========================================= */
+
+.add-book-header {
+    max-width: 1200px;
+    margin: 0 auto 35px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 30px;
+}
+
+.page-label {
+    color: #2563eb;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    letter-spacing: 1px;
+}
+
+.add-book-header h1 {
+    margin: 8px 0 10px;
+
+    color: #0f172a;
+
+    font-size: 42px;
+    line-height: 1.2;
+}
+
+.add-book-header p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+
+/* =========================================
+   HEADER ACTIONS
+========================================= */
+
+.add-book-header-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.back-books-button,
+.report-button {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 11px 16px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    transition: all 0.3s ease;
+}
+
+.back-books-button {
+    background: #e2e8f0;
+
+    color: #334155;
+}
+
+.back-books-button:hover {
+    background: #cbd5e1;
+
+    color: #0f172a;
+}
+
+.report-button {
+    background: #2563eb;
+
+    color: #ffffff;
+}
+
+.report-button:hover {
+    background: #1d4ed8;
+
+    color: #ffffff;
+
+    transform: translateY(-2px);
+}
+
+
+/* =========================================
+   MAIN CONTAINER
+========================================= */
+
+.add-book-container {
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+    display: grid;
+
+    grid-template-columns: minmax(0, 1fr) 340px;
+
+    gap: 25px;
+
+    align-items: start;
+}
+
+
+/* =========================================
+   ADD BOOK CARD
+========================================= */
+
+.add-book-card {
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 14px;
+
+    overflow: hidden;
+}
+
+
+/* =========================================
+   CARD HEADER
+========================================= */
+
+.card-header {
+    padding: 25px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.section-label {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #2563eb;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    letter-spacing: 1px;
+}
+
+.card-header h2 {
+    margin: 0;
+
+    color: #0f172a;
+
+    font-size: 24px;
+}
+
+.card-header p {
+    margin: 6px 0 0;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+.card-header-icon {
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: #eff6ff;
+
+    border-radius: 10px;
+
+    font-size: 22px;
+}
+
+
+/* =========================================
+   FORM
+========================================= */
+
+#addBookForm {
+    padding: 25px;
+}
+
+
+/* =========================================
+   FORM SECTION
+========================================= */
+
+.form-section {
+    padding-bottom: 28px;
+
+    margin-bottom: 28px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.form-section:last-of-type {
+    margin-bottom: 0;
+
+    border-bottom: none;
+}
+
+.form-section-title {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 12px;
+
+    margin-bottom: 22px;
+}
+
+.form-section-title > span {
+    width: 30px;
+    height: 30px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    border-radius: 8px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+}
+
+.form-section-title h3 {
+    margin: 0 0 4px;
+
+    color: #0f172a;
+
+    font-size: 16px;
+}
+
+.form-section-title p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+
+/* =========================================
+   FORM ROW
+========================================= */
+
+.form-row {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+}
+
+
+/* =========================================
+   FORM GROUP
+========================================= */
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #334155;
+
+    font-size: 13px;
+
+    font-weight: 600;
+}
+
+.required {
+    color: #dc2626;
+}
+
+.form-group label span:not(.required) {
+    color: #94a3b8;
+
+    font-size: 11px;
+
+    font-weight: 400;
+}
+
+
+/* =========================================
+   INPUTS
+========================================= */
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #334155;
+
+    font-family: inherit;
+
+    font-size: 13px;
+
+    outline: none;
+
+    transition: all 0.3s ease;
+}
+
+.form-group input,
+.form-group select {
+    height: 44px;
+
+    padding: 0 13px;
+}
+
+.form-group textarea {
+    padding: 12px 13px;
+
+    min-height: 130px;
+
+    resize: vertical;
+
+    line-height: 1.6;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: #94a3b8;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group textarea:disabled {
+    background: #f8fafc;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================
+   FIELD ERROR
+========================================= */
+
+.field-error {
+    display: block;
+
+    min-height: 16px;
+
+    margin-top: 5px;
+
+    color: #dc2626;
+
+    font-size: 11px;
+}
+
+.form-group.has-error input,
+.form-group.has-error select,
+.form-group.has-error textarea {
+    border-color: #dc2626;
+
+    background: #fffafa;
+}
+
+
+/* =========================================
+   FIELD HELP
+========================================= */
+
+.field-help {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================
+   DESCRIPTION COUNTER
+========================================= */
+
+.character-counter {
+    margin-top: 6px;
+
+    text-align: right;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+}
+
+
+/* =========================================
+   BOOK COVER UPLOAD
+========================================= */
+
+.book-cover-upload {
+    display: grid;
+
+    grid-template-columns: 1fr 180px;
+
+    gap: 20px;
+
+    align-items: stretch;
+}
+
+.upload-area {
+    min-height: 230px;
+
+    padding: 25px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+
+    background: #f8fafc;
+
+    border: 2px dashed #cbd5e1;
+
+    border-radius: 10px;
+
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    border-color: #93c5fd;
+
+    background: #f8fbff;
+}
+
+.upload-icon {
+    margin-bottom: 8px;
+
+    font-size: 35px;
+}
+
+.upload-area h3 {
+    margin: 0 0 5px;
+
+    color: #334155;
+
+    font-size: 15px;
+}
+
+.upload-area p {
+    margin: 0 0 15px;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+}
+
+.upload-area small {
+    margin-top: 10px;
+
+    color: #94a3b8;
+
+    font-size: 10px;
+}
+
+.upload-button {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 9px 15px;
+
+    background: #2563eb;
+
+    color: #ffffff !important;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    font-size: 12px !important;
+
+    font-weight: 600 !important;
+
+    transition: 0.3s ease;
+}
+
+.upload-button:hover {
+    background: #1d4ed8;
+}
+
+#bookCover {
+    display: none;
+}
+
+
+/* =========================================
+   COVER PREVIEW
+========================================= */
+
+.cover-preview {
+    min-height: 230px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    padding: 15px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 10px;
+
+    overflow: hidden;
+}
+
+.cover-preview img {
+    width: 100%;
+    height: 190px;
+
+    object-fit: cover;
+
+    border-radius: 7px;
+}
+
+.preview-placeholder {
+    width: 70px;
+    height: 90px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: #eff6ff;
+
+    border-radius: 8px;
+
+    font-size: 30px;
+}
+
+.cover-preview span {
+    color: #64748b;
+
+    font-size: 11px;
+}
+
+
+/* =========================================
+   FORM CONFIRMATION
+========================================= */
+
+.form-confirmation {
+    margin-top: 25px;
+
+    padding: 14px 16px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 8px;
+}
+
+.form-confirmation label {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 10px;
+
+    cursor: pointer;
+}
+
+.form-confirmation input {
+    width: 16px;
+    height: 16px;
+
+    margin-top: 2px;
+
+    flex-shrink: 0;
+
+    accent-color: #2563eb;
+
+    cursor: pointer;
+}
+
+.form-confirmation span {
+    color: #64748b;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================
+   FORM ACTIONS
+========================================= */
+
+.form-actions {
+    margin-top: 25px;
+
+    padding-top: 22px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+.form-actions button {
+    min-height: 42px;
+
+    padding: 0 18px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-family: inherit;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    transition: all 0.3s ease;
+}
+
+.reset-button {
+    background: #e2e8f0;
+
+    color: #334155;
+}
+
+.reset-button:hover {
+    background: #cbd5e1;
+}
+
+.add-book-button {
+    background: #2563eb;
+
+    color: #ffffff;
+}
+
+.add-book-button:hover {
+    background: #1d4ed8;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 18px rgba(37, 99, 235, 0.20);
+}
+
+
+/* =========================================
+   LIVE PREVIEW CARD
+========================================= */
+
+.book-preview-card {
+    position: sticky;
+
+    top: 25px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 14px;
+
+    overflow: hidden;
+}
+
+.preview-card-header {
+    padding: 22px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.preview-card-header h2 {
+    margin: 0;
+
+    color: #0f172a;
+
+    font-size: 21px;
+}
+
+
+/* =========================================
+   LIVE BOOK COVER
+========================================= */
+
+.preview-book-cover {
+    height: 250px;
+
+    margin: 20px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 10px;
+
+    overflow: hidden;
+}
+
+.preview-book-cover img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.preview-book-icon {
+    width: 80px;
+    height: 105px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: #eff6ff;
+
+    border-radius: 9px;
+
+    font-size: 35px;
+}
+
+.preview-book-cover span {
+    color: #94a3b8;
+
+    font-size: 11px;
+}
+
+
+/* =========================================
+   LIVE BOOK DETAILS
+========================================= */
+
+.live-book-details {
+    padding: 0 22px 20px;
+}
+
+.live-book-details h3 {
+    margin: 0 0 6px;
+
+    color: #0f172a;
+
+    font-size: 19px;
+
+    line-height: 1.4;
+}
+
+.live-book-details > p {
+    margin: 0 0 14px;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+
+/* =========================================
+   PREVIEW META
+========================================= */
+
+.preview-meta {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+    margin-bottom: 14px;
+}
+
+.preview-meta span {
+    padding: 7px 9px;
+
+    background: #f8fafc;
+
+    color: #475569;
+
+    border-radius: 6px;
+
+    font-size: 11px;
+}
+
+
+/* =========================================
+   PREVIEW STATUS
+========================================= */
+
+.preview-status {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 6px 10px;
+
+    border-radius: 20px;
+
+    font-size: 10px;
+
+    font-weight: 700;
+}
+
+.preview-status.available {
+    background: #dcfce7;
+
+    color: #15803d;
+}
+
+.preview-status.issued {
+    background: #dbeafe;
+
+    color: #1d4ed8;
+}
+
+.preview-status.maintenance {
+    background: #fef3c7;
+
+    color: #b45309;
+}
+
+
+/* =========================================
+   PREVIEW INFORMATION
+========================================= */
+
+.preview-information {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    border-top: 1px solid #e2e8f0;
+}
+
+.preview-information > div {
+    padding: 15px 10px;
+
+    text-align: center;
+
+    border-right: 1px solid #e2e8f0;
+}
+
+.preview-information > div:last-child {
+    border-right: none;
+}
+
+.preview-information span {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #94a3b8;
+
+    font-size: 10px;
+}
+
+.preview-information strong {
+    display: block;
+
+    color: #334155;
+
+    font-size: 12px;
+}
+
+
+/* =========================================
+   RECENT BOOKS
+========================================= */
+
+.recent-books-section {
+    max-width: 1200px;
+
+    margin: 30px auto 0;
+
+    padding: 25px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 14px;
+}
+
+.recent-books-header {
+    margin-bottom: 20px;
+
+    display: flex;
+
+    align-items: flex-end;
+
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+.recent-books-header h2 {
+    margin: 0;
+
+    color: #0f172a;
+
+    font-size: 23px;
+}
+
+.recent-books-header a {
+    color: #2563eb;
+
+    text-decoration: none;
+
+    font-size: 12px;
+
+    font-weight: 600;
+}
+
+.recent-books-header a:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================
+   RECENT BOOKS TABLE
+========================================= */
+
+.recent-books-table-wrapper {
+    overflow-x: auto;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 9px;
+}
+
+.recent-books-table-wrapper table {
+    width: 100%;
+
+    min-width: 800px;
+
+    border-collapse: collapse;
+}
+
+.recent-books-table-wrapper thead {
+    background: #f8fafc;
+}
+
+.recent-books-table-wrapper th {
+    padding: 13px;
+
+    border-bottom: 1px solid #e2e8f0;
+
+    color: #475569;
+
+    text-align: left;
+
+    font-size: 11px;
+
+    font-weight: 700;
+}
+
+.recent-books-table-wrapper td {
+    padding: 14px 13px;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    color: #475569;
+
+    font-size: 12px;
+}
+
+.recent-books-table-wrapper tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.recent-books-table-wrapper tbody tr:hover {
+    background: #f8fafc;
+}
+
+
+/* =========================================
+   BOOK STATUS BADGE
+========================================= */
+
+.book-status {
+    display: inline-flex;
+
+    align-items: center;
+
+    padding: 5px 9px;
+
+    border-radius: 20px;
+
+    font-size: 10px;
+
+    font-weight: 700;
+}
+
+.book-status.available {
+    background: #dcfce7;
+
+    color: #15803d;
+}
+
+.book-status.issued {
+    background: #dbeafe;
+
+    color: #1d4ed8;
+}
+
+.book-status.maintenance {
+    background: #fef3c7;
+
+    color: #b45309;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1050px) {
+
+    .add-book-container {
+        grid-template-columns: 1fr;
+    }
+
+    .book-preview-card {
+        position: static;
+    }
+
+}
+
+
+@media (max-width: 800px) {
+
+    .add-book-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .add-book-header-actions {
+        width: 100%;
+    }
+
+    .back-books-button,
+    .report-button {
+        flex: 1;
+    }
+
+    .book-cover-upload {
+        grid-template-columns: 1fr;
+    }
+
+    .cover-preview {
+        min-height: 180px;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .add-book-page {
+        padding: 40px 15px 60px;
+    }
+
+    .add-book-header h1 {
+        font-size: 34px;
+    }
+
+    .add-book-header-actions {
+        flex-direction: column;
+    }
+
+    .back-books-button,
+    .report-button {
+        width: 100%;
+    }
+
+    #addBookForm {
+        padding: 20px;
+    }
+
+    .card-header {
+        padding: 20px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+
+        gap: 0;
+    }
+
+    .form-section-title {
+        margin-bottom: 18px;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+
+    .preview-book-cover {
+        height: 220px;
+    }
+
+    .recent-books-section {
+        padding: 20px;
+    }
+
+    .recent-books-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 400px) {
+
+    .preview-information > div {
+        padding: 12px 6px;
+    }
+
+    .preview-information span {
+        font-size: 9px;
+    }
+
+    .preview-information strong {
+        font-size: 11px;
+    }
+
+}

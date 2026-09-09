@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Member Details | Library Management System
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="assets/css/style.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="assets/css/members.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="assets/css/responsive.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         HEADER
+    ========================================== -->
+
+    <header>
+
+        <nav>
+
+            <div>
+                📚 Library Management System
+            </div>
+
+
+            <div>
+
+                <a href="index.html">
+                    Home
+                </a>
+
+                <a href="dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="books.html">
+                    Books
+                </a>
+
+                <a href="members.html">
+                    Members
+                </a>
+
+                <a href="reports.html">
+                    Reports
+                </a>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+
+    <!-- =========================================
+         MAIN
+    ========================================== -->
+
+    <main class="members-page">
+
+
+        <!-- =====================================
+             PAGE HEADER
+        ====================================== -->
+
+        <section class="members-header">
+
+            <div>
+
+                <span class="page-label">
+                    👤 MEMBER DETAILS
+                </span>
+
+                <h1>
+                    Member Details
+                </h1>
+
+                <p>
+                    View complete member information,
+                    membership status and borrowing history.
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <a
+                    href="members.html"
+                    class="report-button"
+                >
+                    ← Back to Members
+                </a>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             MEMBER DETAILS CARD
+        ====================================== -->
+
+        <section
+            class="members-table-section"
+            id="memberDetailsCard"
+        >
+
+            <!-- JavaScript will load member details here -->
+
+            <div class="members-empty-state">
+
+                <div class="members-empty-icon">
+                    👤
+                </div>
+
+                <h3>
+                    Loading Member Details...
+                </h3>
+
+                <p>
+                    Please wait while member information is loaded.
+                </p>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             TRANSACTION HISTORY
+        ====================================== -->
+
+        <section
+            class="members-table-section"
+            id="memberTransactionsSection"
+        >
+
+            <div class="table-header">
+
+                <div>
+
+                    <h2>
+                        Borrowing History
+                    </h2>
+
+                    <p>
+                        Books issued and returned by this member.
+                    </p>
+
+                </div>
+
+
+                <span id="memberTransactionCount">
+                    0 Transactions
+                </span>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Transaction ID
+                            </th>
+
+                            <th>
+                                Book
+                            </th>
+
+                            <th>
+                                Issue Date
+                            </th>
+
+                            <th>
+                                Due Date
+                            </th>
+
+                            <th>
+                                Return Date
+                            </th>
+
+                            <th>
+                                Fine
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="memberTransactionsBody">
+
+                        <!-- JavaScript will load transactions -->
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer>
+
+        <p>
+            © 2026 Library Management System.
+            All Rights Reserved.
+        </p>
+
+    </footer>
+
+
+
+    <!-- =========================================
+         JAVASCRIPT
+    ========================================== -->
+
+    <script src="assets/js/lms-data.js"></script>
+
+    <script src="assets/js/member-details.js"></script>
+
+
+</body>
+
+</html>

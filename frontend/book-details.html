@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Book Details | Library Management System</title>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+</head>
+
+<body>
+
+    <!-- =========================================
+         NAVBAR
+    ========================================== -->
+
+    <header class="dashboard-navbar">
+
+        <div class="dashboard-logo">
+
+            <span class="dashboard-logo-icon">📚</span>
+
+            <span class="dashboard-logo-text">
+                Library Management System
+            </span>
+
+        </div>
+
+
+        <nav class="dashboard-nav">
+
+            <a href="index.html">Home</a>
+
+            <a href="books.html">Books</a>
+
+            <a href="members.html">Members</a>
+
+            <a href="issue-book.html">Issue Book</a>
+
+            <a href="return-book.html">Return Book</a>
+
+        </nav>
+
+
+        <button
+            type="button"
+            class="mobile-menu-btn"
+            id="mobileMenuBtn"
+            aria-label="Open Menu">
+
+            ☰
+
+        </button>
+
+    </header>
+
+
+
+    <!-- =========================================
+         MAIN CONTENT
+    ========================================== -->
+
+    <main class="book-details-page">
+
+        <div class="book-details-container">
+
+
+            <!-- =========================================
+                 BACK BUTTON
+            ========================================== -->
+
+            <div class="page-back">
+
+                <a href="books.html" class="back-btn">
+                    ← Back to Books
+                </a>
+
+            </div>
+
+
+
+            <!-- =========================================
+                 BOOK DETAILS CARD
+            ========================================== -->
+
+            <section class="book-details-card" id="bookDetailsCard">
+
+                <!-- JavaScript will load book details here -->
+
+                <div class="book-loading">
+
+                    <div class="loading-spinner"></div>
+
+                    <p>Loading book details...</p>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =========================================
+                 BOOK ACTIONS
+            ========================================== -->
+
+            <section class="book-actions-section">
+
+                <a
+                    href="#"
+                    id="issueBookBtn"
+                    class="book-action-btn primary">
+
+                    📖 Issue Book
+
+                </a>
+
+
+                <a
+                    href="#"
+                    id="editBookBtn"
+                    class="book-action-btn secondary">
+
+                    ✏️ Edit Book
+
+                </a>
+
+
+                <a
+                    href="books.html"
+                    class="book-action-btn outline">
+
+                    ← Back to Books
+
+                </a>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer class="dashboard-footer">
+
+        <div class="footer-content">
+
+            <p>
+                © 2026 Library Management System.
+                All Rights Reserved.
+            </p>
+
+        </div>
+
+    </footer>
+
+
+
+    <!-- =========================================
+         JAVASCRIPT
+    ========================================== -->
+
+    <script src="assets/js/book-details.js"></script>
+
+</body>
+
+</html>

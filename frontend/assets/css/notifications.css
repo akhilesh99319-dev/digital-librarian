@@ -1,0 +1,594 @@
+/* =========================================
+   NOTIFICATIONS PAGE
+========================================= */
+
+.notifications-page {
+    min-height: 100vh;
+
+    padding: 60px 30px 80px;
+
+    background: #f8fafc;
+}
+
+
+/* =========================================
+   PAGE HEADER
+========================================= */
+
+.notifications-header {
+    max-width: 1200px;
+
+    margin: 0 auto 35px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 30px;
+}
+
+.page-label {
+    color: #2563eb;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+}
+
+.notifications-header h1 {
+    margin: 8px 0 10px;
+
+    color: #0f172a;
+
+    font-size: 42px;
+}
+
+.notifications-header p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 15px;
+}
+
+
+/* =========================================
+   ACTION BUTTONS
+========================================= */
+
+.notification-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.notification-actions button {
+    border: none;
+
+    padding: 11px 16px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    transition: 0.3s ease;
+}
+
+.secondary-button {
+    background: #e2e8f0;
+
+    color: #334155;
+}
+
+.secondary-button:hover {
+    background: #cbd5e1;
+}
+
+.danger-button {
+    background: #fee2e2;
+
+    color: #b91c1c;
+}
+
+.danger-button:hover {
+    background: #fecaca;
+}
+
+
+/* =========================================
+   STATISTICS
+========================================= */
+
+.notification-statistics {
+    max-width: 1200px;
+
+    margin: 0 auto 30px;
+
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 20px;
+}
+
+.notification-stat-card {
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    padding: 22px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+}
+
+.notification-stat-icon {
+    width: 50px;
+
+    height: 50px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #eff6ff;
+
+    border-radius: 10px;
+
+    font-size: 22px;
+}
+
+.unread-icon {
+    background: #fef3c7;
+}
+
+.notification-stat-card span {
+    display: block;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+.notification-stat-card strong {
+    display: block;
+
+    margin-top: 3px;
+
+    color: #0f172a;
+
+    font-size: 24px;
+}
+
+
+/* =========================================
+   TOOLBAR
+========================================= */
+
+.notification-toolbar {
+    max-width: 1200px;
+
+    margin: 0 auto 20px;
+
+    padding: 18px 20px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+}
+
+
+/* =========================================
+   SEARCH
+========================================= */
+
+.notification-search {
+    width: 350px;
+
+    height: 42px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 0 13px;
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 7px;
+
+    background: #ffffff;
+}
+
+.notification-search:focus-within {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.notification-search input {
+    width: 100%;
+
+    border: none;
+
+    outline: none;
+
+    font-size: 14px;
+}
+
+
+/* =========================================
+   FILTER
+========================================= */
+
+.notification-filter {
+    display: flex;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+}
+
+.filter-button {
+    border: 1px solid #e2e8f0;
+
+    background: #ffffff;
+
+    color: #475569;
+
+    padding: 8px 14px;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    transition: 0.3s ease;
+}
+
+.filter-button:hover {
+    border-color: #93c5fd;
+
+    color: #2563eb;
+}
+
+.filter-button.active {
+    background: #2563eb;
+
+    border-color: #2563eb;
+
+    color: #ffffff;
+}
+
+
+/* =========================================
+   NOTIFICATION LIST
+========================================= */
+
+.notifications-list {
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+
+/* =========================================
+   NOTIFICATION CARD
+========================================= */
+
+.notification-card {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 16px;
+
+    padding: 20px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    transition: 0.3s ease;
+}
+
+.notification-card:hover {
+    border-color: #bfdbfe;
+
+    box-shadow:
+        0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+
+/* UNREAD */
+
+.notification-card.unread {
+    background: #eff6ff;
+
+    border-color: #bfdbfe;
+}
+
+
+/* =========================================
+   ICON
+========================================= */
+
+.notification-icon {
+    width: 48px;
+
+    height: 48px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #e0f2fe;
+
+    font-size: 21px;
+}
+
+.notification-icon.warning {
+    background: #fef3c7;
+}
+
+.notification-icon.danger {
+    background: #fee2e2;
+}
+
+.notification-icon.success {
+    background: #dcfce7;
+}
+
+
+/* =========================================
+   CONTENT
+========================================= */
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-content h3 {
+    margin: 0 0 5px;
+
+    color: #0f172a;
+
+    font-size: 16px;
+}
+
+.notification-content p {
+    margin: 0 0 8px;
+
+    color: #64748b;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+.notification-time {
+    color: #94a3b8;
+
+    font-size: 11px;
+}
+
+
+/* =========================================
+   BADGE
+========================================= */
+
+.notification-badge {
+    display: inline-flex;
+
+    margin-left: 8px;
+
+    padding: 3px 7px;
+
+    border-radius: 10px;
+
+    background: #2563eb;
+
+    color: #ffffff;
+
+    font-size: 9px;
+
+    font-weight: 700;
+}
+
+
+/* =========================================
+   CARD ACTIONS
+========================================= */
+
+.notification-card-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+}
+
+.notification-card-actions button {
+    border: none;
+
+    background: #f1f5f9;
+
+    color: #475569;
+
+    width: 34px;
+
+    height: 34px;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    transition: 0.3s ease;
+}
+
+.notification-card-actions button:hover {
+    background: #e2e8f0;
+
+    color: #0f172a;
+}
+
+.notification-card-actions .delete-notification:hover {
+    background: #fee2e2;
+
+    color: #dc2626;
+}
+
+
+/* =========================================
+   EMPTY STATE
+========================================= */
+
+.empty-notifications {
+    padding: 70px 20px;
+
+    text-align: center;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+}
+
+.empty-notifications-icon {
+    margin-bottom: 10px;
+
+    font-size: 45px;
+}
+
+.empty-notifications h3 {
+    margin: 0 0 5px;
+
+    color: #334155;
+}
+
+.empty-notifications p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 14px;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1000px) {
+
+    .notification-statistics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .notifications-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+}
+
+
+@media (max-width: 750px) {
+
+    .notification-toolbar {
+        align-items: stretch;
+
+        flex-direction: column;
+    }
+
+    .notification-search {
+        width: 100%;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .notifications-page {
+        padding: 40px 15px 60px;
+    }
+
+    .notifications-header h1 {
+        font-size: 34px;
+    }
+
+    .notification-actions {
+        width: 100%;
+
+        flex-direction: column;
+    }
+
+    .notification-actions button {
+        width: 100%;
+    }
+
+    .notification-statistics {
+        grid-template-columns: 1fr;
+    }
+
+    .notification-card {
+        flex-wrap: wrap;
+    }
+
+    .notification-card-actions {
+        width: 100%;
+
+        justify-content: flex-end;
+    }
+
+}

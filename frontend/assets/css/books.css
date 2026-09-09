@@ -1,0 +1,1314 @@
+/* =========================================================
+   LIBRARY MANAGEMENT SYSTEM
+   BOOKS MANAGEMENT PAGE
+   FINAL SIDEBAR + CONTENT LAYOUT
+========================================================= */
+
+
+/* =========================================================
+   GLOBAL RESET
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f7fb;
+    color: #111827;
+}
+
+
+/* =========================================================
+   BOOKS PAGE
+========================================================= */
+
+.books-page {
+    min-height: 100vh;
+
+    margin-left: 320px;
+
+    width: calc(100% - 320px);
+
+    padding: 0;
+
+    background: #f5f7fb;
+
+    position: relative;
+
+    z-index: 1;
+}
+
+
+/* =========================================================
+   BOOKS HEADER
+========================================================= */
+
+.books-header {
+    display: none;
+}
+
+
+/* =========================================================
+   BOOKS NAVBAR
+========================================================= */
+
+.books-navbar {
+    display: none;
+}
+
+
+/* =========================================================
+   MAIN BOOKS CONTENT
+========================================================= */
+
+.books-main {
+
+    margin-left: 320px;
+
+    width: calc(100% - 320px);
+
+    min-height: 100vh;
+
+    padding: 35px 38px;
+
+    background: #f5f7fb;
+
+    position: relative;
+
+    z-index: 1;
+
+    overflow-x: hidden;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.books-page-header {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 25px;
+
+    margin-bottom: 30px;
+
+    padding: 0;
+}
+
+
+.books-page-header h1 {
+
+    margin: 8px 0;
+
+    font-size: 32px;
+
+    line-height: 1.2;
+
+    color: #111827;
+}
+
+
+.books-page-header p {
+
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 15px;
+
+    line-height: 1.6;
+}
+
+
+.page-label {
+
+    display: inline-block;
+
+    color: #2563eb;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+}
+
+
+/* =========================================================
+   REPORT BUTTON
+========================================================= */
+
+.reports-button {
+
+    flex-shrink: 0;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 12px 18px;
+
+    background: #2563eb;
+
+    color: #ffffff;
+
+    text-decoration: none;
+
+    border-radius: 9px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    border: 1px solid #2563eb;
+
+    transition: all 0.2s ease;
+}
+
+
+.reports-button:hover {
+
+    background: #1d4ed8;
+
+    border-color: #1d4ed8;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   BOOK STATISTICS
+========================================================= */
+
+.book-statistics {
+
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 20px;
+
+    margin-bottom: 30px;
+}
+
+
+/* =========================================================
+   STAT CARD
+========================================================= */
+
+.stat-card {
+
+    min-width: 0;
+
+    min-height: 125px;
+
+    padding: 22px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 16px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 4px 15px rgba(15, 23, 42, 0.04);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.stat-card:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+
+.stat-icon {
+
+    width: 55px;
+
+    height: 55px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 13px;
+
+    background: #eff6ff;
+
+    font-size: 24px;
+}
+
+
+.stat-title {
+
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+
+.stat-card strong {
+
+    display: block;
+
+    color: #111827;
+
+    font-size: 27px;
+
+    line-height: 1.1;
+}
+
+
+.available-card .stat-icon {
+
+    background: #ecfdf5;
+}
+
+
+.issued-card .stat-icon {
+
+    background: #fef2f2;
+}
+
+
+/* =========================================================
+   BOOK TOOLBAR
+========================================================= */
+
+.books-toolbar {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    margin-bottom: 25px;
+
+    padding: 18px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    position: relative;
+
+    z-index: 2;
+}
+
+
+/* =========================================================
+   SEARCH BOX
+========================================================= */
+
+.search-box {
+
+    min-width: 0;
+
+    flex: 1;
+
+    height: 46px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 0 14px;
+
+    background: #f8fafc;
+
+    border: 1px solid #dbe4f0;
+
+    border-radius: 8px;
+}
+
+
+.search-icon {
+
+    flex-shrink: 0;
+
+    font-size: 18px;
+}
+
+
+.search-box input {
+
+    width: 100%;
+
+    min-width: 0;
+
+    height: 100%;
+
+    padding: 0;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    color: #111827;
+
+    font-size: 14px;
+}
+
+
+.search-box input::placeholder {
+
+    color: #94a3b8;
+}
+
+
+/* =========================================================
+   FILTER
+========================================================= */
+
+.filter-box {
+
+    flex-shrink: 0;
+}
+
+
+.filter-box select {
+
+    height: 46px;
+
+    min-width: 150px;
+
+    padding: 0 12px;
+
+    background: #ffffff;
+
+    border: 1px solid #dbe4f0;
+
+    border-radius: 8px;
+
+    color: #334155;
+
+    outline: none;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   ADD BOOK BUTTON
+========================================================= */
+
+.add-book-button {
+
+    height: 46px;
+
+    flex-shrink: 0;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    padding: 0 18px;
+
+    background: #2563eb;
+
+    color: #ffffff;
+
+    text-decoration: none;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    transition: 0.2s ease;
+}
+
+
+.add-book-button:hover {
+
+    background: #1d4ed8;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   TABLE SECTION
+========================================================= */
+
+.books-table-section {
+
+    width: 100%;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 14px;
+
+    overflow: hidden;
+
+    position: relative;
+
+    z-index: 2;
+
+    box-shadow:
+        0 4px 15px rgba(15, 23, 42, 0.04);
+}
+
+
+/* =========================================================
+   TABLE HEADER
+========================================================= */
+
+.table-header {
+
+    min-height: 82px;
+
+    padding: 20px 22px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+
+.table-header h2 {
+
+    margin: 0 0 5px;
+
+    font-size: 20px;
+
+    color: #111827;
+}
+
+
+.table-header p {
+
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+
+.book-count {
+
+    flex-shrink: 0;
+
+    padding: 7px 12px;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    border-radius: 20px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.table-wrapper {
+
+    width: 100%;
+
+    overflow-x: auto;
+
+    overflow-y: hidden;
+
+    position: relative;
+
+    z-index: 3;
+}
+
+
+/* =========================================================
+   BOOK TABLE
+========================================================= */
+
+.books-table {
+
+    width: 100%;
+
+    min-width: 1000px;
+
+    border-collapse: collapse;
+
+    background: #ffffff;
+}
+
+
+.books-table th {
+
+    padding: 15px 16px;
+
+    background: #f8fafc;
+
+    color: #475569;
+
+    text-align: left;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.4px;
+
+    border-bottom: 1px solid #e2e8f0;
+
+    white-space: nowrap;
+}
+
+
+.books-table td {
+
+    padding: 17px 16px;
+
+    color: #334155;
+
+    font-size: 13px;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    vertical-align: middle;
+
+    white-space: nowrap;
+}
+
+
+.books-table tbody tr {
+
+    transition: background 0.2s ease;
+}
+
+
+.books-table tbody tr:hover {
+
+    background: #f8fafc;
+}
+
+
+.books-table tbody tr:last-child td {
+
+    border-bottom: none;
+}
+
+
+/* =========================================================
+   BOOK INFO
+========================================================= */
+
+.book-info {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    min-width: 230px;
+}
+
+
+.book-cover {
+
+    width: 42px;
+
+    height: 52px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 7px;
+
+    background: #eff6ff;
+
+    font-size: 20px;
+
+    border: 1px solid #dbeafe;
+}
+
+
+.book-info strong {
+
+    display: block;
+
+    max-width: 240px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    margin-bottom: 4px;
+
+    color: #111827;
+
+    font-size: 14px;
+}
+
+
+.book-info span {
+
+    display: block;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 78px;
+
+    padding: 6px 10px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+}
+
+
+.status-badge.available {
+
+    background: #dcfce7;
+
+    color: #166534;
+}
+
+
+.status-badge.issued {
+
+    background: #fee2e2;
+
+    color: #991b1b;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.action-buttons {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+}
+
+
+.edit-button,
+.delete-button {
+
+    width: 34px;
+
+    height: 34px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 7px;
+
+    border: 1px solid #e2e8f0;
+
+    background: #ffffff;
+
+    cursor: pointer;
+
+    font-size: 15px;
+
+    transition: 0.2s ease;
+}
+
+
+.edit-button:hover {
+
+    background: #eff6ff;
+
+    border-color: #bfdbfe;
+}
+
+
+.delete-button:hover {
+
+    background: #fef2f2;
+
+    border-color: #fecaca;
+}
+
+
+/* =========================================================
+   NO BOOKS MESSAGE
+========================================================= */
+
+.no-books-message {
+
+    display: none;
+
+    padding: 45px 20px;
+
+    text-align: center;
+
+    color: #64748b;
+
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   QUICK LINKS
+========================================================= */
+
+.books-quick-links {
+
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, minmax(0, 1fr));
+
+    gap: 15px;
+
+    margin-top: 25px;
+}
+
+
+.books-quick-links a {
+
+    min-height: 75px;
+
+    padding: 15px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 10px;
+
+    color: #334155;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    transition: 0.2s ease;
+}
+
+
+.books-quick-links a:hover {
+
+    background: #eff6ff;
+
+    border-color: #bfdbfe;
+
+    color: #2563eb;
+
+    transform: translateY(-2px);
+}
+
+
+.books-quick-links a:first-child {
+
+    color: #2563eb;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.books-footer {
+
+    margin-left: 320px;
+
+    width: calc(100% - 320px);
+
+    padding: 22px 35px;
+
+    background: #ffffff;
+
+    border-top: 1px solid #e2e8f0;
+
+    text-align: center;
+
+    position: relative;
+
+    z-index: 1;
+}
+
+
+.books-footer p {
+
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   IMPORTANT SIDEBAR LAYER FIX
+========================================================= */
+
+/*
+   Sidebar must always remain above Books page.
+*/
+
+.dashboard-sidebar {
+
+    position: fixed !important;
+
+    top: 0 !important;
+
+    left: 0 !important;
+
+    width: 320px !important;
+
+    height: 100vh !important;
+
+    z-index: 99999 !important;
+
+    overflow-y: auto !important;
+
+    overflow-x: hidden !important;
+}
+
+
+/*
+   Books content stays completely beside sidebar.
+*/
+
+.books-main {
+
+    position: relative !important;
+
+    z-index: 1 !important;
+
+    margin-left: 320px !important;
+
+    width: calc(100% - 320px) !important;
+}
+
+
+/*
+   Footer also stays beside sidebar.
+*/
+
+.books-footer {
+
+    margin-left: 320px !important;
+
+    width: calc(100% - 320px) !important;
+
+    position: relative;
+
+    z-index: 1;
+}
+
+
+/*
+   Prevent any Books element from creating
+   an unwanted full-screen layer.
+*/
+
+.books-main * {
+
+    max-width: 100%;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1200px) {
+
+    .dashboard-sidebar {
+
+        width: 280px !important;
+    }
+
+
+    .books-main {
+
+        margin-left: 280px !important;
+
+        width: calc(100% - 280px) !important;
+
+        padding: 30px;
+    }
+
+
+    .books-footer {
+
+        margin-left: 280px !important;
+
+        width: calc(100% - 280px) !important;
+    }
+
+
+    .book-statistics {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+
+    .books-quick-links {
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =========================================================
+   SMALL TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .dashboard-sidebar {
+
+        width: 280px !important;
+
+        transform: translateX(-100%);
+
+        transition: transform 0.3s ease;
+
+        z-index: 99999 !important;
+    }
+
+
+    .dashboard-sidebar.open {
+
+        transform: translateX(0);
+    }
+
+
+    .books-main {
+
+        margin-left: 0 !important;
+
+        width: 100% !important;
+
+        padding: 28px 22px;
+    }
+
+
+    .books-footer {
+
+        margin-left: 0 !important;
+
+        width: 100% !important;
+    }
+
+
+    .books-page-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .books-toolbar {
+
+        flex-wrap: wrap;
+    }
+
+
+    .search-box {
+
+        flex-basis: 100%;
+    }
+
+
+    .filter-box {
+
+        flex: 1;
+    }
+
+
+    .filter-box select {
+
+        width: 100%;
+    }
+
+
+    .add-book-button {
+
+        flex: 1;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+
+    .books-main {
+
+        padding: 22px 15px;
+    }
+
+
+    .books-page-header h1 {
+
+        font-size: 27px;
+    }
+
+
+    .books-page-header p {
+
+        font-size: 14px;
+    }
+
+
+    .reports-button {
+
+        width: 100%;
+    }
+
+
+    .book-statistics {
+
+        grid-template-columns: 1fr;
+
+        gap: 15px;
+    }
+
+
+    .books-toolbar {
+
+        padding: 14px;
+
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+
+    .search-box {
+
+        width: 100%;
+
+        flex-basis: auto;
+    }
+
+
+    .filter-box {
+
+        width: 100%;
+    }
+
+
+    .add-book-button {
+
+        width: 100%;
+
+        flex: none;
+    }
+
+
+    .table-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .books-quick-links {
+
+        grid-template-columns: 1fr 1fr;
+    }
+
+
+    .books-footer {
+
+        padding: 20px 15px;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 420px) {
+
+    .books-main {
+
+        padding: 20px 12px;
+    }
+
+
+    .books-quick-links {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    .stat-card {
+
+        padding: 18px;
+    }
+
+
+    .stat-icon {
+
+        width: 50px;
+
+        height: 50px;
+    }
+
+}
+/* =========================================
+   BOOKS SIDEBAR WIDTH FIX
+========================================= */
+
+.dashboard-sidebar {
+    width: 300px !important;
+    min-width: 300px !important;
+    max-width: 300px !important;
+}
+
+/* Books content starts exactly after sidebar */
+
+.books-main {
+    margin-left: 300px !important;
+    width: calc(100% - 300px) !important;
+    box-sizing: border-box;
+}
+
+
+/* =========================================
+   TABLET / MOBILE
+========================================= */
+
+@media (max-width: 900px) {
+
+    .dashboard-sidebar {
+        width: 280px !important;
+        min-width: 280px !important;
+        max-width: 280px !important;
+    }
+
+    .books-main {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+}

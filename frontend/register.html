@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Register | Library Management System</title>
+
+    <!-- Register CSS -->
+    <link rel="stylesheet" href="./assets/css/register.css">
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         REGISTER PAGE
+    ========================================== -->
+
+    <main class="register-page">
+
+
+        <!-- =====================================
+             REGISTER CONTAINER
+        ====================================== -->
+
+        <div class="register-container">
+
+
+            <!-- =================================
+                 LEFT SIDE
+            ================================== -->
+
+            <section class="register-info">
+
+                <div class="brand">
+
+                    <div class="brand-icon">
+                        📚
+                    </div>
+
+                    <h1>
+                        Library Management System
+                    </h1>
+
+                </div>
+
+
+                <div class="info-content">
+
+                    <span class="eyebrow">
+                        📚 JOIN OUR LIBRARY
+                    </span>
+
+                    <h2>
+                        Create Your
+                        <span>Library Account</span>
+                    </h2>
+
+                    <p>
+                        Register your account and get access to
+                        books, borrowing records, notifications
+                        and other library services.
+                    </p>
+
+                </div>
+
+
+                <!-- Benefits -->
+
+                <div class="benefits">
+
+                    <div class="benefit-item">
+
+                        <span class="benefit-icon">
+                            📖
+                        </span>
+
+                        <div>
+                            <h3>
+                                Explore Books
+                            </h3>
+
+                            <p>
+                                Search and explore available books.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="benefit-item">
+
+                        <span class="benefit-icon">
+                            📤
+                        </span>
+
+                        <div>
+                            <h3>
+                                Manage Borrowing
+                            </h3>
+
+                            <p>
+                                Track your issued and returned books.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="benefit-item">
+
+                        <span class="benefit-icon">
+                            🔔
+                        </span>
+
+                        <div>
+                            <h3>
+                                Get Notifications
+                            </h3>
+
+                            <p>
+                                Stay updated with library activities.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================
+                 RIGHT SIDE
+            ================================== -->
+
+            <section class="register-form-section">
+
+
+                <div class="register-card">
+
+
+                    <!-- Header -->
+
+                    <div class="form-header">
+
+                        <span class="form-icon">
+                            👤
+                        </span>
+
+                        <h2>
+                            Create Account
+                        </h2>
+
+                        <p>
+                            Fill in the details below to register.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Register Form -->
+
+                    <form id="registerForm">
+
+
+                        <!-- Full Name -->
+
+                        <div class="form-group">
+
+                            <label for="fullName">
+                                Full Name
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <span class="input-icon">
+                                    👤
+                                </span>
+
+                                <input
+                                    type="text"
+                                    id="fullName"
+                                    name="fullName"
+                                    placeholder="Enter your full name"
+                                    autocomplete="name"
+                                    required
+                                >
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Email -->
+
+                        <div class="form-group">
+
+                            <label for="email">
+                                Email Address
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <span class="input-icon">
+                                    ✉️
+                                </span>
+
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    placeholder="Enter your email address"
+                                    autocomplete="email"
+                                    required
+                                >
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Phone -->
+
+                        <div class="form-group">
+
+                            <label for="phone">
+                                Phone Number
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <span class="input-icon">
+                                    📱
+                                </span>
+
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    placeholder="Enter your phone number"
+                                    autocomplete="tel"
+                                >
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Role -->
+
+                        <div class="form-group">
+
+                            <label for="role">
+                                Account Type
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <span class="input-icon">
+                                    🎓
+                                </span>
+
+                                <select
+                                    id="role"
+                                    name="role"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Select account type
+                                    </option>
+
+                                    <option value="member">
+                                        Member
+                                    </option>
+
+                                    <option value="librarian">
+                                        Librarian
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Password -->
+
+                        <div class="form-group">
+
+                            <label for="password">
+                                Password
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <span class="input-icon">
+                                    🔒
+                                </span>
+
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    placeholder="Create a password"
+                                    autocomplete="new-password"
+                                    required
+                                >
+
+                                <button
+                                    type="button"
+                                    class="password-toggle"
+                                    id="passwordToggle"
+                                    aria-label="Show password"
+                                >
+                                    👁️
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Confirm Password -->
+
+                        <div class="form-group">
+
+                            <label for="confirmPassword">
+                                Confirm Password
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <span class="input-icon">
+                                    🔐
+                                </span>
+
+                                <input
+                                    type="password"
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    placeholder="Confirm your password"
+                                    autocomplete="new-password"
+                                    required
+                                >
+
+                                <button
+                                    type="button"
+                                    class="password-toggle"
+                                    id="confirmPasswordToggle"
+                                    aria-label="Show password"
+                                >
+                                    👁️
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Terms -->
+
+                        <div class="terms-group">
+
+                            <label class="checkbox-label">
+
+                                <input
+                                    type="checkbox"
+                                    id="terms"
+                                    name="terms"
+                                    required
+                                >
+
+                                <span>
+                                    I agree to the
+                                    <a href="#">
+                                        Terms & Conditions
+                                    </a>
+                                    and
+                                    <a href="#">
+                                        Privacy Policy
+                                    </a>.
+                                </span>
+
+                            </label>
+
+                        </div>
+
+
+
+                        <!-- Message -->
+
+                        <div
+                            id="formMessage"
+                            class="form-message"
+                            role="alert"
+                        ></div>
+
+
+
+                        <!-- Submit -->
+
+                        <button
+                            type="submit"
+                            class="register-button"
+                        >
+
+                            <span>
+                                Create Account
+                            </span>
+
+                            <span>
+                                →
+                            </span>
+
+                        </button>
+
+
+                    </form>
+
+
+
+                    <!-- Login Link -->
+
+                    <div class="login-link">
+
+                        Already have an account?
+
+                        <a href="./login.html">
+                            Login
+                        </a>
+
+                    </div>
+
+
+
+                    <!-- Back Home -->
+
+                    <a
+                        href="./index.html"
+                        class="back-home"
+                    >
+                        ← Back to Home
+                    </a>
+
+
+                </div>
+
+
+            </section>
+
+
+        </div>
+
+
+    </main>
+
+
+
+    <!-- Register JavaScript -->
+
+    <script src="./assets/js/register.js"></script>
+
+
+</body>
+
+</html>

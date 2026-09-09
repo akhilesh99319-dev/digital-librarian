@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Dashboard | Library Management System
+    </title>
+
+
+    <!-- =========================================
+         MAIN CSS
+    ========================================== -->
+
+    <link
+        rel="stylesheet"
+        href="assets/css/style.css"
+    >
+
+
+    <!-- =========================================
+         DASHBOARD CSS
+    ========================================== -->
+
+    <link
+        rel="stylesheet"
+        href="assets/css/dashboard.css"
+    >
+
+
+    <!-- =========================================
+         RESPONSIVE CSS
+    ========================================== -->
+
+    <link
+        rel="stylesheet"
+        href="assets/css/responsive.css"
+    >
+
+</head>
+
+
+<body class="dashboard-page">
+
+
+    <!-- =========================================
+         DASHBOARD SIDEBAR
+    ========================================== -->
+
+    <aside
+        class="dashboard-sidebar"
+        id="dashboardSidebar"
+    >
+
+
+        <!-- LOGO -->
+
+        <div class="sidebar-logo">
+
+            <span class="sidebar-logo-icon">
+                📚
+            </span>
+
+            <span>
+                Library LMS
+            </span>
+
+        </div>
+
+
+
+        <!-- =====================================
+             NAVIGATION
+        ====================================== -->
+
+        <nav class="sidebar-navigation">
+
+
+            <!-- Dashboard -->
+
+            <a
+                href="./dashboard.html"
+                class="sidebar-link active"
+            >
+
+                <span class="sidebar-icon">
+                    📊
+                </span>
+
+                <span>
+                    Dashboard
+                </span>
+
+            </a>
+
+
+
+            <!-- Books -->
+
+            <a
+                href="./books.html"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    📚
+                </span>
+
+                <span>
+                    Books
+                </span>
+
+            </a>
+
+
+
+            <!-- Available Books -->
+
+            <a
+                href="./available-books.html"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    📖
+                </span>
+
+                <span>
+                    Available Books
+                </span>
+
+            </a>
+
+
+
+            <!-- Members -->
+
+            <a
+                href="./members.html"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    👥
+                </span>
+
+                <span>
+                    Members
+                </span>
+
+            </a>
+
+
+
+            <!-- Issue Book -->
+
+            <a
+                href="./issue-book.html"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    📤
+                </span>
+
+                <span>
+                    Issue Book
+                </span>
+
+            </a>
+
+
+
+            <!-- Return Book -->
+
+            <a
+                href="./return-book.html"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    🔄
+                </span>
+
+                <span>
+                    Return Book
+                </span>
+
+            </a>
+
+
+
+            <!-- My Books -->
+
+            <a
+                href="./my-books.html"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    📕
+                </span>
+
+                <span>
+                    My Books
+                </span>
+
+            </a>
+
+
+
+            <!-- =================================
+                 REPORTS
+            ================================== -->
+
+            <div class="sidebar-section-title">
+                REPORTS
+            </div>
+
+
+
+            <!-- Books Report -->
+
+            <a
+                href="./books-report.html"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    📈
+                </span>
+
+                <span>
+                    Books Report
+                </span>
+
+            </a>
+
+
+
+            <!-- Members Report -->
+
+            <a
+                href="./books-report.html#members-report"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    👥
+                </span>
+
+                <span>
+                    Members Report
+                </span>
+
+            </a>
+
+
+
+            <!-- Issue Report -->
+
+            <a
+                href="./books-report.html#issue-report"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    📤
+                </span>
+
+                <span>
+                    Issue Report
+                </span>
+
+            </a>
+
+
+
+            <!-- Return Report -->
+
+            <a
+                href="./books-report.html#return-report"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    🔄
+                </span>
+
+                <span>
+                    Return Report
+                </span>
+
+            </a>
+
+
+
+            <!-- =================================
+                 OTHER
+            ================================== -->
+
+            <div class="sidebar-section-title">
+                OTHER
+            </div>
+
+
+
+            <!-- Notifications -->
+
+            <a
+                href="./notifications.html"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    🔔
+                </span>
+
+                <span>
+                    Notifications
+                </span>
+
+            </a>
+
+
+
+            <!-- Profile -->
+
+            <a
+                href="./profile.html"
+                class="sidebar-link"
+            >
+
+                <span class="sidebar-icon">
+                    👤
+                </span>
+
+                <span>
+                    Profile
+                </span>
+
+            </a>
+
+        </nav>
+
+
+
+        <!-- =====================================
+             LOGOUT
+        ====================================== -->
+
+        <div class="sidebar-bottom">
+
+            <a
+                href="./login.html"
+                class="sidebar-link logout-link"
+            >
+
+                <span class="sidebar-icon">
+                    🚪
+                </span>
+
+                <span>
+                    Logout
+                </span>
+
+            </a>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =========================================
+         MOBILE MENU BUTTON
+    ========================================== -->
+
+    <button
+        type="button"
+        class="mobile-menu-btn"
+        id="mobileMenuBtn"
+        aria-label="Open navigation menu"
+    >
+        ☰
+    </button>
+
+
+
+    <!-- =========================================
+         DASHBOARD MAIN CONTENT
+    ========================================== -->
+
+    <main class="dashboard-main">
+
+
+        <!-- =====================================
+             TOP HEADER
+        ====================================== -->
+
+        <header class="dashboard-topbar">
+
+
+            <div class="dashboard-heading">
+
+                <h1>
+                    Dashboard
+                </h1>
+
+                <p>
+                    Welcome back! Here's what's happening
+                    in your library.
+                </p>
+
+            </div>
+
+
+
+            <!-- USER AREA -->
+
+            <div class="dashboard-user-area">
+
+
+                <!-- Notifications -->
+
+                <a
+                    href="./notifications.html"
+                    class="notification-button"
+                    title="Notifications"
+                >
+
+                    🔔
+
+                    <span class="notification-count">
+                        3
+                    </span>
+
+                </a>
+
+
+
+                <!-- Profile -->
+
+                <a
+                    href="./profile.html"
+                    class="dashboard-user"
+                >
+
+                    <span class="dashboard-user-icon">
+                        👤
+                    </span>
+
+                    <span class="dashboard-user-info">
+
+                        <strong>
+                            Akhilesh Kumar
+                        </strong>
+
+                        <small>
+                            Library Member
+                        </small>
+
+                    </span>
+
+                </a>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =====================================
+             PAGE CONTENT
+        ====================================== -->
+
+        <div class="dashboard-content">
+
+
+            <!-- =================================
+                 LIBRARY OVERVIEW
+            ================================== -->
+
+            <section class="dashboard-section">
+
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <h2>
+                            Library Overview
+                        </h2>
+
+                        <p>
+                            Quick overview of your library.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- STATISTICS -->
+
+                <div class="dashboard-statistics">
+
+
+                    <!-- Total Books -->
+
+                    <div class="dashboard-stat-card">
+
+                        <div class="dashboard-stat-icon">
+                            📚
+                        </div>
+
+                        <div class="dashboard-stat-content">
+
+                            <span>
+                                Total Books
+                            </span>
+
+                            <strong id="dashboardTotalBooks">
+                                1,250
+                            </strong>
+
+                            <small>
+                                Books in library
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Total Members -->
+
+                    <div class="dashboard-stat-card">
+
+                        <div class="dashboard-stat-icon">
+                            👥
+                        </div>
+
+                        <div class="dashboard-stat-content">
+
+                            <span>
+                                Total Members
+                            </span>
+
+                            <strong id="dashboardTotalMembers">
+                                320
+                            </strong>
+
+                            <small>
+                                Registered members
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Issued Books -->
+
+                    <div class="dashboard-stat-card">
+
+                        <div class="dashboard-stat-icon">
+                            📤
+                        </div>
+
+                        <div class="dashboard-stat-content">
+
+                            <span>
+                                Issued Books
+                            </span>
+
+                            <strong id="dashboardIssuedBooks">
+                                185
+                            </strong>
+
+                            <small>
+                                Currently issued
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Returned Books -->
+
+                    <div class="dashboard-stat-card">
+
+                        <div class="dashboard-stat-icon">
+                            🔄
+                        </div>
+
+                        <div class="dashboard-stat-content">
+
+                            <span>
+                                Returned Books
+                            </span>
+
+                            <strong id="dashboardReturnedBooks">
+                                1,065
+                            </strong>
+
+                            <small>
+                                Successfully returned
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================
+                 REPORTS
+            ================================== -->
+
+            <section class="dashboard-section">
+
+
+                <div class="section-heading">
+
+
+                    <div>
+
+                        <h2>
+                            Reports
+                        </h2>
+
+                        <p>
+                            View and manage important
+                            library reports.
+                        </p>
+
+                    </div>
+
+
+                    <a
+                        href="./books-report.html"
+                        class="view-all-button"
+                    >
+                        View All Reports
+                    </a>
+
+                </div>
+
+
+
+                <!-- REPORT CARDS -->
+
+                <div class="dashboard-report-grid">
+
+
+                    <!-- Books Report -->
+
+                    <a
+                        href="./books-report.html"
+                        class="dashboard-report-card"
+                    >
+
+                        <div class="report-icon">
+                            📚
+                        </div>
+
+                        <div class="report-content">
+
+                            <h3>
+                                Books Report
+                            </h3>
+
+                            <p>
+                                View total, available and
+                                issued books.
+                            </p>
+
+                        </div>
+
+                        <span class="report-arrow">
+                            →
+                        </span>
+
+                    </a>
+
+
+
+                    <!-- Members Report -->
+
+                    <a
+                        href="./books-report.html#members-report"
+                        class="dashboard-report-card"
+                    >
+
+                        <div class="report-icon">
+                            👥
+                        </div>
+
+                        <div class="report-content">
+
+                            <h3>
+                                Members Report
+                            </h3>
+
+                            <p>
+                                View registered and active
+                                members.
+                            </p>
+
+                        </div>
+
+                        <span class="report-arrow">
+                            →
+                        </span>
+
+                    </a>
+
+
+
+                    <!-- Issue Report -->
+
+                    <a
+                        href="./books-report.html#issue-report"
+                        class="dashboard-report-card"
+                    >
+
+                        <div class="report-icon">
+                            📤
+                        </div>
+
+                        <div class="report-content">
+
+                            <h3>
+                                Issue Report
+                            </h3>
+
+                            <p>
+                                Track issued books and
+                                due dates.
+                            </p>
+
+                        </div>
+
+                        <span class="report-arrow">
+                            →
+                        </span>
+
+                    </a>
+
+
+
+                    <!-- Return Report -->
+
+                    <a
+                        href="./books-report.html#return-report"
+                        class="dashboard-report-card"
+                    >
+
+                        <div class="report-icon">
+                            🔄
+                        </div>
+
+                        <div class="report-content">
+
+                            <h3>
+                                Return Report
+                            </h3>
+
+                            <p>
+                                Track returned books
+                                and history.
+                            </p>
+
+                        </div>
+
+                        <span class="report-arrow">
+                            →
+                        </span>
+
+                    </a>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================
+                 QUICK ACTIONS
+            ================================== -->
+
+            <section class="dashboard-section">
+
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <h2>
+                            Quick Actions
+                        </h2>
+
+                        <p>
+                            Quickly access common
+                            library operations.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="quick-actions-grid">
+
+
+                    <!-- Add Book -->
+
+                    <a
+                        href="./add-book.html"
+                        class="quick-action-card"
+                    >
+
+                        <span class="quick-action-icon">
+                            ➕
+                        </span>
+
+                        <span>
+                            Add New Book
+                        </span>
+
+                    </a>
+
+
+
+                    <!-- Add Member -->
+
+                    <a
+                        href="./members.html"
+                        class="quick-action-card"
+                    >
+
+                        <span class="quick-action-icon">
+                            👤
+                        </span>
+
+                        <span>
+                            Add Member
+                        </span>
+
+                    </a>
+
+
+
+                    <!-- Issue Book -->
+
+                    <a
+                        href="./issue-book.html"
+                        class="quick-action-card"
+                    >
+
+                        <span class="quick-action-icon">
+                            📤
+                        </span>
+
+                        <span>
+                            Issue Book
+                        </span>
+
+                    </a>
+
+
+
+                    <!-- Return Book -->
+
+                    <a
+                        href="./return-book.html"
+                        class="quick-action-card"
+                    >
+
+                        <span class="quick-action-icon">
+                            🔄
+                        </span>
+
+                        <span>
+                            Return Book
+                        </span>
+
+                    </a>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================
+                 RECENT ACTIVITIES + NOTIFICATIONS
+            ================================== -->
+
+            <section class="dashboard-bottom-grid">
+
+
+                <!-- Recent Activities -->
+
+                <div class="dashboard-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <h2>
+                                Recent Activities
+                            </h2>
+
+                            <p>
+                                Latest library activities
+                            </p>
+
+                        </div>
+
+                        <a
+                            href="./books-report.html"
+                        >
+                            View Report
+                        </a>
+
+                    </div>
+
+
+
+                    <div class="activity-list">
+
+
+                        <div class="activity-item">
+
+                            <span class="activity-icon">
+                                📤
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    Book issued
+                                </strong>
+
+                                <p>
+                                    A book was issued to
+                                    a library member.
+                                </p>
+
+                            </div>
+
+                            <small>
+                                Today
+                            </small>
+
+                        </div>
+
+
+
+                        <div class="activity-item">
+
+                            <span class="activity-icon">
+                                📥
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    Book returned
+                                </strong>
+
+                                <p>
+                                    A borrowed book was
+                                    successfully returned.
+                                </p>
+
+                            </div>
+
+                            <small>
+                                Today
+                            </small>
+
+                        </div>
+
+
+
+                        <div class="activity-item">
+
+                            <span class="activity-icon">
+                                👤
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    New member registered
+                                </strong>
+
+                                <p>
+                                    A new member joined
+                                    the library.
+                                </p>
+
+                            </div>
+
+                            <small>
+                                Yesterday
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Notifications -->
+
+                <div class="dashboard-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <h2>
+                                Notifications
+                            </h2>
+
+                            <p>
+                                Important updates
+                            </p>
+
+                        </div>
+
+                        <a
+                            href="./notifications.html"
+                        >
+                            View All
+                        </a>
+
+                    </div>
+
+
+
+                    <div class="notification-list">
+
+
+                        <a
+                            href="./notifications.html"
+                            class="dashboard-notification"
+                        >
+
+                            <span>
+                                🔔
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    Book due soon
+                                </strong>
+
+                                <p>
+                                    A borrowed book is
+                                    approaching its due date.
+                                </p>
+
+                            </div>
+
+                        </a>
+
+
+
+                        <a
+                            href="./notifications.html"
+                            class="dashboard-notification"
+                        >
+
+                            <span>
+                                📚
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    New books available
+                                </strong>
+
+                                <p>
+                                    New books have been
+                                    added to the library.
+                                </p>
+
+                            </div>
+
+                        </a>
+
+
+
+                        <a
+                            href="./notifications.html"
+                            class="dashboard-notification"
+                        >
+
+                            <span>
+                                👥
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    Member update
+                                </strong>
+
+                                <p>
+                                    Member information has
+                                    been updated.
+                                </p>
+
+                            </div>
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+        </div>
+
+    </main>
+
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer class="dashboard-footer">
+
+        <p>
+            © 2026 Library Management System.
+            All Rights Reserved.
+        </p>
+
+    </footer>
+
+
+
+    <!-- =========================================
+         DASHBOARD JAVASCRIPT
+    ========================================== -->
+
+    <script
+        src="assets/js/dashboard.js"
+    ></script>
+
+
+</body>
+
+</html>

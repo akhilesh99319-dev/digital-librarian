@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Library Management System - Transaction History"
+    >
+
+    <title>
+        Transactions | Library Management System
+    </title>
+
+
+    <!-- =========================================
+         MAIN CSS
+    ========================================== -->
+
+    <link
+        rel="stylesheet"
+        href="assets/css/style.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="assets/css/responsive.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     DASHBOARD NAVBAR
+========================================== -->
+
+<header class="dashboard-navbar">
+
+    <div class="dashboard-logo">
+
+        <span class="dashboard-logo-icon">
+            📚
+        </span>
+
+        <span class="dashboard-logo-text">
+            Library Management System
+        </span>
+
+    </div>
+
+
+    <!-- MOBILE MENU BUTTON -->
+
+    <button
+        type="button"
+        id="mobileMenuBtn"
+        class="mobile-menu-btn"
+        aria-label="Open navigation menu"
+    >
+        ☰
+    </button>
+
+
+    <!-- NAVIGATION -->
+
+    <nav class="dashboard-nav">
+
+        <a href="index.html">
+            Home
+        </a>
+
+        <a href="books.html">
+            Books
+        </a>
+
+        <a href="members.html">
+            Members
+        </a>
+
+        <a href="transactions.html"
+           class="active">
+            Transactions
+        </a>
+
+        <a href="add-book.html">
+            Add Book
+        </a>
+
+    </nav>
+
+</header>
+
+
+
+<!-- =========================================
+     MAIN CONTENT
+========================================== -->
+
+<main class="transactions-page">
+
+
+    <!-- =========================================
+         PAGE HEADER
+    ========================================== -->
+
+    <section class="page-header">
+
+        <div>
+
+            <span class="page-eyebrow">
+                LIBRARY MANAGEMENT
+            </span>
+
+            <h1>
+                Transaction History
+            </h1>
+
+            <p>
+                Track issued books, returned books,
+                due dates and fines.
+            </p>
+
+        </div>
+
+
+        <div class="page-header-actions">
+
+            <a
+                href="issue-book.html"
+                class="primary-btn"
+            >
+                + Issue Book
+            </a>
+
+            <a
+                href="return-book.html"
+                class="secondary-btn"
+            >
+                ↩ Return Book
+            </a>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================
+         TRANSACTION STATISTICS
+    ========================================== -->
+
+    <section class="transaction-stats">
+
+
+        <!-- TOTAL -->
+
+        <div class="transaction-stat-card">
+
+            <div class="stat-icon">
+                📊
+            </div>
+
+            <div>
+
+                <span class="stat-label">
+                    Total Transactions
+                </span>
+
+                <strong
+                    id="totalTransactions"
+                    class="stat-value"
+                >
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ISSUED -->
+
+        <div class="transaction-stat-card">
+
+            <div class="stat-icon">
+                📖
+            </div>
+
+            <div>
+
+                <span class="stat-label">
+                    Currently Issued
+                </span>
+
+                <strong
+                    id="issuedTransactions"
+                    class="stat-value"
+                >
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- RETURNED -->
+
+        <div class="transaction-stat-card">
+
+            <div class="stat-icon">
+                ✅
+            </div>
+
+            <div>
+
+                <span class="stat-label">
+                    Returned
+                </span>
+
+                <strong
+                    id="returnedTransactions"
+                    class="stat-value"
+                >
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- OVERDUE -->
+
+        <div class="transaction-stat-card">
+
+            <div class="stat-icon">
+                ⚠️
+            </div>
+
+            <div>
+
+                <span class="stat-label">
+                    Overdue
+                </span>
+
+                <strong
+                    id="overdueTransactions"
+                    class="stat-value"
+                >
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =========================================
+         TRANSACTION CONTENT CARD
+    ========================================== -->
+
+    <section class="transactions-card">
+
+
+        <!-- =====================================
+             TOOLBAR
+        ====================================== -->
+
+        <div class="transactions-toolbar">
+
+
+            <!-- SEARCH -->
+
+            <div class="transaction-search">
+
+                <span class="search-icon">
+                    🔍
+                </span>
+
+                <input
+                    type="search"
+                    id="transactionSearch"
+                    placeholder="Search by book, member or transaction ID..."
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+
+            <!-- STATUS FILTER -->
+
+            <div class="transaction-filter">
+
+                <label
+                    for="transactionStatusFilter"
+                >
+                    Status
+                </label>
+
+                <select
+                    id="transactionStatusFilter"
+                >
+
+                    <option value="all">
+                        All Transactions
+                    </option>
+
+                    <option value="issued">
+                        Issued
+                    </option>
+
+                    <option value="returned">
+                        Returned
+                    </option>
+
+                    <option value="overdue">
+                        Overdue
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <!-- SORT -->
+
+            <div class="transaction-filter">
+
+                <label
+                    for="transactionSort"
+                >
+                    Sort
+                </label>
+
+                <select
+                    id="transactionSort"
+                >
+
+                    <option value="newest">
+                        Newest First
+                    </option>
+
+                    <option value="oldest">
+                        Oldest First
+                    </option>
+
+                    <option value="due">
+                        Due Date
+                    </option>
+
+                    <option value="fine">
+                        Highest Fine
+                    </option>
+
+                </select>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =====================================
+             TABLE WRAPPER
+        ====================================== -->
+
+        <div class="transaction-table-wrapper">
+
+            <table
+                class="transaction-table"
+            >
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Transaction
+                        </th>
+
+                        <th>
+                            Book
+                        </th>
+
+                        <th>
+                            Member
+                        </th>
+
+                        <th>
+                            Issue Date
+                        </th>
+
+                        <th>
+                            Due Date
+                        </th>
+
+                        <th>
+                            Return Date
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Fine
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody
+                    id="transactionTableBody"
+                >
+
+                    <!-- JavaScript will load
+                         transactions here -->
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+
+        <!-- =====================================
+             EMPTY STATE
+        ====================================== -->
+
+        <div
+            id="transactionEmptyState"
+            class="transaction-empty-state"
+            hidden
+        >
+
+            <div class="empty-icon">
+                📚
+            </div>
+
+            <h2>
+                No Transactions Found
+            </h2>
+
+            <p>
+                There are no transactions matching
+                your current search or filter.
+            </p>
+
+            <a
+                href="issue-book.html"
+                class="primary-btn"
+            >
+                Issue Your First Book
+            </a>
+
+        </div>
+
+
+
+        <!-- =====================================
+             LOADING STATE
+        ====================================== -->
+
+        <div
+            id="transactionLoading"
+            class="transaction-loading"
+            hidden
+        >
+
+            <div class="loading-spinner">
+                ⟳
+            </div>
+
+            <p>
+                Loading transactions...
+            </p>
+
+        </div>
+
+
+    </section>
+
+
+
+</main>
+
+
+
+<!-- =========================================
+     FOOTER
+========================================== -->
+
+<footer class="dashboard-footer">
+
+    <p>
+        © 2026 Library Management System.
+        All rights reserved.
+    </p>
+
+</footer>
+
+
+
+<!-- =========================================
+     JAVASCRIPT
+========================================== -->
+
+<script src="assets/js/transactions.js"></script>
+
+</body>
+
+</html>

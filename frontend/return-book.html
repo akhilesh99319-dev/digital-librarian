@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Return Book | Library Management System</title>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <link rel="stylesheet" href="assets/css/return-book.css">
+
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+</head>
+
+<body>
+
+    <!-- =========================================
+         HEADER
+    ========================================== -->
+
+    <header>
+
+        <nav>
+
+            <div class="dashboard-logo">
+                📚 Library Management System
+            </div>
+
+            <div class="dashboard-nav-links">
+
+                <a href="index.html">
+                    Home
+                </a>
+
+                <a href="dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="books.html">
+                    Books
+                </a>
+
+                <a href="members.html">
+                    Members
+                </a>
+
+                <a href="issue-book.html">
+                    Issue Book
+                </a>
+
+                <a href="return-book.html" class="active">
+                    Return Book
+                </a>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+    <!-- =========================================
+         MAIN
+    ========================================== -->
+
+    <main class="return-page">
+
+
+        <!-- PAGE HEADER -->
+
+        <section class="return-header">
+
+            <div>
+
+                <span class="page-label">
+                    ↩ RETURN MANAGEMENT
+                </span>
+
+                <h1>
+                    Return Book
+                </h1>
+
+                <p>
+                    Manage returned books, overdue records and
+                    calculate applicable fines.
+                </p>
+
+            </div>
+
+            <a
+                href="reports.html"
+                class="report-button">
+
+                📊 Return Report
+
+            </a>
+
+        </section>
+
+
+        <!-- =====================================
+             STATISTICS
+        ====================================== -->
+
+        <section class="return-statistics">
+
+            <div class="return-stat-card">
+
+                <div class="return-stat-icon">
+                    📤
+                </div>
+
+                <div>
+
+                    <span>
+                        Issued Books
+                    </span>
+
+                    <strong id="issuedCount">
+                        3
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="return-stat-card">
+
+                <div class="return-stat-icon">
+                    ⚠️
+                </div>
+
+                <div>
+
+                    <span>
+                        Overdue
+                    </span>
+
+                    <strong id="overdueCount">
+                        1
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="return-stat-card">
+
+                <div class="return-stat-icon">
+                    ↩️
+                </div>
+
+                <div>
+
+                    <span>
+                        Returned
+                    </span>
+
+                    <strong id="returnedCount">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="return-stat-card">
+
+                <div class="return-stat-icon">
+                    💰
+                </div>
+
+                <div>
+
+                    <span>
+                        Total Fine
+                    </span>
+
+                    <strong id="totalFine">
+                        ₹0
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================
+             SEARCH
+        ====================================== -->
+
+        <section class="return-search-section">
+
+            <div>
+
+                <span class="section-label">
+                    RETURN BOOK
+                </span>
+
+                <h2>
+                    Find Issued Book
+                </h2>
+
+                <p>
+                    Search using Issue ID, Book ID or Member name.
+                </p>
+
+            </div>
+
+
+            <div class="return-search-box">
+
+                <span>
+                    🔍
+                </span>
+
+                <input
+                    type="search"
+                    id="returnSearch"
+                    placeholder="Search Issue ID, Book or Member...">
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================
+             RETURN TABLE
+        ====================================== -->
+
+        <section class="return-table-section">
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Issue ID
+                            </th>
+
+                            <th>
+                                Book
+                            </th>
+
+                            <th>
+                                Member
+                            </th>
+
+                            <th>
+                                Issue Date
+                            </th>
+
+                            <th>
+                                Due Date
+                            </th>
+
+                            <th>
+                                Return Date
+                            </th>
+
+                            <th>
+                                Fine
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="returnTableBody">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer>
+
+        <p>
+            © 2026 Library Management System.
+            All Rights Reserved.
+        </p>
+
+    </footer>
+
+
+    <script src="assets/js/return-book.js"></script>
+
+</body>
+
+</html>

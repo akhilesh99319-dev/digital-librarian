@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Edit Member | Library Management System
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="assets/css/style.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="assets/css/members.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="assets/css/responsive.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         HEADER
+    ========================================== -->
+
+    <header>
+
+        <nav>
+
+            <div class="dashboard-logo">
+
+                📚 Library Management System
+
+            </div>
+
+
+            <div class="dashboard-nav">
+
+                <a href="index.html">
+                    Home
+                </a>
+
+                <a href="dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="books.html">
+                    Books
+                </a>
+
+                <a href="members.html">
+                    Members
+                </a>
+
+                <a href="transactions.html">
+                    Transactions
+                </a>
+
+                <a href="reports.html">
+                    Reports
+                </a>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="mobileMenuBtn"
+                class="mobile-menu-btn"
+                aria-label="Open Menu"
+            >
+
+                ☰
+
+            </button>
+
+        </nav>
+
+    </header>
+
+
+
+    <!-- =========================================
+         MAIN
+    ========================================== -->
+
+    <main class="edit-member-page">
+
+
+        <!-- =====================================
+             PAGE HEADER
+        ====================================== -->
+
+        <section class="edit-member-header">
+
+            <div>
+
+                <span class="page-label">
+                    ✏ MEMBER MANAGEMENT
+                </span>
+
+
+                <h1>
+                    Edit Member
+                </h1>
+
+
+                <p>
+                    Update the registered member information
+                    from one place.
+                </p>
+
+            </div>
+
+
+            <div class="edit-member-header-actions">
+
+                <a
+                    href="members.html"
+                    class="secondary-button"
+                >
+
+                    ← Back to Members
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             EDIT MEMBER CARD
+        ====================================== -->
+
+        <section class="edit-member-card">
+
+
+            <div class="edit-member-card-header">
+
+                <div>
+
+                    <span class="edit-member-icon">
+                        👤
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <h2>
+                        Member Information
+                    </h2>
+
+                    <p>
+                        Update the details of this library member.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================
+                 FORM MESSAGE
+            ================================== -->
+
+            <div
+                id="formMessage"
+                class="form-message hide"
+                role="alert"
+            >
+            </div>
+
+
+
+            <!-- =================================
+                 EDIT MEMBER FORM
+            ================================== -->
+
+            <form
+                id="editMemberForm"
+                novalidate
+            >
+
+
+                <!-- MEMBER ID -->
+
+                <div class="form-group">
+
+                    <label for="memberId">
+
+                        Member ID
+
+                    </label>
+
+
+                    <input
+                        type="text"
+                        id="memberId"
+                        name="memberId"
+                        readonly
+                    >
+
+                    <small>
+                        Member ID cannot be changed.
+                    </small>
+
+                </div>
+
+
+
+                <!-- =================================
+                     FORM GRID
+                ================================== -->
+
+                <div class="form-grid">
+
+
+                    <!-- FULL NAME -->
+
+                    <div class="form-group">
+
+                        <label for="memberName">
+
+                            Full Name
+                            <span>*</span>
+
+                        </label>
+
+
+                        <input
+                            type="text"
+                            id="memberName"
+                            name="memberName"
+                            placeholder="Enter full name"
+                            autocomplete="name"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <!-- EMAIL -->
+
+                    <div class="form-group">
+
+                        <label for="memberEmail">
+
+                            Email
+                            <span>*</span>
+
+                        </label>
+
+
+                        <input
+                            type="email"
+                            id="memberEmail"
+                            name="memberEmail"
+                            placeholder="Enter email address"
+                            autocomplete="email"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <!-- PHONE -->
+
+                    <div class="form-group">
+
+                        <label for="memberPhone">
+
+                            Phone
+                            <span>*</span>
+
+                        </label>
+
+
+                        <input
+                            type="tel"
+                            id="memberPhone"
+                            name="memberPhone"
+                            placeholder="Enter phone number"
+                            autocomplete="tel"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <!-- MEMBERSHIP DATE -->
+
+                    <div class="form-group">
+
+                        <label for="membershipDate">
+
+                            Membership Date
+                            <span>*</span>
+
+                        </label>
+
+
+                        <input
+                            type="date"
+                            id="membershipDate"
+                            name="membershipDate"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <!-- STATUS -->
+
+                    <div class="form-group">
+
+                        <label for="memberStatus">
+
+                            Status
+                            <span>*</span>
+
+                        </label>
+
+
+                        <select
+                            id="memberStatus"
+                            name="memberStatus"
+                            required
+                        >
+
+                            <option value="active">
+                                Active
+                            </option>
+
+                            <option value="inactive">
+                                Inactive
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================
+                     MEMBER ACTIVITY INFO
+                ================================== -->
+
+                <div
+                    id="memberActivityInfo"
+                    class="member-activity-info"
+                >
+
+                    <!-- JavaScript will load information -->
+
+                </div>
+
+
+
+                <!-- =================================
+                     FORM ACTIONS
+                ================================== -->
+
+                <div class="form-actions">
+
+
+                    <a
+                        href="members.html"
+                        class="cancel-button"
+                    >
+
+                        Cancel
+
+                    </a>
+
+
+                    <button
+                        type="reset"
+                        class="secondary-button"
+                        id="resetMemberBtn"
+                    >
+
+                        Reset
+
+                    </button>
+
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="saveMemberBtn"
+                    >
+
+                        💾 Update Member
+
+                    </button>
+
+                </div>
+
+
+            </form>
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer>
+
+        <p>
+
+            © 2026 Library Management System.
+            All Rights Reserved.
+
+        </p>
+
+    </footer>
+
+
+
+    <!-- =========================================
+         JAVASCRIPT
+    ========================================== -->
+
+    <script src="assets/js/lms-data.js"></script>
+
+    <script src="assets/js/edit-member.js"></script>
+
+
+</body>
+
+</html>

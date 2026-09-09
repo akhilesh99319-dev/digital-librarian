@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Book | Library Management System</title>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <link rel="stylesheet" href="assets/css/add-book.css">
+
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         HEADER
+    ========================================== -->
+
+    <header>
+
+        <nav>
+
+            <div class="dashboard-logo">
+                📚 Library Management System
+            </div>
+
+
+            <div class="dashboard-nav-links">
+
+                <a href="dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="books.html" class="active">
+                    Books
+                </a>
+
+                <a href="my-books.html">
+                    My Books
+                </a>
+
+                <a href="notifications.html">
+                    Notifications
+                </a>
+
+                <a href="profile.html">
+                    Profile
+                </a>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+
+    <!-- =========================================
+         MAIN
+    ========================================== -->
+
+    <main class="add-book-page">
+
+
+        <!-- =====================================
+             PAGE HEADER
+        ====================================== -->
+
+        <section class="add-book-header">
+
+            <div>
+
+                <span class="page-label">
+                    ✏️ BOOK MANAGEMENT
+                </span>
+
+                <h1>
+                    Edit Book
+                </h1>
+
+                <p>
+                    Update book information, availability,
+                    shelf details and other library records.
+                </p>
+
+            </div>
+
+
+            <div class="add-book-header-actions">
+
+                <a
+                    href="books.html"
+                    class="back-books-button">
+
+                    ← Back to Books
+
+                </a>
+
+
+                <a
+                    href="reports.html"
+                    class="report-button">
+
+                    📊 Reports
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             EDIT BOOK CONTAINER
+        ====================================== -->
+
+        <section class="add-book-container">
+
+
+            <!-- =================================
+                 EDIT FORM
+            ================================== -->
+
+            <div class="add-book-card">
+
+
+                <!-- CARD HEADER -->
+
+                <div class="card-header">
+
+                    <div>
+
+                        <span class="section-label">
+                            EDIT RECORD
+                        </span>
+
+                        <h2>
+                            Update Book Information
+                        </h2>
+
+                        <p>
+                            Modify the selected book details below.
+                        </p>
+
+                    </div>
+
+
+                    <div class="card-header-icon">
+                        ✏️
+                    </div>
+
+                </div>
+
+
+
+                <!-- FORM -->
+
+                <form id="editBookForm">
+
+
+                    <!-- =================================
+                         BOOK INFORMATION
+                    ================================== -->
+
+                    <div class="form-section">
+
+                        <div class="form-section-title">
+
+                            <span>
+                                01
+                            </span>
+
+                            <div>
+
+                                <h3>
+                                    Basic Information
+                                </h3>
+
+                                <p>
+                                    Update the main details of the book.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="form-row">
+
+
+                            <!-- BOOK TITLE -->
+
+                            <div class="form-group">
+
+                                <label for="bookTitle">
+
+                                    Book Title
+
+                                    <span class="required">
+                                        *
+                                    </span>
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="bookTitle"
+                                    name="bookTitle"
+                                    placeholder="Enter book title"
+                                    required>
+
+                                <small
+                                    class="field-error"
+                                    id="bookTitleError">
+                                </small>
+
+                            </div>
+
+
+
+                            <!-- AUTHOR -->
+
+                            <div class="form-group">
+
+                                <label for="bookAuthor">
+
+                                    Author
+
+                                    <span class="required">
+                                        *
+                                    </span>
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="bookAuthor"
+                                    name="bookAuthor"
+                                    placeholder="Enter author name"
+                                    required>
+
+                                <small
+                                    class="field-error"
+                                    id="bookAuthorError">
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="form-row">
+
+
+                            <!-- ISBN -->
+
+                            <div class="form-group">
+
+                                <label for="bookISBN">
+
+                                    ISBN
+
+                                    <span class="required">
+                                        *
+                                    </span>
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="bookISBN"
+                                    name="bookISBN"
+                                    placeholder="Enter ISBN"
+                                    required>
+
+                                <small
+                                    class="field-error"
+                                    id="bookISBNError">
+                                </small>
+
+                            </div>
+
+
+
+                            <!-- CATEGORY -->
+
+                            <div class="form-group">
+
+                                <label for="bookCategory">
+
+                                    Category
+
+                                    <span class="required">
+                                        *
+                                    </span>
+
+                                </label>
+
+                                <select
+                                    id="bookCategory"
+                                    name="bookCategory"
+                                    required>
+
+                                    <option value="">
+                                        Select Category
+                                    </option>
+
+                                    <option value="Programming">
+                                        Programming
+                                    </option>
+
+                                    <option value="Computer Science">
+                                        Computer Science
+                                    </option>
+
+                                    <option value="Database">
+                                        Database
+                                    </option>
+
+                                    <option value="Artificial Intelligence">
+                                        Artificial Intelligence
+                                    </option>
+
+                                    <option value="Machine Learning">
+                                        Machine Learning
+                                    </option>
+
+                                    <option value="Web Development">
+                                        Web Development
+                                    </option>
+
+                                    <option value="Mathematics">
+                                        Mathematics
+                                    </option>
+
+                                    <option value="Science">
+                                        Science
+                                    </option>
+
+                                    <option value="Management">
+                                        Management
+                                    </option>
+
+                                    <option value="Other">
+                                        Other
+                                    </option>
+
+                                </select>
+
+                                <small
+                                    class="field-error"
+                                    id="bookCategoryError">
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="form-row">
+
+
+                            <!-- LANGUAGE -->
+
+                            <div class="form-group">
+
+                                <label for="bookLanguage">
+                                    Language
+                                </label>
+
+                                <select
+                                    id="bookLanguage"
+                                    name="bookLanguage">
+
+                                    <option value="English">
+                                        English
+                                    </option>
+
+                                    <option value="Hindi">
+                                        Hindi
+                                    </option>
+
+                                    <option value="Hinglish">
+                                        Hinglish
+                                    </option>
+
+                                    <option value="Other">
+                                        Other
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+
+                            <!-- PUBLISHER -->
+
+                            <div class="form-group">
+
+                                <label for="bookPublisher">
+                                    Publisher
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="bookPublisher"
+                                    name="bookPublisher"
+                                    placeholder="Enter publisher">
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =================================
+                         PUBLICATION DETAILS
+                    ================================== -->
+
+                    <div class="form-section">
+
+                        <div class="form-section-title">
+
+                            <span>
+                                02
+                            </span>
+
+                            <div>
+
+                                <h3>
+                                    Publication Details
+                                </h3>
+
+                                <p>
+                                    Update publication and edition information.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="form-row">
+
+
+                            <div class="form-group">
+
+                                <label for="publicationYear">
+                                    Publication Year
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="publicationYear"
+                                    name="publicationYear"
+                                    min="1000"
+                                    max="2100"
+                                    placeholder="e.g. 2025">
+
+                            </div>
+
+
+
+                            <div class="form-group">
+
+                                <label for="bookEdition">
+                                    Edition
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="bookEdition"
+                                    name="bookEdition"
+                                    placeholder="e.g. 5th Edition">
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="form-row">
+
+
+                            <div class="form-group">
+
+                                <label for="bookPages">
+                                    Number of Pages
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="bookPages"
+                                    name="bookPages"
+                                    min="1"
+                                    placeholder="Enter pages">
+
+                            </div>
+
+
+
+                            <div class="form-group">
+
+                                <label for="bookQuantity">
+                                    Quantity
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="bookQuantity"
+                                    name="bookQuantity"
+                                    min="1"
+                                    placeholder="Enter quantity">
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =================================
+                         LIBRARY DETAILS
+                    ================================== -->
+
+                    <div class="form-section">
+
+                        <div class="form-section-title">
+
+                            <span>
+                                03
+                            </span>
+
+                            <div>
+
+                                <h3>
+                                    Library Details
+                                </h3>
+
+                                <p>
+                                    Manage shelf location and availability.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="form-row">
+
+
+                            <!-- SHELF -->
+
+                            <div class="form-group">
+
+                                <label for="shelfNumber">
+                                    Shelf Number
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="shelfNumber"
+                                    name="shelfNumber"
+                                    placeholder="e.g. A-12">
+
+                            </div>
+
+
+
+                            <!-- STATUS -->
+
+                            <div class="form-group">
+
+                                <label for="bookStatus">
+                                    Book Status
+                                </label>
+
+                                <select
+                                    id="bookStatus"
+                                    name="bookStatus">
+
+                                    <option value="available">
+                                        Available
+                                    </option>
+
+                                    <option value="issued">
+                                        Issued
+                                    </option>
+
+                                    <option value="maintenance">
+                                        Maintenance
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =================================
+                         DESCRIPTION
+                    ================================== -->
+
+                    <div class="form-section">
+
+                        <div class="form-section-title">
+
+                            <span>
+                                04
+                            </span>
+
+                            <div>
+
+                                <h3>
+                                    Description
+                                </h3>
+
+                                <p>
+                                    Add or update the book description.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="bookDescription">
+                                Book Description
+                            </label>
+
+                            <textarea
+                                id="bookDescription"
+                                name="bookDescription"
+                                maxlength="1000"
+                                placeholder="Enter book description..."></textarea>
+
+                            <div class="character-counter">
+
+                                <span id="descriptionCount">
+                                    0
+                                </span>
+
+                                / 1000
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =================================
+                         COVER IMAGE
+                    ================================== -->
+
+                    <div class="form-section">
+
+                        <div class="form-section-title">
+
+                            <span>
+                                05
+                            </span>
+
+                            <div>
+
+                                <h3>
+                                    Book Cover
+                                </h3>
+
+                                <p>
+                                    Replace the current book cover if required.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="book-cover-upload">
+
+
+                            <div class="upload-area">
+
+                                <div class="upload-icon">
+                                    🖼️
+                                </div>
+
+                                <h3>
+                                    Replace Book Cover
+                                </h3>
+
+                                <p>
+                                    Select JPG, JPEG or PNG image.
+                                </p>
+
+
+                                <label
+                                    for="bookCover"
+                                    class="upload-button">
+
+                                    Choose Image
+
+                                </label>
+
+
+                                <input
+                                    type="file"
+                                    id="bookCover"
+                                    name="bookCover"
+                                    accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+
+
+                                <small>
+                                    Maximum size: 2 MB
+                                </small>
+
+                            </div>
+
+
+
+                            <div
+                                class="cover-preview"
+                                id="coverPreview">
+
+                                <div class="preview-placeholder">
+                                    📖
+                                </div>
+
+                                <span>
+                                    Current Cover
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =================================
+                         ACTIONS
+                    ================================== -->
+
+                    <div class="form-actions">
+
+                        <button
+                            type="button"
+                            class="reset-button"
+                            id="cancelEdit">
+
+                            Cancel
+
+                        </button>
+
+
+                        <button
+                            type="submit"
+                            class="add-book-button">
+
+                            ✓ Update Book
+
+                        </button>
+
+                    </div>
+
+
+                </form>
+
+            </div>
+
+
+
+            <!-- =================================
+                 LIVE PREVIEW
+            ================================== -->
+
+            <aside class="book-preview-card">
+
+
+                <div class="preview-card-header">
+
+                    <h2>
+                        Book Preview
+                    </h2>
+
+                </div>
+
+
+
+                <div
+                    class="preview-book-cover"
+                    id="liveBookCover">
+
+                    <div class="preview-book-icon">
+                        📖
+                    </div>
+
+                    <span>
+                        Book Cover
+                    </span>
+
+                </div>
+
+
+
+                <div class="live-book-details">
+
+                    <h3 id="liveBookTitle">
+                        Book Title
+                    </h3>
+
+                    <p id="liveBookAuthor">
+                        Author Name
+                    </p>
+
+
+                    <div class="preview-meta">
+
+                        <span id="liveBookCategory">
+                            Category
+                        </span>
+
+                        <span id="liveBookISBN">
+                            ISBN
+                        </span>
+
+                        <span id="liveBookLanguage">
+                            English
+                        </span>
+
+                        <span id="liveBookShelf">
+                            Shelf —
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        class="preview-status available"
+                        id="liveBookStatus">
+
+                        Available
+
+                    </span>
+
+                </div>
+
+
+
+                <div class="preview-information">
+
+                    <div>
+
+                        <span>
+                            Quantity
+                        </span>
+
+                        <strong id="liveBookQuantity">
+                            1
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Pages
+                        </span>
+
+                        <strong id="liveBookPages">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Edition
+                        </span>
+
+                        <strong id="liveBookEdition">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer>
+
+        <p>
+            © 2026 Library Management System.
+            All Rights Reserved.
+        </p>
+
+    </footer>
+
+
+
+    <script src="assets/js/edit-book.js"></script>
+
+</body>
+
+</html>

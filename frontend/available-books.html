@@ -1,0 +1,724 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Available Books | Library Management System
+    </title>
+
+
+    <!-- =====================================
+         MAIN CSS
+    ====================================== -->
+
+    <link
+        rel="stylesheet"
+        href="assets/css/style.css"
+    >
+
+
+    <!-- =====================================
+         AVAILABLE BOOKS CSS
+    ====================================== -->
+
+    <link
+        rel="stylesheet"
+        href="assets/css/available-books.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     MOBILE MENU BUTTON
+========================================= -->
+
+<button
+    type="button"
+    class="mobile-menu-btn"
+    id="mobileMenuBtn"
+    aria-label="Open navigation menu"
+>
+    ☰
+</button>
+
+
+
+<!-- =========================================
+     DASHBOARD SIDEBAR
+========================================= -->
+
+<aside
+    class="dashboard-sidebar"
+    id="dashboardSidebar"
+>
+
+
+    <!-- =====================================
+         SIDEBAR LOGO
+    ====================================== -->
+
+    <div class="sidebar-logo">
+
+        <span class="sidebar-logo-icon">
+            📚
+        </span>
+
+        <span>
+            Library LMS
+        </span>
+
+    </div>
+
+
+
+    <!-- =====================================
+         SIDEBAR NAVIGATION
+    ====================================== -->
+
+    <nav class="sidebar-navigation">
+
+
+        <!-- DASHBOARD -->
+
+        <a
+            href="dashboard.html"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                📊
+            </span>
+
+            <span>
+                Dashboard
+            </span>
+
+        </a>
+
+
+
+        <!-- BOOKS -->
+
+        <a
+            href="books.html"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                📚
+            </span>
+
+            <span>
+                Books
+            </span>
+
+        </a>
+
+
+
+        <!-- AVAILABLE BOOKS -->
+
+        <a
+            href="available-books.html"
+            class="sidebar-link active"
+        >
+
+            <span class="sidebar-icon">
+                📖
+            </span>
+
+            <span>
+                Available Books
+            </span>
+
+        </a>
+
+
+
+        <!-- MEMBERS -->
+
+        <a
+            href="members.html"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                👥
+            </span>
+
+            <span>
+                Members
+            </span>
+
+        </a>
+
+
+
+        <!-- ISSUE BOOK -->
+
+        <a
+            href="issue-book.html"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                📤
+            </span>
+
+            <span>
+                Issue Book
+            </span>
+
+        </a>
+
+
+
+        <!-- RETURN BOOK -->
+
+        <a
+            href="return-book.html"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                🔄
+            </span>
+
+            <span>
+                Return Book
+            </span>
+
+        </a>
+
+
+
+        <!-- TRANSACTIONS -->
+
+        <a
+            href="transactions.html"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                💳
+            </span>
+
+            <span>
+                Transactions
+            </span>
+
+        </a>
+
+
+
+        <!-- =================================
+             REPORTS
+        ================================== -->
+
+        <div class="sidebar-section-title">
+            REPORTS
+        </div>
+
+
+
+        <a
+            href="books-report.html"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                📈
+            </span>
+
+            <span>
+                Books Report
+            </span>
+
+        </a>
+
+
+
+        <a
+            href="books-report.html#members-report"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                👥
+            </span>
+
+            <span>
+                Members Report
+            </span>
+
+        </a>
+
+
+
+        <a
+            href="books-report.html#issue-report"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                📤
+            </span>
+
+            <span>
+                Issue Report
+            </span>
+
+        </a>
+
+
+
+        <a
+            href="books-report.html#return-report"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                🔄
+            </span>
+
+            <span>
+                Return Report
+            </span>
+
+        </a>
+
+
+
+        <!-- =================================
+             OTHER
+        ================================== -->
+
+        <div class="sidebar-section-title">
+            OTHER
+        </div>
+
+
+
+        <!-- NOTIFICATIONS -->
+
+        <a
+            href="notifications.html"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                🔔
+            </span>
+
+            <span>
+                Notifications
+            </span>
+
+        </a>
+
+
+
+        <!-- PROFILE -->
+
+        <a
+            href="profile.html"
+            class="sidebar-link"
+        >
+
+            <span class="sidebar-icon">
+                👤
+            </span>
+
+            <span>
+                Profile
+            </span>
+
+        </a>
+
+
+    </nav>
+
+
+
+    <!-- =====================================
+         SIDEBAR BOTTOM
+    ====================================== -->
+
+    <div class="sidebar-bottom">
+
+        <a
+            href="login.html"
+            class="sidebar-link logout-link"
+        >
+
+            <span class="sidebar-icon">
+                🚪
+            </span>
+
+            <span>
+                Logout
+            </span>
+
+        </a>
+
+    </div>
+
+
+</aside>
+
+
+
+<!-- =========================================
+     AVAILABLE BOOKS MAIN PAGE
+========================================= -->
+
+<main class="available-books-page">
+
+
+    <!-- =====================================
+         PAGE HEADER
+    ====================================== -->
+
+    <section class="available-books-header">
+
+
+        <div>
+
+            <span class="page-badge">
+                📚 LIBRARY COLLECTION
+            </span>
+
+
+            <h1>
+                Available Books
+            </h1>
+
+
+            <p>
+                Browse all books that are currently
+                available for issue.
+            </p>
+
+        </div>
+
+
+
+        <!-- =================================
+             AVAILABLE COUNT
+        ================================== -->
+
+        <div class="available-count-card">
+
+            <span class="available-count-icon">
+                📖
+            </span>
+
+
+            <div>
+
+                <span class="available-count-label">
+                    Available Copies
+                </span>
+
+
+                <strong id="totalAvailableBooks">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =========================================
+         SEARCH + FILTER
+    ========================================= -->
+
+    <section class="available-books-toolbar">
+
+
+        <!-- =================================
+             SEARCH
+        ================================== -->
+
+        <div class="available-search-box">
+
+            <span class="search-icon">
+                🔍
+            </span>
+
+
+            <input
+                type="search"
+                id="availableBookSearch"
+                placeholder="Search by title, author, ISBN or category..."
+                autocomplete="off"
+            >
+
+        </div>
+
+
+
+        <!-- =================================
+             CATEGORY FILTER
+        ================================== -->
+
+        <div class="available-filter-box">
+
+            <label
+                for="availableCategoryFilter"
+            >
+                Category
+            </label>
+
+
+            <select
+                id="availableCategoryFilter"
+            >
+
+                <option value="all">
+                    All Categories
+                </option>
+
+            </select>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =========================================
+         BOOK COLLECTION
+    ========================================= -->
+
+    <section
+        class="available-books-section"
+        aria-label="Available Books"
+    >
+
+
+        <div
+            id="availableBooksContainer"
+            class="available-books-grid"
+        >
+
+            <!--
+                JavaScript will generate
+                available book cards here.
+            -->
+
+        </div>
+
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =========================================
+     FOOTER
+========================================= -->
+
+<footer class="dashboard-footer">
+
+
+    <div class="footer-content">
+
+
+        <div class="footer-brand">
+
+            <span>
+                📚
+            </span>
+
+
+            <strong>
+                Library Management System
+            </strong>
+
+        </div>
+
+
+
+        <p>
+            © 2026 Library Management System.
+            All rights reserved.
+        </p>
+
+
+    </div>
+
+
+</footer>
+
+
+
+<!-- =========================================
+     CENTRAL LMS DATA
+========================================= -->
+
+<script
+    src="assets/js/lms-data.js"
+></script>
+
+
+
+<!-- =========================================
+     AVAILABLE BOOKS JAVASCRIPT
+========================================= -->
+
+<script
+    src="assets/js/available-books.js"
+></script>
+
+
+
+<!-- =========================================
+     SIDEBAR MOBILE MENU
+========================================= -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        /* =====================================
+           ELEMENTS
+        ====================================== */
+
+        const menuButton =
+            document.getElementById(
+                "mobileMenuBtn"
+            );
+
+
+        const sidebar =
+            document.getElementById(
+                "dashboardSidebar"
+            );
+
+
+
+        /* =====================================
+           SAFETY CHECK
+        ====================================== */
+
+        if (
+            !menuButton ||
+            !sidebar
+        ) {
+
+            return;
+
+        }
+
+
+
+        /* =====================================
+           OPEN / CLOSE SIDEBAR
+        ====================================== */
+
+        menuButton.addEventListener(
+            "click",
+            function () {
+
+                sidebar.classList.toggle(
+                    "open"
+                );
+
+            }
+        );
+
+
+
+        /* =====================================
+           CLOSE SIDEBAR AFTER LINK CLICK
+           ON MOBILE
+        ====================================== */
+
+        const sidebarLinks =
+            sidebar.querySelectorAll(
+                ".sidebar-link"
+            );
+
+
+        sidebarLinks.forEach(
+            function (link) {
+
+                link.addEventListener(
+                    "click",
+                    function () {
+
+                        if (
+                            window.innerWidth <= 900
+                        ) {
+
+                            sidebar.classList.remove(
+                                "open"
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+
+        /* =====================================
+           CLOSE SIDEBAR WHEN RESIZING
+        ====================================== */
+
+        window.addEventListener(
+            "resize",
+            function () {
+
+                if (
+                    window.innerWidth > 900
+                ) {
+
+                    sidebar.classList.remove(
+                        "open"
+                    );
+
+                }
+
+            }
+        );
+
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
+```

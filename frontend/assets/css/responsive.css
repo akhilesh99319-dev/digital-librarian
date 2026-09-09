@@ -1,0 +1,389 @@
+/* =========================================
+   LIBRARY MANAGEMENT SYSTEM
+   RESPONSIVE STYLE SHEET
+========================================= */
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 1000px) {
+
+    /* Navbar */
+
+    .navbar {
+        width: 94%;
+    }
+
+
+    .nav-menu {
+        gap: 16px;
+    }
+
+
+    /* Hero */
+
+    .hero-container {
+        grid-template-columns: 1fr;
+
+        gap: 50px;
+
+        text-align: center;
+    }
+
+
+    .hero-content {
+        max-width: 800px;
+
+        margin: auto;
+    }
+
+
+    .hero-content > p {
+        margin-left: auto;
+
+        margin-right: auto;
+    }
+
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+
+    .hero-card {
+        max-width: 550px;
+
+        width: 100%;
+
+        margin: auto;
+    }
+
+
+    /* About */
+
+    .about-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+
+    /* Features */
+
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 700px) {
+
+    /* Navbar */
+
+    .navbar {
+        min-height: auto;
+
+        padding: 18px 0;
+
+        flex-direction: column;
+
+        gap: 18px;
+    }
+
+
+    .logo {
+        font-size: 18px;
+    }
+
+
+    .logo-icon {
+        font-size: 23px;
+    }
+
+
+    .nav-menu {
+        width: 100%;
+
+        justify-content: center;
+
+        flex-wrap: wrap;
+
+        gap: 12px 18px;
+    }
+
+
+    .nav-link {
+        font-size: 13px;
+    }
+
+
+    .login-button {
+        padding: 8px 15px;
+
+        font-size: 13px;
+    }
+
+
+    /* Hero */
+
+    .hero {
+        min-height: auto;
+
+        padding: 70px 0;
+    }
+
+
+    .hero-container {
+        width: 92%;
+
+        gap: 45px;
+    }
+
+
+    .hero h1 {
+        font-size: 42px;
+    }
+
+
+    .hero-content > p {
+        font-size: 16px;
+    }
+
+
+    .hero-buttons {
+        flex-direction: column;
+
+        width: 100%;
+    }
+
+
+    .primary-button,
+    .secondary-button {
+        width: 100%;
+    }
+
+
+    /* Hero Card */
+
+    .hero-card {
+        padding: 35px 20px;
+    }
+
+
+    .hero-card h2 {
+        font-size: 24px;
+    }
+
+
+    /* Sections */
+
+    .about,
+    .features,
+    .contact {
+        padding: 75px 0;
+    }
+
+
+    .section-container h2 {
+        font-size: 30px;
+    }
+
+
+    .section-description {
+        font-size: 15px;
+    }
+
+
+    /* About */
+
+    .about-grid {
+        grid-template-columns: 1fr;
+
+        margin-top: 35px;
+    }
+
+
+    /* Features */
+
+    .features-grid {
+        grid-template-columns: 1fr;
+
+        margin-top: 35px;
+    }
+
+
+    /* Footer */
+
+    .footer-logo {
+        font-size: 15px;
+    }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 400px) {
+
+    .logo-text {
+        font-size: 15px;
+    }
+
+
+    .nav-menu {
+        gap: 9px 12px;
+    }
+
+
+    .nav-link {
+        font-size: 12px;
+    }
+
+
+    .hero {
+        padding: 55px 0;
+    }
+
+
+    .hero h1 {
+        font-size: 34px;
+    }
+
+
+    .hero-badge {
+        font-size: 11px;
+    }
+
+
+    .hero-card {
+        padding: 30px 15px;
+    }
+
+
+    .hero-stats strong {
+        font-size: 14px;
+    }
+
+
+    .hero-stats span {
+        font-size: 11px;
+    }
+
+
+    .section-container h2 {
+        font-size: 27px;
+    }
+
+}
+/* =========================================
+   TRANSACTIONS RESPONSIVE
+========================================= */
+
+@media (max-width: 1100px) {
+
+    .transaction-stats {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 768px) {
+
+    .transactions-page {
+        padding: 25px 15px;
+    }
+
+
+    .transactions-page .page-header {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 20px;
+    }
+
+
+    .page-header h1 {
+        font-size: 28px;
+    }
+
+
+    .page-header-actions {
+        width: 100%;
+    }
+
+
+    .page-header-actions a {
+        flex: 1;
+    }
+
+
+    .transaction-stats {
+        grid-template-columns: 1fr;
+
+        gap: 14px;
+    }
+
+
+    .transactions-toolbar {
+        flex-direction: column;
+
+        align-items: stretch;
+
+        gap: 14px;
+    }
+
+
+    .transaction-filter {
+        width: 100%;
+    }
+
+
+    .transaction-search {
+        width: 100%;
+    }
+
+
+    .transaction-table-wrapper {
+        overflow-x: auto;
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .transactions-page {
+        padding: 20px 10px;
+    }
+
+
+    .page-header-actions {
+        flex-direction: column;
+    }
+
+
+    .page-header-actions a {
+        width: 100%;
+    }
+
+
+    .transaction-stat-card {
+        padding: 18px;
+    }
+
+
+    .stat-value {
+        font-size: 22px;
+    }
+
+}

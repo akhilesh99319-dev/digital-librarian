@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Books | Library Management System</title>
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- My Books CSS -->
+    <link rel="stylesheet" href="assets/css/my-books.css">
+
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         HEADER
+    ========================================== -->
+
+    <header>
+
+        <nav>
+
+            <!-- Logo -->
+
+            <div class="dashboard-logo">
+                📚 Library Management System
+            </div>
+
+
+            <!-- Navigation -->
+
+            <div class="dashboard-nav-links">
+
+                <a href="dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="books.html">
+                    Books
+                </a>
+
+                <a href="my-books.html" class="active">
+                    My Books
+                </a>
+
+                <a href="notifications.html">
+                    Notifications
+                </a>
+
+                <a href="profile.html">
+                    Profile
+                </a>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+
+    <!-- =========================================
+         MAIN
+    ========================================== -->
+
+    <main class="my-books-page">
+
+
+        <!-- =====================================
+             PAGE HEADER
+        ====================================== -->
+
+        <section class="my-books-header">
+
+            <div>
+
+                <span class="page-label">
+                    📚 MY LIBRARY
+                </span>
+
+                <h1>
+                    My Books
+                </h1>
+
+                <p>
+                    View your borrowed books, issue dates,
+                    due dates and return status.
+                </p>
+
+            </div>
+
+
+            <div class="my-books-actions">
+
+                <a
+                    href="books.html"
+                    class="browse-books-button">
+
+                    📖 Browse Books
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             STATISTICS
+        ====================================== -->
+
+        <section class="my-books-statistics">
+
+
+            <!-- Total Borrowed -->
+
+            <div class="my-books-stat-card">
+
+                <div class="stat-icon">
+                    📚
+                </div>
+
+                <div>
+
+                    <span>
+                        Total Borrowed
+                    </span>
+
+                    <strong id="totalBorrowed">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Currently Issued -->
+
+            <div class="my-books-stat-card">
+
+                <div class="stat-icon">
+                    📖
+                </div>
+
+                <div>
+
+                    <span>
+                        Currently Issued
+                    </span>
+
+                    <strong id="currentlyIssued">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Returned -->
+
+            <div class="my-books-stat-card">
+
+                <div class="stat-icon">
+                    🔄
+                </div>
+
+                <div>
+
+                    <span>
+                        Returned
+                    </span>
+
+                    <strong id="returnedBooks">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Overdue -->
+
+            <div class="my-books-stat-card overdue-stat">
+
+                <div class="stat-icon">
+                    ⚠️
+                </div>
+
+                <div>
+
+                    <span>
+                        Overdue
+                    </span>
+
+                    <strong id="overdueBooks">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =====================================
+             SEARCH & FILTER
+        ====================================== -->
+
+        <section class="my-books-toolbar">
+
+
+            <!-- Search -->
+
+            <div class="my-books-search">
+
+                <span>
+                    🔍
+                </span>
+
+                <input
+                    type="search"
+                    id="myBooksSearch"
+                    placeholder="Search by book title, author or ID...">
+
+            </div>
+
+
+
+            <!-- Filter -->
+
+            <div class="my-books-filter">
+
+                <button
+                    type="button"
+                    class="book-filter-button active"
+                    data-filter="all">
+
+                    All
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="book-filter-button"
+                    data-filter="issued">
+
+                    Issued
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="book-filter-button"
+                    data-filter="returned">
+
+                    Returned
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="book-filter-button"
+                    data-filter="overdue">
+
+                    Overdue
+
+                </button>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =====================================
+             BOOK LIST
+        ====================================== -->
+
+        <section class="my-books-list">
+
+
+            <div class="my-books-list-header">
+
+                <div>
+
+                    <span class="section-label">
+                        BORROWING HISTORY
+                    </span>
+
+                    <h2>
+                        My Borrowed Books
+                    </h2>
+
+                </div>
+
+
+                <span
+                    class="book-record-count"
+                    id="bookRecordCount">
+
+                    Showing 0 records
+
+                </span>
+
+            </div>
+
+
+
+            <!-- TABLE -->
+
+            <div class="my-books-table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                #
+                            </th>
+
+                            <th>
+                                Book ID
+                            </th>
+
+                            <th>
+                                Book Title
+                            </th>
+
+                            <th>
+                                Author
+                            </th>
+
+                            <th>
+                                Issue Date
+                            </th>
+
+                            <th>
+                                Due Date
+                            </th>
+
+                            <th>
+                                Return Date
+                            </th>
+
+                            <th>
+                                Fine
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="myBooksTableBody">
+
+
+                        <!-- BOOK 1 -->
+
+                        <tr
+                            data-status="issued"
+                            data-overdue="false">
+
+                            <td>
+                                1
+                            </td>
+
+                            <td>
+                                BK001
+                            </td>
+
+                            <td>
+                                Python Programming
+                            </td>
+
+                            <td>
+                                Mark Lutz
+                            </td>
+
+                            <td>
+                                05 Aug 2026
+                            </td>
+
+                            <td>
+                                19 Aug 2026
+                            </td>
+
+                            <td>
+                                —
+                            </td>
+
+                            <td>
+                                ₹0
+                            </td>
+
+                            <td>
+
+                                <span class="book-status issued">
+                                    Issued
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+
+
+                        <!-- BOOK 2 -->
+
+                        <tr
+                            data-status="overdue"
+                            data-overdue="true">
+
+                            <td>
+                                2
+                            </td>
+
+                            <td>
+                                BK002
+                            </td>
+
+                            <td>
+                                Data Structures
+                            </td>
+
+                            <td>
+                                Seymour Lipschutz
+                            </td>
+
+                            <td>
+                                15 Jul 2026
+                            </td>
+
+                            <td>
+                                29 Jul 2026
+                            </td>
+
+                            <td>
+                                —
+                            </td>
+
+                            <td>
+                                ₹45
+                            </td>
+
+                            <td>
+
+                                <span class="book-status overdue">
+                                    Overdue
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+
+
+                        <!-- BOOK 3 -->
+
+                        <tr
+                            data-status="returned"
+                            data-overdue="false">
+
+                            <td>
+                                3
+                            </td>
+
+                            <td>
+                                BK003
+                            </td>
+
+                            <td>
+                                Computer Networks
+                            </td>
+
+                            <td>
+                                Andrew S. Tanenbaum
+                            </td>
+
+                            <td>
+                                01 Jul 2026
+                            </td>
+
+                            <td>
+                                15 Jul 2026
+                            </td>
+
+                            <td>
+                                14 Jul 2026
+                            </td>
+
+                            <td>
+                                ₹0
+                            </td>
+
+                            <td>
+
+                                <span class="book-status returned">
+                                    Returned
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+
+
+                        <!-- BOOK 4 -->
+
+                        <tr
+                            data-status="issued"
+                            data-overdue="false">
+
+                            <td>
+                                4
+                            </td>
+
+                            <td>
+                                BK004
+                            </td>
+
+                            <td>
+                                Database System Concepts
+                            </td>
+
+                            <td>
+                                Abraham Silberschatz
+                            </td>
+
+                            <td>
+                                08 Aug 2026
+                            </td>
+
+                            <td>
+                                22 Aug 2026
+                            </td>
+
+                            <td>
+                                —
+                            </td>
+
+                            <td>
+                                ₹0
+                            </td>
+
+                            <td>
+
+                                <span class="book-status issued">
+                                    Issued
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+
+
+                        <!-- BOOK 5 -->
+
+                        <tr
+                            data-status="returned"
+                            data-overdue="false">
+
+                            <td>
+                                5
+                            </td>
+
+                            <td>
+                                BK005
+                            </td>
+
+                            <td>
+                                Web Development
+                            </td>
+
+                            <td>
+                                Jon Duckett
+                            </td>
+
+                            <td>
+                                10 Jun 2026
+                            </td>
+
+                            <td>
+                                24 Jun 2026
+                            </td>
+
+                            <td>
+                                23 Jun 2026
+                            </td>
+
+                            <td>
+                                ₹0
+                            </td>
+
+                            <td>
+
+                                <span class="book-status returned">
+                                    Returned
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+
+
+                    </tbody>
+
+                </table>
+
+
+                <!-- EMPTY STATE -->
+
+                <div
+                    class="empty-my-books"
+                    id="emptyMyBooks">
+
+                    <div class="empty-icon">
+                        📚
+                    </div>
+
+                    <h3>
+                        No Books Found
+                    </h3>
+
+                    <p>
+                        No books match your current search or filter.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             BORROWING INFORMATION
+        ====================================== -->
+
+        <section class="borrowing-info">
+
+            <div class="info-icon">
+                💡
+            </div>
+
+            <div>
+
+                <h3>
+                    Borrowing Information
+                </h3>
+
+                <p>
+                    Please return borrowed books before the due date
+                    to avoid late fines. You can contact the library
+                    administration if you need any assistance.
+                </p>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer>
+
+        <p>
+            © 2026 Library Management System.
+            All Rights Reserved.
+        </p>
+
+    </footer>
+
+
+
+    <!-- =========================================
+         MY BOOKS JAVASCRIPT
+    ========================================== -->
+
+    <script src="assets/js/my-books.js"></script>
+
+
+</body>
+
+</html>

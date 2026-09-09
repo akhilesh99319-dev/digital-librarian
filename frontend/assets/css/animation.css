@@ -1,0 +1,553 @@
+css
+/* =========================================
+   LIBRARY MANAGEMENT SYSTEM
+   ANIMATION STYLE SHEET
+========================================= */
+
+
+/* =========================================
+   PAGE LOAD
+========================================= */
+
+body {
+    animation: pageFadeIn 0.8s ease both;
+}
+
+
+@keyframes pageFadeIn {
+
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+
+}
+
+
+
+/* =========================================
+   NAVBAR ANIMATION
+========================================= */
+
+.site-header {
+    animation: navbarSlideDown 0.7s ease both;
+}
+
+
+@keyframes navbarSlideDown {
+
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+
+/* =========================================
+   LOGO
+========================================= */
+
+.logo {
+    animation: logoFade 0.9s ease 0.2s both;
+}
+
+
+@keyframes logoFade {
+
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+}
+
+
+
+/* =========================================
+   NAVIGATION LINKS
+========================================= */
+
+.nav-menu a {
+    animation: navLinkFade 0.6s ease both;
+}
+
+
+.nav-menu a:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+
+.nav-menu a:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+
+.nav-menu a:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+
+.nav-menu a:nth-child(4) {
+    animation-delay: 0.5s;
+}
+
+
+.nav-menu a:nth-child(5) {
+    animation-delay: 0.6s;
+}
+
+
+@keyframes navLinkFade {
+
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+
+/* =========================================
+   HERO CONTENT
+========================================= */
+
+.hero-content {
+    animation: heroContentReveal 1s ease 0.3s both;
+}
+
+
+@keyframes heroContentReveal {
+
+    from {
+        opacity: 0;
+        transform: translateX(-40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+}
+
+
+
+/* =========================================
+   HERO BADGE
+========================================= */
+
+.hero-badge {
+    animation: badgeReveal 0.8s ease 0.5s both;
+}
+
+
+@keyframes badgeReveal {
+
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+
+/* =========================================
+   HERO HEADING
+========================================= */
+
+.hero-content h1 {
+    animation: headingReveal 1s ease 0.6s both;
+}
+
+
+@keyframes headingReveal {
+
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+
+/* =========================================
+   HERO PARAGRAPH
+========================================= */
+
+.hero-content > p {
+    animation: paragraphReveal 1s ease 0.8s both;
+}
+
+
+@keyframes paragraphReveal {
+
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+
+/* =========================================
+   HERO BUTTONS
+========================================= */
+
+.hero-buttons {
+    animation: buttonsReveal 1s ease 1s both;
+}
+
+
+@keyframes buttonsReveal {
+
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+
+/* =========================================
+   BUTTON HOVER
+========================================= */
+
+.primary-button,
+.secondary-button {
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+
+.primary-button:hover,
+.secondary-button:hover {
+    transform: translateY(-4px);
+}
+
+
+.primary-button:hover {
+    box-shadow: 0 12px 25px rgba(37, 99, 235, 0.25);
+}
+
+
+.secondary-button:hover {
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+}
+
+
+
+/* =========================================
+   HERO DASHBOARD CARD
+========================================= */
+
+.hero-card {
+    animation: heroCardReveal 1s ease 0.5s both;
+}
+
+
+@keyframes heroCardReveal {
+
+    from {
+        opacity: 0;
+        transform: translateX(40px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+
+}
+
+
+
+/* =========================================
+   HERO CARD FLOATING EFFECT
+========================================= */
+
+.hero-card {
+    animation:
+        heroCardReveal 1s ease 0.5s both,
+        floatingCard 5s ease-in-out 1.5s infinite;
+}
+
+
+@keyframes floatingCard {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+
+}
+
+
+
+/* =========================================
+   HERO CARD ICON
+========================================= */
+
+.hero-card-icon {
+    animation: iconPulse 2.5s ease-in-out infinite;
+}
+
+
+@keyframes iconPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
+
+}
+
+
+
+/* =========================================
+   STAT ITEMS
+========================================= */
+
+.hero-stats > div {
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+
+.hero-stats > div:hover {
+    transform: translateY(-5px);
+}
+
+
+
+/* =========================================
+   SECTION LABEL
+========================================= */
+
+.section-label {
+    animation: sectionLabelReveal 0.8s ease both;
+}
+
+
+@keyframes sectionLabelReveal {
+
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+
+/* =========================================
+   ABOUT CARDS
+========================================= */
+
+.about-card {
+    transition:
+        transform 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+
+.about-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 18px 35px rgba(15, 23, 42, 0.10);
+}
+
+
+
+/* =========================================
+   ABOUT ICON
+========================================= */
+
+.about-icon {
+    transition:
+        transform 0.35s ease;
+}
+
+
+.about-card:hover .about-icon {
+    transform: scale(1.12) rotate(3deg);
+}
+
+
+
+/* =========================================
+   FEATURE CARDS
+========================================= */
+
+.feature-card {
+    transition:
+        transform 0.35s ease,
+        box-shadow 0.35s ease,
+        border-color 0.35s ease;
+}
+
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.10);
+}
+
+
+
+/* =========================================
+   FEATURE ICON
+========================================= */
+
+.feature-icon {
+    transition:
+        transform 0.35s ease;
+}
+
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.12) rotate(-4deg);
+}
+
+
+
+/* =========================================
+   HEADINGS HOVER
+========================================= */
+
+.about-card h3,
+.feature-card h3 {
+    transition:
+        color 0.3s ease;
+}
+
+
+.about-card:hover h3,
+.feature-card:hover h3 {
+    color: #2563eb;
+}
+
+
+
+/* =========================================
+   CONTACT SECTION
+========================================= */
+
+.contact {
+    animation: contactReveal 1s ease both;
+}
+
+
+@keyframes contactReveal {
+
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+
+/* =========================================
+   FOOTER
+========================================= */
+
+.footer {
+    animation: footerReveal 0.8s ease both;
+}
+
+
+@keyframes footerReveal {
+
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+
+}
+
+
+
+/* =========================================
+   ACCESSIBILITY
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+}

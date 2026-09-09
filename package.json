@@ -1,0 +1,32 @@
+{
+  "name": "digital-librarian",
+  "version": "1.0.0",
+  "description": "Digital Librarian - A clean, modern, and production-ready Library Management System built with Node.js, Express, SQLite, and Vanilla JS.",
+  "main": "backend/server.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js",
+    "test": "node backend/tests/run_all_tests.js"
+  },
+  "keywords": [
+    "library-management",
+    "express",
+    "sqlite",
+    "library",
+    "digital-librarian"
+  ],
+  "author": "Akhilesh Kumar",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.23.0"
+  }
+}

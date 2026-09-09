@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Issue Book | Library Management System</title>
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Issue Book CSS -->
+    <link rel="stylesheet" href="assets/css/issue-book.css">
+
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+</head>
+
+<body>
+
+
+    <!-- =========================================
+         HEADER / NAVBAR
+    ========================================== -->
+
+    <header>
+
+        <nav>
+
+            <!-- Logo -->
+
+            <div class="dashboard-logo">
+
+                📚 Library Management System
+
+            </div>
+
+
+            <!-- Navigation -->
+
+            <div class="dashboard-nav-links">
+
+                <a href="index.html">
+                    Home
+                </a>
+
+                <a href="dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="books.html">
+                    Books
+                </a>
+
+                <a href="members.html">
+                    Members
+                </a>
+
+                <a href="issue-book.html" class="active">
+                    Issue Book
+                </a>
+
+                <a href="return-book.html">
+                    Return Book
+                </a>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+    <!-- =========================================
+         MAIN CONTENT
+    ========================================== -->
+
+    <main class="issue-page">
+
+
+        <!-- =====================================
+             PAGE HEADER
+        ====================================== -->
+
+        <section class="issue-header">
+
+            <div>
+
+                <span class="page-label">
+                    📤 ISSUE MANAGEMENT
+                </span>
+
+                <h1>
+                    Issue Book
+                </h1>
+
+                <p>
+                    Issue books to library members and manage
+                    borrowing records easily.
+                </p>
+
+            </div>
+
+
+            <a
+                href="reports.html"
+                class="report-button">
+
+                📊 Issue Report
+
+            </a>
+
+        </section>
+
+
+        <!-- =====================================
+             STATISTICS
+        ====================================== -->
+
+        <section class="issue-statistics">
+
+
+            <div class="issue-stat-card">
+
+                <div class="issue-stat-icon">
+                    📚
+                </div>
+
+                <div>
+
+                    <span>
+                        Total Books
+                    </span>
+
+                    <strong id="totalBooks">
+                        120
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="issue-stat-card">
+
+                <div class="issue-stat-icon">
+                    🟢
+                </div>
+
+                <div>
+
+                    <span>
+                        Available Books
+                    </span>
+
+                    <strong id="availableBooks">
+                        105
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="issue-stat-card">
+
+                <div class="issue-stat-icon">
+                    📤
+                </div>
+
+                <div>
+
+                    <span>
+                        Issued Books
+                    </span>
+
+                    <strong id="issuedBooks">
+                        15
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="issue-stat-card">
+
+                <div class="issue-stat-icon">
+                    👥
+                </div>
+
+                <div>
+
+                    <span>
+                        Active Members
+                    </span>
+
+                    <strong id="activeMembers">
+                        7
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================
+             ISSUE BOOK FORM
+        ====================================== -->
+
+        <section class="issue-form-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        NEW TRANSACTION
+                    </span>
+
+                    <h2>
+                        Issue a Book
+                    </h2>
+
+                    <p>
+                        Select a book and member to create
+                        a new issue record.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <form id="issueBookForm">
+
+
+                <div class="issue-form-grid">
+
+
+                    <!-- BOOK -->
+
+                    <div class="form-group">
+
+                        <label for="bookSelect">
+                            Select Book
+                        </label>
+
+                        <select id="bookSelect" required>
+
+                            <option value="">
+                                -- Select Book --
+                            </option>
+
+                        </select>
+
+                        <small id="bookAvailability">
+                            Select a book to check availability.
+                        </small>
+
+                    </div>
+
+
+                    <!-- MEMBER -->
+
+                    <div class="form-group">
+
+                        <label for="memberSelect">
+                            Select Member
+                        </label>
+
+                        <select id="memberSelect" required>
+
+                            <option value="">
+                                -- Select Member --
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- ISSUE DATE -->
+
+                    <div class="form-group">
+
+                        <label for="issueDate">
+                            Issue Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="issueDate"
+                            required>
+
+                    </div>
+
+
+                    <!-- DUE DATE -->
+
+                    <div class="form-group">
+
+                        <label for="dueDate">
+                            Due Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="dueDate"
+                            required>
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- FORM ACTIONS -->
+
+                <div class="form-actions">
+
+                    <button
+                        type="reset"
+                        class="secondary-button"
+                        id="resetIssueForm">
+
+                        Reset
+
+                    </button>
+
+
+                    <button
+                        type="submit"
+                        class="primary-button">
+
+                        📤 Issue Book
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- =====================================
+             SEARCH ISSUED BOOKS
+        ====================================== -->
+
+        <section class="issued-books-section">
+
+
+            <div class="issued-section-header">
+
+                <div>
+
+                    <span class="section-label">
+                        ISSUE RECORDS
+                    </span>
+
+                    <h2>
+                        Issued Books
+                    </h2>
+
+                    <p>
+                        View and track currently issued books.
+                    </p>
+
+                </div>
+
+                <div class="issue-search">
+
+                    <span>
+                        🔍
+                    </span>
+
+                    <input
+                        type="search"
+                        id="issueSearch"
+                        placeholder="Search book, member or ID...">
+
+                </div>
+
+            </div>
+
+
+            <!-- TABLE -->
+
+            <div class="table-wrapper">
+
+                <table id="issuedBooksTable">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Issue ID
+                            </th>
+
+                            <th>
+                                Book
+                            </th>
+
+                            <th>
+                                Member
+                            </th>
+
+                            <th>
+                                Issue Date
+                            </th>
+
+                            <th>
+                                Due Date
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="issuedBooksTableBody">
+
+                        <!-- JavaScript -->
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer>
+
+        <p>
+            © 2026 Library Management System.
+            All Rights Reserved.
+        </p>
+
+    </footer>
+
+
+    <!-- JavaScript -->
+
+    <script src="assets/js/issue-books.js"></script>
+
+</body>
+
+</html>

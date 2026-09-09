@@ -1,0 +1,849 @@
+/* =========================================
+   LIBRARY MANAGEMENT SYSTEM
+   BOOKS REPORT PAGE
+========================================= */
+
+
+/* =========================================
+   REPORT PAGE
+========================================= */
+
+.report-page {
+    min-height: 100vh;
+
+    padding: 60px 30px 80px;
+
+    background: #f8fafc;
+}
+
+
+/* =========================================
+   PAGE HEADER
+========================================= */
+
+.report-header {
+    max-width: 1200px;
+
+    margin: 0 auto 35px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 30px;
+}
+
+.page-label,
+.section-label {
+    color: #2563eb;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+}
+
+.report-header h1 {
+    margin: 8px 0 10px;
+
+    color: #0f172a;
+
+    font-size: 42px;
+
+    line-height: 1.2;
+}
+
+.report-header p {
+    max-width: 700px;
+
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 15px;
+
+    line-height: 1.7;
+}
+
+
+/* =========================================
+   REPORT ACTIONS
+========================================= */
+
+.report-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.print-button {
+    padding: 11px 18px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #2563eb;
+
+    color: #ffffff;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+}
+
+.print-button:hover {
+    background: #1d4ed8;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 18px rgba(37, 99, 235, 0.18);
+}
+
+
+/* =========================================
+   STATISTICS
+========================================= */
+
+.report-statistics {
+    max-width: 1200px;
+
+    margin: 0 auto 30px;
+
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 18px;
+}
+
+.report-stat-card {
+    min-height: 95px;
+
+    padding: 20px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    transition: all 0.3s ease;
+}
+
+.report-stat-card:hover {
+    transform: translateY(-4px);
+
+    border-color: #bfdbfe;
+
+    box-shadow:
+        0 10px 25px rgba(15, 23, 42, 0.06);
+}
+
+.report-stat-card .stat-icon {
+    width: 48px;
+
+    height: 48px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #eff6ff;
+
+    border-radius: 10px;
+
+    font-size: 21px;
+}
+
+.report-stat-card span {
+    display: block;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+.report-stat-card strong {
+    display: block;
+
+    margin-top: 4px;
+
+    color: #0f172a;
+
+    font-size: 25px;
+
+    line-height: 1.2;
+}
+
+
+/* =========================================
+   FILTER SECTION
+========================================= */
+
+.report-filter {
+    max-width: 1200px;
+
+    margin: 0 auto 30px;
+
+    padding: 25px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+}
+
+.filter-heading {
+    margin-bottom: 22px;
+}
+
+.filter-heading h2 {
+    margin: 7px 0 0;
+
+    color: #0f172a;
+
+    font-size: 22px;
+}
+
+
+/* =========================================
+   FILTER GRID
+========================================= */
+
+.filter-grid {
+    display: grid;
+
+    grid-template-columns: 2fr 1fr 1fr auto;
+
+    gap: 15px;
+
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.filter-group label {
+    color: #334155;
+
+    font-size: 12px;
+
+    font-weight: 600;
+}
+
+.filter-group input,
+.filter-group select {
+    width: 100%;
+
+    height: 43px;
+
+    padding: 0 12px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 7px;
+
+    outline: none;
+
+    background: #ffffff;
+
+    color: #334155;
+
+    font-family: inherit;
+
+    font-size: 13px;
+
+    transition: 0.3s ease;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+
+/* =========================================
+   RESET BUTTON
+========================================= */
+
+.reset-button {
+    height: 43px;
+
+    padding: 0 18px;
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 7px;
+
+    background: #ffffff;
+
+    color: #475569;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.3s ease;
+}
+
+.reset-button:hover {
+    background: #f1f5f9;
+
+    border-color: #94a3b8;
+}
+
+
+/* =========================================
+   TABLE SECTION
+========================================= */
+
+.report-table-section {
+    max-width: 1200px;
+
+    margin: 0 auto 30px;
+
+    padding: 25px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+}
+
+.table-header {
+    margin-bottom: 22px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+.table-header h2 {
+    margin: 7px 0 0;
+
+    color: #0f172a;
+
+    font-size: 22px;
+}
+
+.record-count {
+    padding: 7px 11px;
+
+    border-radius: 6px;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================
+   TABLE WRAPPER
+========================================= */
+
+.table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 8px;
+}
+
+
+/* =========================================
+   TABLE
+========================================= */
+
+table {
+    width: 100%;
+
+    min-width: 1050px;
+
+    border-collapse: collapse;
+
+    background: #ffffff;
+}
+
+thead {
+    background: #f8fafc;
+}
+
+th {
+    padding: 14px 13px;
+
+    border-bottom: 1px solid #e2e8f0;
+
+    color: #475569;
+
+    text-align: left;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.4px;
+
+    white-space: nowrap;
+}
+
+td {
+    padding: 15px 13px;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    color: #475569;
+
+    font-size: 13px;
+
+    vertical-align: middle;
+}
+
+tbody tr {
+    transition: background 0.2s ease;
+}
+
+tbody tr:hover {
+    background: #f8fafc;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* =========================================
+   BOOK ID
+========================================= */
+
+td:nth-child(2) {
+    color: #2563eb;
+
+    font-weight: 600;
+}
+
+
+/* =========================================
+   BOOK TITLE
+========================================= */
+
+td:nth-child(3) {
+    color: #1e293b;
+
+    font-weight: 600;
+}
+
+
+/* =========================================
+   STATUS
+========================================= */
+
+.status {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 75px;
+
+    padding: 5px 9px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+}
+
+.status.available {
+    background: #dcfce7;
+
+    color: #15803d;
+}
+
+.status.issued {
+    background: #fee2e2;
+
+    color: #b91c1c;
+}
+
+
+/* =========================================
+   NO RESULTS
+========================================= */
+
+.no-results {
+    display: none;
+
+    padding: 60px 20px;
+
+    text-align: center;
+}
+
+.no-results.show {
+    display: block;
+}
+
+.no-results > div {
+    font-size: 35px;
+
+    margin-bottom: 10px;
+}
+
+.no-results h3 {
+    margin: 0 0 8px;
+
+    color: #1e293b;
+
+    font-size: 20px;
+}
+
+.no-results p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 14px;
+}
+
+
+/* =========================================
+   REPORT SUMMARY
+========================================= */
+
+.report-summary {
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+    padding: 28px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 30px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+}
+
+.report-summary h2 {
+    margin: 7px 0 8px;
+
+    color: #0f172a;
+
+    font-size: 22px;
+}
+
+.report-summary p {
+    max-width: 600px;
+
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+}
+
+
+/* =========================================
+   SUMMARY ITEMS
+========================================= */
+
+.summary-items {
+    display: flex;
+
+    gap: 15px;
+}
+
+.summary-items > div {
+    min-width: 135px;
+
+    padding: 15px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 8px;
+
+    text-align: center;
+}
+
+.summary-items span {
+    display: block;
+
+    color: #64748b;
+
+    font-size: 11px;
+}
+
+.summary-items strong {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #2563eb;
+
+    font-size: 21px;
+}
+
+
+/* =========================================
+   TABLE SCROLLBAR
+========================================= */
+
+.table-wrapper::-webkit-scrollbar {
+    height: 7px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+
+    border-radius: 10px;
+}
+
+
+/* =========================================
+   RESPONSIVE - 1100px
+========================================= */
+
+@media (max-width: 1100px) {
+
+    .report-statistics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .filter-group:first-child {
+        grid-column: 1 / -1;
+    }
+
+}
+
+
+/* =========================================
+   RESPONSIVE - 800px
+========================================= */
+
+@media (max-width: 800px) {
+
+    .report-page {
+        padding: 45px 20px 60px;
+    }
+
+    .report-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .report-header h1 {
+        font-size: 36px;
+    }
+
+    .print-button {
+        width: 100%;
+    }
+
+    .report-actions {
+        width: 100%;
+    }
+
+    .report-summary {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .summary-items {
+        width: 100%;
+    }
+
+    .summary-items > div {
+        flex: 1;
+    }
+
+}
+
+
+/* =========================================
+   RESPONSIVE - 600px
+========================================= */
+
+@media (max-width: 600px) {
+
+    .report-page {
+        padding: 35px 15px 50px;
+    }
+
+    .report-header h1 {
+        font-size: 31px;
+    }
+
+    .report-statistics {
+        grid-template-columns: 1fr;
+    }
+
+    .report-stat-card {
+        min-height: 80px;
+    }
+
+    .report-filter,
+    .report-table-section,
+    .report-summary {
+        padding: 20px;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-group:first-child {
+        grid-column: auto;
+    }
+
+    .filter-button-group {
+        width: 100%;
+    }
+
+    .reset-button {
+        width: 100%;
+    }
+
+    .table-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .record-count {
+        white-space: normal;
+    }
+
+    .summary-items {
+        flex-direction: column;
+    }
+
+    .summary-items > div {
+        width: 100%;
+
+        box-sizing: border-box;
+    }
+
+}
+
+
+/* =========================================
+   PRINT STYLES
+========================================= */
+
+@media print {
+
+    header,
+    footer,
+    .report-actions,
+    .report-filter {
+        display: none !important;
+    }
+
+    .report-page {
+        padding: 0;
+
+        background: #ffffff;
+    }
+
+    .report-header,
+    .report-statistics,
+    .report-table-section,
+    .report-summary {
+        max-width: 100%;
+    }
+
+    .report-stat-card,
+    .report-table-section,
+    .report-summary {
+        border: 1px solid #cccccc;
+    }
+
+    .report-header h1 {
+        font-size: 30px;
+    }
+
+    .table-wrapper {
+        overflow: visible;
+    }
+
+    table {
+        min-width: 0;
+    }
+
+    .report-summary {
+        margin-top: 20px;
+    }
+
+}
