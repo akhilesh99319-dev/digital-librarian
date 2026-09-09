@@ -5,7 +5,7 @@ const { calculateOverdueFine, getFineRatePerDay } = require('../utils/fineCalcul
 /**
  * Generate Report Data or CSV Export
  */
-function getReport(req, res) {
+async function getReport(req, res) {
   try {
     const { type, format = 'json', start_date, end_date } = req.query;
     const today = new Date().toISOString().split('T')[0];
@@ -20,7 +20,7 @@ function getReport(req, res) {
       case 'inventory':
       case 'books':
         defaultHeaders = ["Book Code", "Title", "Author", "Category", "ISBN", "Publisher", "Year", "Total Copies", "Available Copies", "Issued Copies", "Shelf Location"];
-        data = db.prepare(`
+        data = await db.prepare(`
           SELECT 
             b.book_code as "Book Code",
             b.title as "Title",
@@ -42,7 +42,7 @@ function getReport(req, res) {
 
       case 'members':
         defaultHeaders = ["Member Code", "Full Name", "Email", "Phone", "Address", "Membership Date", "Status", "Active Loans", "Past Loans"];
-        data = db.prepare(`
+        data = await db.prepare(`
           SELECT 
             m.member_code as "Member Code",
             m.full_name as "Full Name",
@@ -63,7 +63,7 @@ function getReport(req, res) {
 
       case 'active-loans':
         defaultHeaders = ["Loan Code", "Book Title", "Book Code", "ISBN", "Member Name", "Member Code", "Member Phone", "Issue Date", "Due Date", "Notes", "Days Overdue", "Fine (₹)", "Status"];
-        const activeRows = db.prepare(`
+        const activeRows = await db.prepare(`
           SELECT 
             l.loan_code as "Loan Code",
             b.title as "Book Title",
@@ -121,13 +121,13 @@ function getReport(req, res) {
           retParams.push(start_date, end_date);
         }
         returnQuery += ` ORDER BY l.return_date DESC`;
-        data = db.prepare(returnQuery).all(...retParams);
+        data = await db.prepare(returnQuery).all(...retParams);
         filename = `returned-books-report-${today}`;
         break;
 
       case 'overdue':
         defaultHeaders = ["Loan Code", "Book Title", "Book Code", "Shelf", "Member Name", "Member Code", "Member Email", "Member Phone", "Issue Date", "Due Date", "Days Overdue", "Fine Rate / Day (₹)", "Total Fine (₹)", "Status"];
-        const overdueRows = db.prepare(`
+        const overdueRows = await db.prepare(`
           SELECT 
             l.loan_code as "Loan Code",
             b.title as "Book Title",
@@ -161,7 +161,7 @@ function getReport(req, res) {
 
       case 'fines':
         defaultHeaders = ["Fine ID", "Loan Code", "Member Name", "Member Code", "Phone", "Days Overdue", "Fine Amount (₹)", "Payment Status", "Payment Date", "Created Date"];
-        data = db.prepare(`
+        data = await db.prepare(`
           SELECT 
             f.id as "Fine ID",
             l.loan_code as "Loan Code",
@@ -215,31 +215,31 @@ function getReport(req, res) {
 /**
  * Get Report Summary Stats (High level metrics for reports dashboard)
  */
-function getReportSummary(req, res) {
+async function getReportSummary(req, res) {
   try {
     const today = new Date().toISOString().split('T')[0];
 
-    const inventory = db.prepare('SELECT COUNT(*) as titles, SUM(total_copies) as total_copies, SUM(available_copies) as available_copies FROM books').get();
-    const members = db.prepare("SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active FROM members").get();
-    const activeLoans = db.prepare('SELECT COUNT(*) as active FROM loans WHERE return_date IS NULL').get();
-    const returnedLoans = db.prepare('SELECT COUNT(*) as returned FROM loans WHERE return_date IS NOT NULL').get();
-    const overdueLoans = db.prepare('SELECT COUNT(*) as overdue FROM loans WHERE return_date IS NULL AND due_date < ?').get(today);
-    const fines = db.prepare("SELECT SUM(amount) as total_fines, SUM(CASE WHEN status = 'Paid' THEN amount ELSE 0 END) as paid_fines, SUM(CASE WHEN status = 'Unpaid' THEN amount ELSE 0 END) as unpaid_fines FROM fines").get();
+    const inventory = await db.prepare('SELECT COUNT(*) as titles, SUM(total_copies) as total_copies, SUM(available_copies) as available_copies FROM books').get();
+    const members = await db.prepare("SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active FROM members").get();
+    const activeLoans = await db.prepare('SELECT COUNT(*) as active FROM loans WHERE return_date IS NULL').get();
+    const returnedLoans = await db.prepare('SELECT COUNT(*) as returned FROM loans WHERE return_date IS NOT NULL').get();
+    const overdueLoans = await db.prepare('SELECT COUNT(*) as overdue FROM loans WHERE return_date IS NULL AND due_date < ?').get(today);
+    const fines = await db.prepare("SELECT SUM(amount) as total_fines, SUM(CASE WHEN status = 'Paid' THEN amount ELSE 0 END) as paid_fines, SUM(CASE WHEN status = 'Unpaid' THEN amount ELSE 0 END) as unpaid_fines FROM fines").get();
 
     return res.status(200).json({
       success: true,
       summary: {
-        totalTitles: inventory.titles || 0,
-        totalCopies: inventory.total_copies || 0,
-        availableCopies: inventory.available_copies || 0,
-        totalMembers: members.total || 0,
-        activeMembers: members.active || 0,
-        activeLoansCount: activeLoans.active || 0,
-        returnedLoansCount: returnedLoans.returned || 0,
-        overdueLoansCount: overdueLoans.overdue || 0,
-        totalFinesGenerated: fines.total_fines || 0,
-        totalFinesPaid: fines.paid_fines || 0,
-        totalFinesUnpaid: fines.unpaid_fines || 0
+        totalTitles: Number(inventory?.titles || 0),
+        totalCopies: Number(inventory?.total_copies || 0),
+        availableCopies: Number(inventory?.available_copies || 0),
+        totalMembers: Number(members?.total || 0),
+        activeMembers: Number(members?.active || 0),
+        activeLoansCount: Number(activeLoans?.active || 0),
+        returnedLoansCount: Number(returnedLoans?.returned || 0),
+        overdueLoansCount: Number(overdueLoans?.overdue || 0),
+        totalFinesGenerated: Number(fines?.total_fines || 0),
+        totalFinesPaid: Number(fines?.paid_fines || 0),
+        totalFinesUnpaid: Number(fines?.unpaid_fines || 0)
       }
     });
   } catch (error) {
@@ -255,3 +255,4 @@ module.exports = {
   getReport,
   getReportSummary
 };
+

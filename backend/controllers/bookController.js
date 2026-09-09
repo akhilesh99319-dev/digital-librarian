@@ -3,7 +3,7 @@ const { db } = require('../database/db');
 /**
  * Get all books with search, category filtering, and pagination
  */
-function getAllBooks(req, res) {
+async function getAllBooks(req, res) {
   try {
     const { search, category_id, available_only, page = 1, limit = 50 } = req.query;
     
@@ -48,13 +48,14 @@ function getAllBooks(req, res) {
     // Get total count for pagination
     const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
     const countStmt = db.prepare(countQuery);
-    const totalCount = countStmt.get(...params).total;
+    const countRow = await countStmt.get(...params);
+    const totalCount = countRow ? Number(countRow.total || 0) : 0;
 
     query += ` ORDER BY b.id DESC LIMIT ? OFFSET ?`;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     params.push(parseInt(limit), offset);
 
-    const books = db.prepare(query).all(...params);
+    const books = await db.prepare(query).all(...params);
 
     return res.status(200).json({
       success: true,
@@ -78,10 +79,10 @@ function getAllBooks(req, res) {
 /**
  * Get single book by ID with active loans count
  */
-function getBookById(req, res) {
+async function getBookById(req, res) {
   try {
     const { id } = req.params;
-    const book = db.prepare(`
+    const book = await db.prepare(`
       SELECT 
         b.*,
         c.name as category_name
@@ -98,7 +99,7 @@ function getBookById(req, res) {
     }
 
     // Get active loans of this book
-    const activeLoans = db.prepare(`
+    const activeLoans = await db.prepare(`
       SELECT 
         l.id,
         l.loan_code,
@@ -132,7 +133,7 @@ function getBookById(req, res) {
 /**
  * Create a new book
  */
-function createBook(req, res) {
+async function createBook(req, res) {
   try {
     const {
       title,
@@ -156,7 +157,7 @@ function createBook(req, res) {
     const trimmedIsbn = isbn.trim();
 
     // Check duplicate ISBN
-    const existingIsbn = db.prepare('SELECT id FROM books WHERE LOWER(isbn) = ?').get(trimmedIsbn.toLowerCase());
+    const existingIsbn = await db.prepare('SELECT id FROM books WHERE LOWER(isbn) = ?').get(trimmedIsbn.toLowerCase());
     if (existingIsbn) {
       return res.status(400).json({
         success: false,
@@ -165,7 +166,7 @@ function createBook(req, res) {
     }
 
     // Verify category exists
-    const category = db.prepare('SELECT id FROM categories WHERE id = ?').get(category_id);
+    const category = await db.prepare('SELECT id FROM categories WHERE id = ?').get(category_id);
     if (!category) {
       return res.status(400).json({
         success: false,
@@ -177,8 +178,8 @@ function createBook(req, res) {
     const availableCopiesNum = totalCopiesNum; // Initially all copies are available
 
     // Generate unique Book Code (e.g., BK-1050)
-    const maxIdRow = db.prepare('SELECT MAX(id) as max_id FROM books').get();
-    const nextCodeId = (maxIdRow.max_id || 1000) + 1;
+    const maxIdRow = await db.prepare('SELECT MAX(id) as max_id FROM books').get();
+    const nextCodeId = (maxIdRow?.max_id || 1000) + 1;
     const bookCode = `BK-${nextCodeId}`;
 
     const insertStmt = db.prepare(`
@@ -188,7 +189,7 @@ function createBook(req, res) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    const result = insertStmt.run(
+    const result = await insertStmt.run(
       bookCode,
       title.trim(),
       author.trim(),
@@ -202,7 +203,7 @@ function createBook(req, res) {
       cover_image ? cover_image.trim() : ''
     );
 
-    const createdBook = db.prepare(`
+    const createdBook = await db.prepare(`
       SELECT b.*, c.name as category_name 
       FROM books b 
       LEFT JOIN categories c ON b.category_id = c.id 
@@ -226,7 +227,7 @@ function createBook(req, res) {
 /**
  * Update existing book
  */
-function updateBook(req, res) {
+async function updateBook(req, res) {
   try {
     const { id } = req.params;
     const {
@@ -241,7 +242,7 @@ function updateBook(req, res) {
       cover_image
     } = req.body;
 
-    const existingBook = db.prepare('SELECT * FROM books WHERE id = ?').get(id);
+    const existingBook = await db.prepare('SELECT * FROM books WHERE id = ?').get(id);
     if (!existingBook) {
       return res.status(404).json({
         success: false,
@@ -258,7 +259,7 @@ function updateBook(req, res) {
 
     const trimmedIsbn = isbn.trim();
     // Check duplicate ISBN on other books
-    const dupIsbn = db.prepare('SELECT id FROM books WHERE LOWER(isbn) = ? AND id != ?').get(trimmedIsbn.toLowerCase(), id);
+    const dupIsbn = await db.prepare('SELECT id FROM books WHERE LOWER(isbn) = ? AND id != ?').get(trimmedIsbn.toLowerCase(), id);
     if (dupIsbn) {
       return res.status(400).json({
         success: false,
@@ -279,7 +280,7 @@ function updateBook(req, res) {
     // Recalculate available copies safely
     const newAvailableCopies = newTotalCopies - issuedCopies;
 
-    db.prepare(`
+    await db.prepare(`
       UPDATE books 
       SET 
         title = ?,
@@ -307,7 +308,7 @@ function updateBook(req, res) {
       id
     );
 
-    const updatedBook = db.prepare(`
+    const updatedBook = await db.prepare(`
       SELECT b.*, c.name as category_name 
       FROM books b 
       LEFT JOIN categories c ON b.category_id = c.id 
@@ -331,11 +332,11 @@ function updateBook(req, res) {
 /**
  * Delete a book
  */
-function deleteBook(req, res) {
+async function deleteBook(req, res) {
   try {
     const { id } = req.params;
 
-    const book = db.prepare('SELECT * FROM books WHERE id = ?').get(id);
+    const book = await db.prepare('SELECT * FROM books WHERE id = ?').get(id);
     if (!book) {
       return res.status(404).json({
         success: false,
@@ -344,7 +345,7 @@ function deleteBook(req, res) {
     }
 
     // Check if book has active loans
-    const activeLoan = db.prepare('SELECT id FROM loans WHERE book_id = ? AND return_date IS NULL LIMIT 1').get(id);
+    const activeLoan = await db.prepare('SELECT id FROM loans WHERE book_id = ? AND return_date IS NULL LIMIT 1').get(id);
     if (activeLoan) {
       return res.status(400).json({
         success: false,
@@ -353,16 +354,13 @@ function deleteBook(req, res) {
     }
 
     // Check if there are past loan records
-    const pastLoan = db.prepare('SELECT id FROM loans WHERE book_id = ? LIMIT 1').get(id);
+    const pastLoan = await db.prepare('SELECT id FROM loans WHERE book_id = ? LIMIT 1').get(id);
     if (pastLoan) {
-      // If past history exists, mark total copies and available copies to 0 or allow deletion by removing loan history or archieval
-      // To ensure foreign key integrity, let's delete loans history associated or prevent if needed.
-      // Better: delete loans history if safe or inform librarian
-      db.prepare('DELETE FROM fines WHERE loan_id IN (SELECT id FROM loans WHERE book_id = ?)').run(id);
-      db.prepare('DELETE FROM loans WHERE book_id = ?').run(id);
+      await db.prepare('DELETE FROM fines WHERE loan_id IN (SELECT id FROM loans WHERE book_id = ?)').run(id);
+      await db.prepare('DELETE FROM loans WHERE book_id = ?').run(id);
     }
 
-    db.prepare('DELETE FROM books WHERE id = ?').run(id);
+    await db.prepare('DELETE FROM books WHERE id = ?').run(id);
 
     return res.status(200).json({
       success: true,
@@ -384,3 +382,4 @@ module.exports = {
   updateBook,
   deleteBook
 };
+

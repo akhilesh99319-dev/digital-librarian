@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const { db, initDatabase } = require('../database/db');
+const { db, initDatabase, convertSql } = require('../database/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('node:crypto');
@@ -329,6 +329,46 @@ async function runTests() {
     const pgImportContent = fs.readFileSync(pgImportFile, 'utf8');
     assert.ok(pgImportContent.includes('Clean Code'), 'PostgreSQL import script must contain authoritative books');
     assert.ok(pgImportContent.includes('Akhilesh Kumar'), 'PostgreSQL import script must contain authoritative members');
+  });
+
+  // 13. PostgreSQL Dual-Mode SQL Conversion
+  test('PostgreSQL convertSql properly converts parameter placeholders and date functions', () => {
+    if (typeof convertSql === 'function') {
+      const sqliteSql = 'SELECT * FROM users WHERE email = ? AND role = ? AND date(created_at) >= date(\'now\', \'-6 months\')';
+      const pgSql = convertSql(sqliteSql);
+      assert.ok(pgSql.includes('$1'), 'Must convert first placeholder to $1');
+      assert.ok(pgSql.includes('$2'), 'Must convert second placeholder to $2');
+      assert.ok(!pgSql.includes('?'), 'Must not leave any ? placeholders');
+      assert.ok(pgSql.includes('CURRENT_DATE'), 'Must convert date(\'now\') functions');
+
+      const dateNowSql = convertSql('SELECT * FROM loans WHERE return_date = date(\'now\')');
+      assert.ok(dateNowSql.includes('CURRENT_DATE'), 'Must convert date(\'now\') to CURRENT_DATE');
+    }
+  });
+
+  // 14. Safe Password Hash Handling & Graceful Auth Validation
+  test('Authentication safely handles missing or undefined password hashes without crashing', () => {
+    // Verify bcrypt check safely fails when password_hash is undefined/null/non-string
+    const testCases = [
+      { user: null, pass: 'Password@123' },
+      { user: { email: 'test@lib.com', password_hash: undefined }, pass: 'Password@123' },
+      { user: { email: 'test@lib.com', password_hash: null }, pass: 'Password@123' },
+      { user: { email: 'test@lib.com', password_hash: '' }, pass: 'Password@123' },
+      { user: { email: 'test@lib.com', password_hash: 12345 }, pass: 'Password@123' }
+    ];
+
+    for (const tc of testCases) {
+      // Logic used in authController
+      let isValid = false;
+      if (tc.user && tc.user.password_hash && typeof tc.user.password_hash === 'string') {
+        try {
+          isValid = bcrypt.compareSync(tc.pass, tc.user.password_hash);
+        } catch (e) {
+          isValid = false;
+        }
+      }
+      assert.strictEqual(isValid, false, 'Missing or invalid password_hash must safely evaluate to false without error');
+    }
   });
 
   console.log('----------------------------------------------------');

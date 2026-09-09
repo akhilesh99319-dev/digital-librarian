@@ -3,9 +3,9 @@ const { db } = require('../database/db');
 /**
  * Get all categories with book counts
  */
-function getAllCategories(req, res) {
+async function getAllCategories(req, res) {
   try {
-    const categories = db.prepare(`
+    const categories = await db.prepare(`
       SELECT 
         c.id,
         c.name,
@@ -36,10 +36,10 @@ function getAllCategories(req, res) {
 /**
  * Get Category by ID
  */
-function getCategoryById(req, res) {
+async function getCategoryById(req, res) {
   try {
     const { id } = req.params;
-    const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
+    const category = await db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
 
     if (!category) {
       return res.status(404).json({
@@ -48,7 +48,7 @@ function getCategoryById(req, res) {
       });
     }
 
-    const books = db.prepare('SELECT * FROM books WHERE category_id = ? ORDER BY title ASC').all(id);
+    const books = await db.prepare('SELECT * FROM books WHERE category_id = ? ORDER BY title ASC').all(id);
 
     return res.status(200).json({
       success: true,
@@ -69,7 +69,7 @@ function getCategoryById(req, res) {
 /**
  * Create a new Category
  */
-function createCategory(req, res) {
+async function createCategory(req, res) {
   try {
     const { name, description } = req.body;
 
@@ -83,7 +83,7 @@ function createCategory(req, res) {
     const trimmedName = name.trim();
 
     // Check duplicate
-    const existing = db.prepare('SELECT id FROM categories WHERE LOWER(name) = ?').get(trimmedName.toLowerCase());
+    const existing = await db.prepare('SELECT id FROM categories WHERE LOWER(name) = ?').get(trimmedName.toLowerCase());
     if (existing) {
       return res.status(400).json({
         success: false,
@@ -91,12 +91,12 @@ function createCategory(req, res) {
       });
     }
 
-    const result = db.prepare(`
+    const result = await db.prepare(`
       INSERT INTO categories (name, description)
       VALUES (?, ?)
     `).run(trimmedName, description ? description.trim() : null);
 
-    const newCategory = db.prepare('SELECT * FROM categories WHERE id = ?').get(result.lastInsertRowid);
+    const newCategory = await db.prepare('SELECT * FROM categories WHERE id = ?').get(result.lastInsertRowid);
 
     return res.status(201).json({
       success: true,
@@ -115,12 +115,12 @@ function createCategory(req, res) {
 /**
  * Update Category
  */
-function updateCategory(req, res) {
+async function updateCategory(req, res) {
   try {
     const { id } = req.params;
     const { name, description } = req.body;
 
-    const existing = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
+    const existing = await db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
     if (!existing) {
       return res.status(404).json({
         success: false,
@@ -138,7 +138,7 @@ function updateCategory(req, res) {
     const trimmedName = name.trim();
 
     // Check duplicate name
-    const dup = db.prepare('SELECT id FROM categories WHERE LOWER(name) = ? AND id != ?').get(trimmedName.toLowerCase(), id);
+    const dup = await db.prepare('SELECT id FROM categories WHERE LOWER(name) = ? AND id != ?').get(trimmedName.toLowerCase(), id);
     if (dup) {
       return res.status(400).json({
         success: false,
@@ -146,13 +146,13 @@ function updateCategory(req, res) {
       });
     }
 
-    db.prepare(`
+    await db.prepare(`
       UPDATE categories
       SET name = ?, description = ?
       WHERE id = ?
     `).run(trimmedName, description ? description.trim() : null, id);
 
-    const updated = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
+    const updated = await db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
 
     return res.status(200).json({
       success: true,
@@ -171,11 +171,11 @@ function updateCategory(req, res) {
 /**
  * Delete Category
  */
-function deleteCategory(req, res) {
+async function deleteCategory(req, res) {
   try {
     const { id } = req.params;
 
-    const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
+    const category = await db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
     if (!category) {
       return res.status(404).json({
         success: false,
@@ -184,7 +184,8 @@ function deleteCategory(req, res) {
     }
 
     // Check if books are assigned to this category
-    const bookCount = db.prepare('SELECT COUNT(*) as count FROM books WHERE category_id = ?').get(id).count;
+    const bookCountRow = await db.prepare('SELECT COUNT(*) as count FROM books WHERE category_id = ?').get(id);
+    const bookCount = bookCountRow ? Number(bookCountRow.count || 0) : 0;
     if (bookCount > 0) {
       return res.status(400).json({
         success: false,
@@ -192,7 +193,7 @@ function deleteCategory(req, res) {
       });
     }
 
-    db.prepare('DELETE FROM categories WHERE id = ?').run(id);
+    await db.prepare('DELETE FROM categories WHERE id = ?').run(id);
 
     return res.status(200).json({
       success: true,
@@ -214,3 +215,4 @@ module.exports = {
   updateCategory,
   deleteCategory
 };
+

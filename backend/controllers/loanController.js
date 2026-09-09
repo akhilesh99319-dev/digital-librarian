@@ -4,7 +4,7 @@ const { calculateOverdueFine, getFineRatePerDay } = require('../utils/fineCalcul
 /**
  * Issue a Book to a Member (Atomic Transaction)
  */
-function issueBook(req, res) {
+async function issueBook(req, res) {
   try {
     const { book_id, member_id, issue_date, due_date, notes } = req.body;
 
@@ -26,7 +26,7 @@ function issueBook(req, res) {
     }
 
     // 1. Check member exists & is active
-    const member = db.prepare('SELECT * FROM members WHERE id = ?').get(member_id);
+    const member = await db.prepare('SELECT * FROM members WHERE id = ?').get(member_id);
     if (!member) {
       return res.status(404).json({
         success: false,
@@ -42,7 +42,7 @@ function issueBook(req, res) {
     }
 
     // 2. Check book exists
-    const book = db.prepare('SELECT * FROM books WHERE id = ?').get(book_id);
+    const book = await db.prepare('SELECT * FROM books WHERE id = ?').get(book_id);
     if (!book) {
       return res.status(404).json({
         success: false,
@@ -59,13 +59,13 @@ function issueBook(req, res) {
     }
 
     // 4. Generate unique loan transaction code (e.g. LN-2026-0042)
-    const maxLoan = db.prepare('SELECT MAX(id) as max_id FROM loans').get();
-    const nextLoanNum = (maxLoan.max_id || 0) + 1;
+    const maxLoan = await db.prepare('SELECT MAX(id) as max_id FROM loans').get();
+    const nextLoanNum = (maxLoan?.max_id || 0) + 1;
     const year = new Date().getFullYear();
     const loanCode = `LN-${year}-${String(nextLoanNum).padStart(4, '0')}`;
 
     // 5. Atomic transaction execution
-    db.exec('BEGIN TRANSACTION');
+    await db.exec('BEGIN TRANSACTION');
 
     try {
       // Insert loan record
@@ -74,7 +74,7 @@ function issueBook(req, res) {
           loan_code, book_id, member_id, issue_date, due_date, return_date, status, fine_amount, fine_paid, notes
         ) VALUES (?, ?, ?, ?, ?, NULL, 'Issued', 0, 0, ?)
       `);
-      const loanResult = insertLoan.run(
+      const loanResult = await insertLoan.run(
         loanCode,
         parseInt(book_id),
         parseInt(member_id),
@@ -89,15 +89,15 @@ function issueBook(req, res) {
         SET available_copies = available_copies - 1 
         WHERE id = ? AND available_copies > 0
       `);
-      const bookUpdateRes = updateBook.run(book_id);
+      const bookUpdateRes = await updateBook.run(book_id);
 
       if (bookUpdateRes.changes === 0) {
         throw new Error('Failed to reserve book copy. It may have just been issued.');
       }
 
-      db.exec('COMMIT');
+      await db.exec('COMMIT');
 
-      const createdLoan = db.prepare(`
+      const createdLoan = await db.prepare(`
         SELECT 
           l.*,
           b.title as book_title,
@@ -120,7 +120,7 @@ function issueBook(req, res) {
         data: createdLoan
       });
     } catch (txError) {
-      db.exec('ROLLBACK');
+      await db.exec('ROLLBACK');
       throw txError;
     }
   } catch (error) {
@@ -135,7 +135,7 @@ function issueBook(req, res) {
 /**
  * Return a Book (Atomic Transaction with Fine Calculation)
  */
-function returnBook(req, res) {
+async function returnBook(req, res) {
   try {
     const { id } = req.params;
     const { return_date, fine_paid = 0, notes } = req.body;
@@ -143,7 +143,7 @@ function returnBook(req, res) {
     const actualReturnDate = return_date || new Date().toISOString().split('T')[0];
 
     // Find loan
-    const loan = db.prepare(`
+    const loan = await db.prepare(`
       SELECT l.*, b.title as book_title, b.available_copies, b.total_copies, m.full_name as member_name
       FROM loans l
       JOIN books b ON l.book_id = b.id
@@ -169,14 +169,14 @@ function returnBook(req, res) {
     const { daysOverdue, fineAmount } = calculateOverdueFine(loan.due_date, actualReturnDate);
 
     // Atomic transaction
-    db.exec('BEGIN TRANSACTION');
+    await db.exec('BEGIN TRANSACTION');
 
     try {
       // 1. Update loan record
       const isPaid = fineAmount > 0 ? (parseInt(fine_paid) === 1 ? 1 : 0) : 1;
       const finalNotes = notes ? (loan.notes ? `${loan.notes} | ${notes}` : notes) : loan.notes;
 
-      db.prepare(`
+      await db.prepare(`
         UPDATE loans
         SET 
           return_date = ?,
@@ -188,15 +188,15 @@ function returnBook(req, res) {
       `).run(actualReturnDate, fineAmount, isPaid, finalNotes, id);
 
       // 2. Increase available copies by 1, never exceeding total_copies
-      db.prepare(`
+      await db.prepare(`
         UPDATE books
-        SET available_copies = MIN(total_copies, available_copies + 1)
+        SET available_copies = CASE WHEN available_copies < total_copies THEN available_copies + 1 ELSE total_copies END
         WHERE id = ?
       `).run(loan.book_id);
 
       // 3. Record fine in fines table if fine applies
       if (fineAmount > 0) {
-        db.prepare(`
+        await db.prepare(`
           INSERT INTO fines (loan_id, member_id, days_overdue, amount, status, payment_date)
           VALUES (?, ?, ?, ?, ?, ?)
         `).run(
@@ -209,9 +209,9 @@ function returnBook(req, res) {
         );
       }
 
-      db.exec('COMMIT');
+      await db.exec('COMMIT');
 
-      const updatedLoan = db.prepare(`
+      const updatedLoan = await db.prepare(`
         SELECT 
           l.*,
           b.title as book_title,
@@ -240,7 +240,7 @@ function returnBook(req, res) {
         }
       });
     } catch (txError) {
-      db.exec('ROLLBACK');
+      await db.exec('ROLLBACK');
       throw txError;
     }
   } catch (error) {
@@ -255,7 +255,7 @@ function returnBook(req, res) {
 /**
  * Get Active Loans (all currently issued books)
  */
-function getActiveLoans(req, res) {
+async function getActiveLoans(req, res) {
   try {
     const { search, overdue_only, page = 1, limit = 50 } = req.query;
     const today = new Date().toISOString().split('T')[0];
@@ -307,13 +307,14 @@ function getActiveLoans(req, res) {
 
     // Total Count
     const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
-    const totalCount = db.prepare(countQuery).get(...params).total;
+    const countRow = await db.prepare(countQuery).get(...params);
+    const totalCount = countRow ? Number(countRow.total || 0) : 0;
 
     query += ` ORDER BY l.due_date ASC LIMIT ? OFFSET ?`;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     params.push(parseInt(limit), offset);
 
-    const loans = db.prepare(query).all(...params);
+    const loans = await db.prepare(query).all(...params);
 
     // Compute dynamic fine amounts
     const enrichedLoans = loans.map(loan => {
@@ -349,7 +350,7 @@ function getActiveLoans(req, res) {
 /**
  * Get Overdue Books with dynamic fine calculations
  */
-function getOverdueLoans(req, res) {
+async function getOverdueLoans(req, res) {
   try {
     const { search, page = 1, limit = 50 } = req.query;
     const today = new Date().toISOString().split('T')[0];
@@ -389,13 +390,14 @@ function getOverdueLoans(req, res) {
     }
 
     const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
-    const totalCount = db.prepare(countQuery).get(...params).total;
+    const countRow = await db.prepare(countQuery).get(...params);
+    const totalCount = countRow ? Number(countRow.total || 0) : 0;
 
     query += ` ORDER BY l.due_date ASC LIMIT ? OFFSET ?`;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     params.push(parseInt(limit), offset);
 
-    const loans = db.prepare(query).all(...params);
+    const loans = await db.prepare(query).all(...params);
 
     const enriched = loans.map(loan => {
       const { daysOverdue, fineAmount } = calculateOverdueFine(loan.due_date);
@@ -431,12 +433,12 @@ function getOverdueLoans(req, res) {
 /**
  * Pay / Settle a Fine
  */
-function settleFine(req, res) {
+async function settleFine(req, res) {
   try {
     const { id } = req.params; // fine_id or loan_id
     const today = new Date().toISOString().split('T')[0];
 
-    const fine = db.prepare('SELECT * FROM fines WHERE id = ?').get(id);
+    const fine = await db.prepare('SELECT * FROM fines WHERE id = ?').get(id);
     if (!fine) {
       return res.status(404).json({
         success: false,
@@ -451,28 +453,28 @@ function settleFine(req, res) {
       });
     }
 
-    db.exec('BEGIN TRANSACTION');
+    await db.exec('BEGIN TRANSACTION');
     try {
-      db.prepare(`
+      await db.prepare(`
         UPDATE fines 
         SET status = 'Paid', payment_date = ? 
         WHERE id = ?
       `).run(today, id);
 
-      db.prepare(`
+      await db.prepare(`
         UPDATE loans 
         SET fine_paid = 1 
         WHERE id = ?
       `).run(fine.loan_id);
 
-      db.exec('COMMIT');
+      await db.exec('COMMIT');
 
       return res.status(200).json({
         success: true,
         message: `Fine of ₹${fine.amount} settled successfully.`
       });
     } catch (err) {
-      db.exec('ROLLBACK');
+      await db.exec('ROLLBACK');
       throw err;
     }
   } catch (error) {
@@ -491,3 +493,4 @@ module.exports = {
   getOverdueLoans,
   settleFine
 };
+

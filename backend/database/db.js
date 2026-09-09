@@ -4,6 +4,17 @@ const bcrypt = require('bcryptjs');
 
 const isPostgres = !!process.env.DATABASE_URL;
 
+function convertSql(sql) {
+  let index = 1;
+  let pgSql = sql.replace(/\?/g, () => `$${index++}`);
+  // Replace common SQLite date functions with PostgreSQL equivalents
+  pgSql = pgSql.replace(/strftime\('%Y-%m',\s*([^)]+)\)/gi, "TO_CHAR($1, 'YYYY-MM')");
+  pgSql = pgSql.replace(/date\('now',\s*'-6 months'\)/gi, "(CURRENT_DATE - INTERVAL '6 months')");
+  pgSql = pgSql.replace(/date\('now'\)/gi, "CURRENT_DATE");
+  pgSql = pgSql.replace(/datetime\('now'\)/gi, "CURRENT_TIMESTAMP");
+  return pgSql;
+}
+
 let db;
 let initDatabase;
 
@@ -19,20 +30,11 @@ if (isPostgres) {
     connectionTimeoutMillis: 5000
   });
 
-  function convertSql(sql) {
-    let index = 1;
-    let pgSql = sql.replace(/\?/g, () => `$${index++}`);
-    // Replace common SQLite date functions with PostgreSQL equivalents
-    pgSql = pgSql.replace(/strftime\('%Y-%m',\s*([^)]+)\)/gi, "TO_CHAR($1, 'YYYY-MM')");
-    pgSql = pgSql.replace(/date\('now',\s*'-6 months'\)/gi, "(CURRENT_DATE - INTERVAL '6 months')");
-    pgSql = pgSql.replace(/datetime\('now'\)/gi, "CURRENT_TIMESTAMP");
-    return pgSql;
-  }
-
   // Dual-mode database interface
   db = {
     isPostgres: true,
     pool,
+    convertSql,
     async query(sql, params = []) {
       const pgSql = convertSql(sql);
       const res = await pool.query(pgSql, params);
@@ -56,7 +58,11 @@ if (isPostgres) {
         },
         async run(...params) {
           const flatParams = params.length === 1 && Array.isArray(params[0]) ? params[0] : params;
-          const res = await pool.query(pgSql, flatParams);
+          let runSql = pgSql;
+          if (/^\s*INSERT\s+INTO\s+/i.test(runSql) && !/RETURNING\s+/i.test(runSql)) {
+            runSql = `${runSql} RETURNING id`;
+          }
+          const res = await pool.query(runSql, flatParams);
           return {
             changes: res.rowCount,
             lastInsertRowid: res.rows[0] ? res.rows[0].id : null
@@ -84,9 +90,34 @@ if (isPostgres) {
         await pool.query(importSql);
       }
     }
+
+    // Ensure seeded librarian account has valid password_hash
+    const librarianUser = await pool.query("SELECT id, email, password_hash FROM users WHERE LOWER(email) = 'akhilesh@library.com'");
+    if (librarianUser.rows.length > 0) {
+      const u = librarianUser.rows[0];
+      let needsUpdate = false;
+      if (!u.password_hash || typeof u.password_hash !== 'string') {
+        needsUpdate = true;
+      } else {
+        const testMatch = bcrypt.compareSync('Password@123', u.password_hash);
+        if (!testMatch) needsUpdate = true;
+      }
+      if (needsUpdate) {
+        console.log('Ensuring valid bcrypt hash for librarian account...');
+        const salt = bcrypt.genSaltSync(10);
+        const hash = bcrypt.hashSync('Password@123', salt);
+        await pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [hash, u.id]);
+      }
+    }
+
+    // Ensure member password hashes are initialized
+    const defaultMemberPass = 'Member@123';
+    const memberSalt = bcrypt.genSaltSync(10);
+    const memberPassHash = bcrypt.hashSync(defaultMemberPass, memberSalt);
+    await pool.query("UPDATE members SET password_hash = $1 WHERE password_hash IS NULL", [memberPassHash]);
+
     console.log('PostgreSQL database initialized and verified.');
   };
-
 } else {
   // SQLite Mode for Local Development & Offline Testing
   const { DatabaseSync } = require('node:sqlite');
@@ -358,5 +389,6 @@ function seedInitialData(targetDb) {
 module.exports = {
   db,
   initDatabase,
-  isPostgres
+  isPostgres,
+  convertSql
 };

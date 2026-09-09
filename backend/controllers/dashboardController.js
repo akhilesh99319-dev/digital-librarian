@@ -4,12 +4,12 @@ const { calculateOverdueFine } = require('../utils/fineCalculator');
 /**
  * Get Real-Time Dashboard Statistics
  */
-function getDashboardStats(req, res) {
+async function getDashboardStats(req, res) {
   try {
     const today = new Date().toISOString().split('T')[0];
 
     // 1. Total unique book titles and copy counts
-    const booksStat = db.prepare(`
+    const booksStat = await db.prepare(`
       SELECT 
         COUNT(*) as unique_titles,
         COALESCE(SUM(total_copies), 0) as total_copies,
@@ -18,7 +18,7 @@ function getDashboardStats(req, res) {
     `).get();
 
     // 2. Total members
-    const membersStat = db.prepare(`
+    const membersStat = await db.prepare(`
       SELECT 
         COUNT(*) as total_members,
         SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active_members
@@ -26,7 +26,7 @@ function getDashboardStats(req, res) {
     `).get();
 
     // 3. Active loans (Issued or currently Overdue)
-    const loansStat = db.prepare(`
+    const loansStat = await db.prepare(`
       SELECT 
         COUNT(*) as active_loans
       FROM loans
@@ -34,7 +34,7 @@ function getDashboardStats(req, res) {
     `).get();
 
     // 4. Overdue loans calculation (dynamically check loans that have passed due date)
-    const overdueStat = db.prepare(`
+    const overdueStat = await db.prepare(`
       SELECT 
         COUNT(*) as overdue_count,
         COALESCE(SUM(fine_amount), 0) as existing_fines
@@ -43,14 +43,14 @@ function getDashboardStats(req, res) {
     `).get(today);
 
     // 5. Total pending fines from fines table + calculated unrecorded overdue fines
-    const finesStat = db.prepare(`
+    const finesStat = await db.prepare(`
       SELECT COALESCE(SUM(amount), 0) as unpaid_fines
       FROM fines
       WHERE status = 'Unpaid'
     `).get();
 
     // 6. Books by Category for Chart.js
-    const categoryDistribution = db.prepare(`
+    const categoryDistribution = await db.prepare(`
       SELECT 
         c.name as category_name,
         COUNT(b.id) as book_count,
@@ -63,8 +63,7 @@ function getDashboardStats(req, res) {
     `).all();
 
     // 7. Monthly Activity (last 6 months issue & return trends)
-    // We compute monthly issue counts and return counts
-    const monthlyIssues = db.prepare(`
+    const monthlyIssues = await db.prepare(`
       SELECT 
         strftime('%Y-%m', issue_date) as month,
         COUNT(*) as count
@@ -74,7 +73,7 @@ function getDashboardStats(req, res) {
       ORDER BY month ASC
     `).all();
 
-    const monthlyReturns = db.prepare(`
+    const monthlyReturns = await db.prepare(`
       SELECT 
         strftime('%Y-%m', return_date) as month,
         COUNT(*) as count
@@ -110,7 +109,7 @@ function getDashboardStats(req, res) {
     }));
 
     // 8. Recent 6 loans
-    const recentLoans = db.prepare(`
+    const recentLoans = await db.prepare(`
       SELECT 
         l.id,
         l.loan_code,
@@ -134,14 +133,14 @@ function getDashboardStats(req, res) {
       success: true,
       data: {
         metrics: {
-          totalBooks: booksStat.total_copies,
-          uniqueBookTitles: booksStat.unique_titles,
-          totalAvailableCopies: booksStat.available_copies,
-          totalMembers: membersStat.total_members,
-          activeMembers: membersStat.active_members,
-          activeLoans: loansStat.active_loans,
-          overdueBooks: overdueStat.overdue_count,
-          pendingFines: finesStat.unpaid_fines
+          totalBooks: Number(booksStat?.total_copies || 0),
+          uniqueBookTitles: Number(booksStat?.unique_titles || 0),
+          totalAvailableCopies: Number(booksStat?.available_copies || 0),
+          totalMembers: Number(membersStat?.total_members || 0),
+          activeMembers: Number(membersStat?.active_members || 0),
+          activeLoans: Number(loansStat?.active_loans || 0),
+          overdueBooks: Number(overdueStat?.overdue_count || 0),
+          pendingFines: Number(finesStat?.unpaid_fines || 0)
         },
         charts: {
           categories: categoryDistribution,
@@ -162,3 +161,4 @@ function getDashboardStats(req, res) {
 module.exports = {
   getDashboardStats
 };
+

@@ -9,9 +9,9 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 /**
  * Record event in audit log
  */
-function logAudit(userId, action, result, details = null, ipAddress = null) {
+async function logAudit(userId, action, result, details = null, ipAddress = null) {
   try {
-    db.prepare(`
+    await db.prepare(`
       INSERT INTO audit_logs (user_id, action, result, details, ip_address, timestamp)
       VALUES (?, ?, ?, ?, ?, datetime('now'))
     `).run(userId || null, action, result, details ? String(details) : null, ipAddress || null);
@@ -23,10 +23,10 @@ function logAudit(userId, action, result, details = null, ipAddress = null) {
 /**
  * Handle Unified Login (Librarian, Admin, or Member)
  */
-function login(req, res) {
+async function login(req, res) {
   try {
     const { email, password, login_type = 'librarian' } = req.body;
-    const clientIp = req.ip || req.connection.remoteAddress;
+    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
 
     if (!email || !password) {
       return res.status(400).json({
@@ -39,9 +39,9 @@ function login(req, res) {
 
     // 1. Try Librarian/Admin Login first if requested or by default
     if (login_type === 'librarian' || login_type === 'all' || login_type === 'admin') {
-      const user = db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(trimmedEmail);
+      const user = await db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(trimmedEmail);
 
-      if (user) {
+      if (user && user.password_hash && typeof user.password_hash === 'string') {
         const isPasswordValid = bcrypt.compareSync(password, user.password_hash);
         if (isPasswordValid) {
           const payload = {
@@ -53,7 +53,7 @@ function login(req, res) {
 
           const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
-          logAudit(user.id, 'LOGIN', 'SUCCESS', `User ${user.name} logged in from ${clientIp}`, clientIp);
+          await logAudit(user.id, 'LOGIN', 'SUCCESS', `User ${user.name} logged in from ${clientIp}`, clientIp);
 
           return res.status(200).json({
             success: true,
@@ -73,10 +73,10 @@ function login(req, res) {
     }
 
     // 2. Try Member Login
-    const member = db.prepare('SELECT * FROM members WHERE LOWER(email) = ?').get(trimmedEmail);
+    const member = await db.prepare('SELECT * FROM members WHERE LOWER(email) = ?').get(trimmedEmail);
     if (member) {
       if (member.status === 'Suspended') {
-        logAudit(member.id, 'LOGIN', 'BLOCKED', `Suspended member ${member.full_name} attempt`, clientIp);
+        await logAudit(member.id, 'LOGIN', 'BLOCKED', `Suspended member ${member.full_name} attempt`, clientIp);
         return res.status(403).json({
           success: false,
           message: 'Your library membership account is currently suspended. Please contact the Librarian.'
@@ -85,7 +85,7 @@ function login(req, res) {
 
       // Check member password
       let isValidMemberPass = false;
-      if (member.password_hash) {
+      if (member.password_hash && typeof member.password_hash === 'string') {
         isValidMemberPass = bcrypt.compareSync(password, member.password_hash);
       } else if (password === 'Member@123') {
         isValidMemberPass = true;
@@ -102,7 +102,7 @@ function login(req, res) {
 
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
-        logAudit(member.id, 'LOGIN', 'SUCCESS', `Member ${member.full_name} (${member.member_code}) logged in`, clientIp);
+        await logAudit(member.id, 'LOGIN', 'SUCCESS', `Member ${member.full_name} (${member.member_code}) logged in`, clientIp);
 
         return res.status(200).json({
           success: true,
@@ -122,7 +122,7 @@ function login(req, res) {
       }
     }
 
-    logAudit(null, 'LOGIN', 'FAILED', `Failed login attempt for email: ${trimmedEmail}`, clientIp);
+    await logAudit(null, 'LOGIN', 'FAILED', `Failed login attempt for email: ${trimmedEmail}`, clientIp);
 
     return res.status(401).json({
       success: false,
@@ -140,10 +140,10 @@ function login(req, res) {
 /**
  * Request Admin Login Approval (Multi-Admin Authorization)
  */
-function requestAdminLogin(req, res) {
+async function requestAdminLogin(req, res) {
   try {
     const { email, password, device_info } = req.body;
-    const clientIp = req.ip || req.connection.remoteAddress;
+    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
 
     if (!email || !password) {
       return res.status(400).json({
@@ -153,9 +153,9 @@ function requestAdminLogin(req, res) {
     }
 
     const trimmedEmail = email.trim().toLowerCase();
-    const user = db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(trimmedEmail);
+    const user = await db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(trimmedEmail);
 
-    if (!user) {
+    if (!user || !user.password_hash || typeof user.password_hash !== 'string') {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password.'
@@ -164,7 +164,7 @@ function requestAdminLogin(req, res) {
 
     const isPasswordValid = bcrypt.compareSync(password, user.password_hash);
     if (!isPasswordValid) {
-      logAudit(user.id, 'ADMIN_LOGIN_REQUEST', 'FAILED', `Invalid password from ${clientIp}`, clientIp);
+      await logAudit(user.id, 'ADMIN_LOGIN_REQUEST', 'FAILED', `Invalid password from ${clientIp}`, clientIp);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password.'
@@ -181,9 +181,9 @@ function requestAdminLogin(req, res) {
       ) VALUES (?, 'PENDING', ?, ?, datetime('now'), ?, datetime('now'), datetime('now'))
     `);
 
-    const result = insertRequest.run(user.id, requestToken, device_info || 'Unknown Device', expiryDate);
+    const result = await insertRequest.run(user.id, requestToken, device_info || 'Unknown Device', expiryDate);
 
-    logAudit(user.id, 'ADMIN_LOGIN_REQUEST', 'PENDING', `Approval request #${result.lastInsertRowid} created for ${user.name}`, clientIp);
+    await logAudit(user.id, 'ADMIN_LOGIN_REQUEST', 'PENDING', `Approval request #${result.lastInsertRowid} created for ${user.name}`, clientIp);
 
     return res.status(200).json({
       success: true,
@@ -206,7 +206,7 @@ function requestAdminLogin(req, res) {
 /**
  * Check Admin Approval Status (Polling by Client)
  */
-function checkAdminApprovalStatus(req, res) {
+async function checkAdminApprovalStatus(req, res) {
   try {
     const { token } = req.params;
 
@@ -217,7 +217,7 @@ function checkAdminApprovalStatus(req, res) {
       });
     }
 
-    const request = db.prepare(`
+    const request = await db.prepare(`
       SELECT r.*, u.name as user_name, u.email as user_email, u.role as user_role, u.phone as user_phone
       FROM admin_approval_requests r
       JOIN users u ON r.user_id = u.id
@@ -236,9 +236,9 @@ function checkAdminApprovalStatus(req, res) {
     const expiresAt = new Date(request.expires_at);
 
     if (request.status === 'PENDING' && now > expiresAt) {
-      db.prepare("UPDATE admin_approval_requests SET status = 'EXPIRED', updated_at = datetime('now') WHERE id = ?").run(request.id);
+      await db.prepare("UPDATE admin_approval_requests SET status = 'EXPIRED', updated_at = datetime('now') WHERE id = ?").run(request.id);
       request.status = 'EXPIRED';
-      logAudit(request.user_id, 'ADMIN_APPROVAL', 'EXPIRED', `Approval request #${request.id} expired`);
+      await logAudit(request.user_id, 'ADMIN_APPROVAL', 'EXPIRED', `Approval request #${request.id} expired`);
     }
 
     if (request.status === 'APPROVED') {
@@ -282,12 +282,12 @@ function checkAdminApprovalStatus(req, res) {
 /**
  * List Pending Admin Requests (For Active Admin)
  */
-function getPendingAdminRequests(req, res) {
+async function getPendingAdminRequests(req, res) {
   try {
     // Expire old requests
-    db.prepare("UPDATE admin_approval_requests SET status = 'EXPIRED', updated_at = datetime('now') WHERE status = 'PENDING' AND expires_at < datetime('now')").run();
+    await db.prepare("UPDATE admin_approval_requests SET status = 'EXPIRED', updated_at = datetime('now') WHERE status = 'PENDING' AND expires_at < datetime('now')").run();
 
-    const pendingRequests = db.prepare(`
+    const pendingRequests = await db.prepare(`
       SELECT r.id, r.user_id, r.status, r.device_info, r.requested_at, r.expires_at,
              u.name as user_name, u.email as user_email, u.role as user_role
       FROM admin_approval_requests r
@@ -312,12 +312,12 @@ function getPendingAdminRequests(req, res) {
 /**
  * Approve or Reject Admin Login Request
  */
-function actionAdminRequest(req, res) {
+async function actionAdminRequest(req, res) {
   try {
     const { id } = req.params;
     const { action } = req.body; // 'APPROVE' or 'REJECT'
     const adminId = req.user.id;
-    const clientIp = req.ip || req.connection.remoteAddress;
+    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
 
     if (!['APPROVE', 'REJECT'].includes(action)) {
       return res.status(400).json({
@@ -326,7 +326,7 @@ function actionAdminRequest(req, res) {
       });
     }
 
-    const request = db.prepare('SELECT * FROM admin_approval_requests WHERE id = ?').get(id);
+    const request = await db.prepare('SELECT * FROM admin_approval_requests WHERE id = ?').get(id);
     if (!request) {
       return res.status(404).json({
         success: false,
@@ -342,7 +342,7 @@ function actionAdminRequest(req, res) {
     }
 
     if (new Date() > new Date(request.expires_at)) {
-      db.prepare("UPDATE admin_approval_requests SET status = 'EXPIRED', updated_at = datetime('now') WHERE id = ?").run(id);
+      await db.prepare("UPDATE admin_approval_requests SET status = 'EXPIRED', updated_at = datetime('now') WHERE id = ?").run(id);
       return res.status(400).json({
         success: false,
         message: 'This approval request has expired (5-minute limit).'
@@ -352,19 +352,19 @@ function actionAdminRequest(req, res) {
     const newStatus = action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
 
     if (action === 'APPROVE') {
-      db.prepare(`
+      await db.prepare(`
         UPDATE admin_approval_requests 
         SET status = 'APPROVED', approved_by = ?, approved_at = datetime('now'), updated_at = datetime('now')
         WHERE id = ?
       `).run(adminId, id);
-      logAudit(request.user_id, 'ADMIN_APPROVAL', 'APPROVED', `Approved by Admin ID ${adminId}`, clientIp);
+      await logAudit(request.user_id, 'ADMIN_APPROVAL', 'APPROVED', `Approved by Admin ID ${adminId}`, clientIp);
     } else {
-      db.prepare(`
+      await db.prepare(`
         UPDATE admin_approval_requests 
         SET status = 'REJECTED', rejected_by = ?, rejected_at = datetime('now'), updated_at = datetime('now')
         WHERE id = ?
       `).run(adminId, id);
-      logAudit(request.user_id, 'ADMIN_APPROVAL', 'REJECTED', `Rejected by Admin ID ${adminId}`, clientIp);
+      await logAudit(request.user_id, 'ADMIN_APPROVAL', 'REJECTED', `Rejected by Admin ID ${adminId}`, clientIp);
     }
 
     return res.status(200).json({
@@ -383,7 +383,7 @@ function actionAdminRequest(req, res) {
 /**
  * Retrieve Audit Logs
  */
-function getAuditLogs(req, res) {
+async function getAuditLogs(req, res) {
   try {
     const { page = 1, limit = 50, action } = req.query;
     let query = `
@@ -400,13 +400,14 @@ function getAuditLogs(req, res) {
     }
 
     const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
-    const totalCount = db.prepare(countQuery).get(...params).total;
+    const countRow = await db.prepare(countQuery).get(...params);
+    const totalCount = countRow ? Number(countRow.total || 0) : 0;
 
     query += ' ORDER BY a.timestamp DESC LIMIT ? OFFSET ?';
     const offset = (parseInt(page) - 1) * parseInt(limit);
     params.push(parseInt(limit), offset);
 
-    const logs = db.prepare(query).all(...params);
+    const logs = await db.prepare(query).all(...params);
 
     return res.status(200).json({
       success: true,
@@ -430,10 +431,10 @@ function getAuditLogs(req, res) {
 /**
  * Get current authenticated user profile
  */
-function getMe(req, res) {
+async function getMe(req, res) {
   try {
     if (req.user.role === 'Member') {
-      const member = db.prepare('SELECT id, member_code, full_name as name, email, phone, address, membership_date, status, created_at FROM members WHERE id = ?').get(req.user.id);
+      const member = await db.prepare('SELECT id, member_code, full_name as name, email, phone, address, membership_date, status, created_at FROM members WHERE id = ?').get(req.user.id);
       if (!member) {
         return res.status(404).json({ success: false, message: 'Member profile not found.' });
       }
@@ -444,7 +445,7 @@ function getMe(req, res) {
     }
 
     // Default: Librarian/Admin
-    const user = db.prepare('SELECT id, name, role, email, phone, created_at FROM users WHERE id = ?').get(req.user.id);
+    const user = await db.prepare('SELECT id, name, role, email, phone, created_at FROM users WHERE id = ?').get(req.user.id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -471,7 +472,7 @@ function getMe(req, res) {
 /**
  * Update Profile Information
  */
-function updateProfile(req, res) {
+async function updateProfile(req, res) {
   try {
     const { name, phone, address } = req.body;
 
@@ -483,14 +484,14 @@ function updateProfile(req, res) {
     }
 
     if (req.user.role === 'Member') {
-      db.prepare(`
+      await db.prepare(`
         UPDATE members 
         SET full_name = ?, phone = ?, address = ? 
         WHERE id = ?
       `).run(name.trim(), phone ? phone.trim() : null, address ? address.trim() : null, req.user.id);
 
-      const updated = db.prepare('SELECT id, member_code, full_name as name, email, phone, address, status FROM members WHERE id = ?').get(req.user.id);
-      logAudit(req.user.id, 'PROFILE_UPDATE', 'SUCCESS', `Member profile updated`);
+      const updated = await db.prepare('SELECT id, member_code, full_name as name, email, phone, address, status FROM members WHERE id = ?').get(req.user.id);
+      await logAudit(req.user.id, 'PROFILE_UPDATE', 'SUCCESS', `Member profile updated`);
       return res.status(200).json({
         success: true,
         message: 'Profile updated successfully.',
@@ -498,14 +499,14 @@ function updateProfile(req, res) {
       });
     }
 
-    db.prepare(`
+    await db.prepare(`
       UPDATE users 
       SET name = ?, phone = ? 
       WHERE id = ?
     `).run(name.trim(), phone ? phone.trim() : null, req.user.id);
 
-    const updatedUser = db.prepare('SELECT id, name, role, email, phone, created_at FROM users WHERE id = ?').get(req.user.id);
-    logAudit(req.user.id, 'PROFILE_UPDATE', 'SUCCESS', `User profile updated`);
+    const updatedUser = await db.prepare('SELECT id, name, role, email, phone, created_at FROM users WHERE id = ?').get(req.user.id);
+    await logAudit(req.user.id, 'PROFILE_UPDATE', 'SUCCESS', `User profile updated`);
 
     return res.status(200).json({
       success: true,
@@ -524,7 +525,7 @@ function updateProfile(req, res) {
 /**
  * Change Password
  */
-function changePassword(req, res) {
+async function changePassword(req, res) {
   try {
     const { current_password, new_password, confirm_password } = req.body;
 
@@ -553,36 +554,38 @@ function changePassword(req, res) {
     const newHash = bcrypt.hashSync(new_password, salt);
 
     if (req.user.role === 'Member') {
-      const member = db.prepare('SELECT password_hash FROM members WHERE id = ?').get(req.user.id);
+      const member = await db.prepare('SELECT password_hash FROM members WHERE id = ?').get(req.user.id);
       if (!member) return res.status(404).json({ success: false, message: 'Member not found.' });
 
-      const isMatch = member.password_hash ? bcrypt.compareSync(current_password, member.password_hash) : (current_password === 'Member@123');
+      const isMatch = (member.password_hash && typeof member.password_hash === 'string') 
+        ? bcrypt.compareSync(current_password, member.password_hash) 
+        : (current_password === 'Member@123');
       if (!isMatch) {
-        logAudit(req.user.id, 'PASSWORD_CHANGE', 'FAILED', 'Incorrect current password');
+        await logAudit(req.user.id, 'PASSWORD_CHANGE', 'FAILED', 'Incorrect current password');
         return res.status(400).json({ success: false, message: 'Incorrect current password.' });
       }
 
-      db.prepare('UPDATE members SET password_hash = ? WHERE id = ?').run(newHash, req.user.id);
-      logAudit(req.user.id, 'PASSWORD_CHANGE', 'SUCCESS', 'Member password changed');
+      await db.prepare('UPDATE members SET password_hash = ? WHERE id = ?').run(newHash, req.user.id);
+      await logAudit(req.user.id, 'PASSWORD_CHANGE', 'SUCCESS', 'Member password changed');
       return res.status(200).json({ success: true, message: 'Password changed successfully.' });
     }
 
-    const user = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(req.user.id);
-    if (!user) {
+    const user = await db.prepare('SELECT password_hash FROM users WHERE id = ?').get(req.user.id);
+    if (!user || !user.password_hash || typeof user.password_hash !== 'string') {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
     const isMatch = bcrypt.compareSync(current_password, user.password_hash);
     if (!isMatch) {
-      logAudit(req.user.id, 'PASSWORD_CHANGE', 'FAILED', 'Incorrect current password');
+      await logAudit(req.user.id, 'PASSWORD_CHANGE', 'FAILED', 'Incorrect current password');
       return res.status(400).json({
         success: false,
         message: 'Incorrect current password.'
       });
     }
 
-    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, req.user.id);
-    logAudit(req.user.id, 'PASSWORD_CHANGE', 'SUCCESS', 'User password changed');
+    await db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, req.user.id);
+    await logAudit(req.user.id, 'PASSWORD_CHANGE', 'SUCCESS', 'User password changed');
 
     return res.status(200).json({
       success: true,
@@ -600,9 +603,9 @@ function changePassword(req, res) {
 /**
  * Logout
  */
-function logout(req, res) {
+async function logout(req, res) {
   const userId = req.user ? req.user.id : null;
-  logAudit(userId, 'LOGOUT', 'SUCCESS', 'User logged out');
+  await logAudit(userId, 'LOGOUT', 'SUCCESS', 'User logged out');
   return res.status(200).json({
     success: true,
     message: 'Logged out successfully.'
@@ -622,3 +625,4 @@ module.exports = {
   logout,
   logAudit
 };
+

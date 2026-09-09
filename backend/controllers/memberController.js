@@ -3,7 +3,7 @@ const { db } = require('../database/db');
 /**
  * Get all members with search, status filtering, and loan counts
  */
-function getAllMembers(req, res) {
+async function getAllMembers(req, res) {
   try {
     const { search, status, page = 1, limit = 50 } = req.query;
 
@@ -44,13 +44,14 @@ function getAllMembers(req, res) {
 
     // Count query
     const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
-    const totalCount = db.prepare(countQuery).get(...params).total;
+    const countRow = await db.prepare(countQuery).get(...params);
+    const totalCount = countRow ? Number(countRow.total || 0) : 0;
 
     query += ` ORDER BY m.id DESC LIMIT ? OFFSET ?`;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     params.push(parseInt(limit), offset);
 
-    const members = db.prepare(query).all(...params);
+    const members = await db.prepare(query).all(...params);
 
     return res.status(200).json({
       success: true,
@@ -74,11 +75,11 @@ function getAllMembers(req, res) {
 /**
  * Get Member by ID with complete loan and fine history
  */
-function getMemberById(req, res) {
+async function getMemberById(req, res) {
   try {
     const { id } = req.params;
 
-    const member = db.prepare('SELECT * FROM members WHERE id = ?').get(id);
+    const member = await db.prepare('SELECT * FROM members WHERE id = ?').get(id);
     if (!member) {
       return res.status(404).json({
         success: false,
@@ -87,7 +88,7 @@ function getMemberById(req, res) {
     }
 
     // Get active loans
-    const activeLoans = db.prepare(`
+    const activeLoans = await db.prepare(`
       SELECT 
         l.id,
         l.loan_code,
@@ -106,7 +107,7 @@ function getMemberById(req, res) {
     `).all(id);
 
     // Get past returned loans
-    const loanHistory = db.prepare(`
+    const loanHistory = await db.prepare(`
       SELECT 
         l.id,
         l.loan_code,
@@ -127,7 +128,7 @@ function getMemberById(req, res) {
     `).all(id);
 
     // Get fines
-    const fines = db.prepare(`
+    const fines = await db.prepare(`
       SELECT 
         f.id,
         f.loan_id,
@@ -172,7 +173,7 @@ function isValidEmail(email) {
 /**
  * Create a new member
  */
-function createMember(req, res) {
+async function createMember(req, res) {
   try {
     const { full_name, email, phone, address, membership_date, status = 'Active' } = req.body;
 
@@ -194,7 +195,7 @@ function createMember(req, res) {
       }
 
       // Check duplicate email
-      const existing = db.prepare('SELECT id FROM members WHERE LOWER(email) = ?').get(trimmedEmail);
+      const existing = await db.prepare('SELECT id FROM members WHERE LOWER(email) = ?').get(trimmedEmail);
       if (existing) {
         return res.status(400).json({
           success: false,
@@ -204,13 +205,13 @@ function createMember(req, res) {
     }
 
     // Generate unique member code (e.g. MEM-009)
-    const maxIdRow = db.prepare('SELECT MAX(id) as max_id FROM members').get();
-    const nextNum = (maxIdRow.max_id || 0) + 1;
+    const maxIdRow = await db.prepare('SELECT MAX(id) as max_id FROM members').get();
+    const nextNum = (maxIdRow?.max_id || 0) + 1;
     const memberCode = `MEM-${String(nextNum).padStart(3, '0')}`;
 
     const memDate = membership_date || new Date().toISOString().split('T')[0];
 
-    const result = db.prepare(`
+    const result = await db.prepare(`
       INSERT INTO members (member_code, full_name, email, phone, address, membership_date, status)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
@@ -223,7 +224,7 @@ function createMember(req, res) {
       status
     );
 
-    const newMember = db.prepare('SELECT * FROM members WHERE id = ?').get(result.lastInsertRowid);
+    const newMember = await db.prepare('SELECT * FROM members WHERE id = ?').get(result.lastInsertRowid);
 
     return res.status(201).json({
       success: true,
@@ -242,12 +243,12 @@ function createMember(req, res) {
 /**
  * Update member information
  */
-function updateMember(req, res) {
+async function updateMember(req, res) {
   try {
     const { id } = req.params;
     const { full_name, email, phone, address, membership_date, status } = req.body;
 
-    const existing = db.prepare('SELECT * FROM members WHERE id = ?').get(id);
+    const existing = await db.prepare('SELECT * FROM members WHERE id = ?').get(id);
     if (!existing) {
       return res.status(404).json({
         success: false,
@@ -277,7 +278,7 @@ function updateMember(req, res) {
         }
 
         // Check duplicate email on another member
-        const dup = db.prepare('SELECT id FROM members WHERE LOWER(email) = ? AND id != ?').get(trimmedEmail, id);
+        const dup = await db.prepare('SELECT id FROM members WHERE LOWER(email) = ? AND id != ?').get(trimmedEmail, id);
         if (dup) {
           return res.status(400).json({
             success: false,
@@ -293,7 +294,7 @@ function updateMember(req, res) {
     const finalDate = membership_date || existing.membership_date;
     const finalStatus = status || existing.status;
 
-    db.prepare(`
+    await db.prepare(`
       UPDATE members
       SET 
         full_name = ?,
@@ -313,7 +314,7 @@ function updateMember(req, res) {
       id
     );
 
-    const updated = db.prepare('SELECT * FROM members WHERE id = ?').get(id);
+    const updated = await db.prepare('SELECT * FROM members WHERE id = ?').get(id);
 
     return res.status(200).json({
       success: true,
@@ -332,12 +333,12 @@ function updateMember(req, res) {
 /**
  * Update member Gmail / Email Address (Librarian Action)
  */
-function updateMemberEmail(req, res) {
+async function updateMemberEmail(req, res) {
   try {
     const { id } = req.params;
     const { email } = req.body;
 
-    const member = db.prepare('SELECT * FROM members WHERE id = ?').get(id);
+    const member = await db.prepare('SELECT * FROM members WHERE id = ?').get(id);
     if (!member) {
       return res.status(404).json({
         success: false,
@@ -356,7 +357,7 @@ function updateMemberEmail(req, res) {
       }
 
       // Check duplicate email on another member
-      const dup = db.prepare('SELECT id FROM members WHERE LOWER(email) = ? AND id != ?').get(trimmedEmail, id);
+      const dup = await db.prepare('SELECT id FROM members WHERE LOWER(email) = ? AND id != ?').get(trimmedEmail, id);
       if (dup) {
         return res.status(400).json({
           success: false,
@@ -365,9 +366,9 @@ function updateMemberEmail(req, res) {
       }
     }
 
-    db.prepare('UPDATE members SET email = ? WHERE id = ?').run(trimmedEmail, id);
+    await db.prepare('UPDATE members SET email = ? WHERE id = ?').run(trimmedEmail, id);
 
-    const updatedMember = db.prepare('SELECT id, member_code, full_name, email, phone, address, membership_date, status, created_at FROM members WHERE id = ?').get(id);
+    const updatedMember = await db.prepare('SELECT id, member_code, full_name, email, phone, address, membership_date, status, created_at FROM members WHERE id = ?').get(id);
 
     const successMsg = trimmedEmail 
       ? 'Member email updated successfully.'
@@ -390,11 +391,11 @@ function updateMemberEmail(req, res) {
 /**
  * Delete a member
  */
-function deleteMember(req, res) {
+async function deleteMember(req, res) {
   try {
     const { id } = req.params;
 
-    const member = db.prepare('SELECT * FROM members WHERE id = ?').get(id);
+    const member = await db.prepare('SELECT * FROM members WHERE id = ?').get(id);
     if (!member) {
       return res.status(404).json({
         success: false,
@@ -403,7 +404,7 @@ function deleteMember(req, res) {
     }
 
     // Check active loans
-    const activeLoan = db.prepare('SELECT id FROM loans WHERE member_id = ? AND return_date IS NULL LIMIT 1').get(id);
+    const activeLoan = await db.prepare('SELECT id FROM loans WHERE member_id = ? AND return_date IS NULL LIMIT 1').get(id);
     if (activeLoan) {
       return res.status(400).json({
         success: false,
@@ -412,7 +413,7 @@ function deleteMember(req, res) {
     }
 
     // Check unpaid fines
-    const unpaidFine = db.prepare("SELECT id FROM fines WHERE member_id = ? AND status = 'Unpaid' LIMIT 1").get(id);
+    const unpaidFine = await db.prepare("SELECT id FROM fines WHERE member_id = ? AND status = 'Unpaid' LIMIT 1").get(id);
     if (unpaidFine) {
       return res.status(400).json({
         success: false,
@@ -421,9 +422,9 @@ function deleteMember(req, res) {
     }
 
     // Clean up past loans and fines
-    db.prepare('DELETE FROM fines WHERE member_id = ?').run(id);
-    db.prepare('DELETE FROM loans WHERE member_id = ?').run(id);
-    db.prepare('DELETE FROM members WHERE id = ?').run(id);
+    await db.prepare('DELETE FROM fines WHERE member_id = ?').run(id);
+    await db.prepare('DELETE FROM loans WHERE member_id = ?').run(id);
+    await db.prepare('DELETE FROM members WHERE id = ?').run(id);
 
     return res.status(200).json({
       success: true,
@@ -446,3 +447,4 @@ module.exports = {
   updateMemberEmail,
   deleteMember
 };
+
