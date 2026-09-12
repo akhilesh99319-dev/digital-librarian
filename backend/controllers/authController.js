@@ -601,6 +601,146 @@ async function changePassword(req, res) {
 }
 
 /**
+ * Helper: Validate email format
+ */
+function isValidEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  const trimmed = email.trim();
+  if (trimmed.length > 254) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(trimmed);
+}
+
+/**
+ * Handle Public User Registration (Strictly Non-Privileged Member Role)
+ */
+async function register(req, res) {
+  try {
+    const { name, full_name, email, password, confirm_password, confirmPassword, phone, address } = req.body;
+    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+
+    const rawName = name || full_name;
+    if (!rawName || typeof rawName !== 'string' || rawName.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Full name is required (at least 2 characters).'
+      });
+    }
+
+    const trimmedName = rawName.trim();
+
+    if (!email || !isValidEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.'
+      });
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+
+    if (!password || typeof password !== 'string' || password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long.'
+      });
+    }
+
+    const confirmPass = confirm_password !== undefined ? confirm_password : confirmPassword;
+    if (confirmPass !== undefined && confirmPass !== password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match.'
+      });
+    }
+
+    // Check duplicate email across both users and members
+    const existingUser = await db.prepare('SELECT id FROM users WHERE LOWER(email) = ?').get(trimmedEmail);
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email already exists.'
+      });
+    }
+
+    const existingMember = await db.prepare('SELECT id FROM members WHERE LOWER(email) = ?').get(trimmedEmail);
+    if (existingMember) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email already exists.'
+      });
+    }
+
+    // Generate secure password hash using bcrypt
+    const salt = bcrypt.genSaltSync(10);
+    const passwordHash = bcrypt.hashSync(password, salt);
+
+    // Auto-generate next unique member code (e.g. MEM-009)
+    const maxIdRow = await db.prepare('SELECT MAX(id) as max_id FROM members').get();
+    let nextNum = (maxIdRow?.max_id || 0) + 1;
+    let memberCode = `MEM-${String(nextNum).padStart(3, '0')}`;
+
+    // Verify member_code collision safety
+    let codeExists = await db.prepare('SELECT id FROM members WHERE member_code = ?').get(memberCode);
+    while (codeExists) {
+      nextNum++;
+      memberCode = `MEM-${String(nextNum).padStart(3, '0')}`;
+      codeExists = await db.prepare('SELECT id FROM members WHERE member_code = ?').get(memberCode);
+    }
+
+    const memDate = new Date().toISOString().split('T')[0];
+    const sanitizedPhone = phone && typeof phone === 'string' ? phone.trim() : '';
+    const sanitizedAddress = address && typeof address === 'string' ? address.trim() : '';
+
+    // Insert new member (strict 'Member' role, 'Active' status)
+    const insertStmt = db.prepare(`
+      INSERT INTO members (member_code, full_name, email, password_hash, phone, address, membership_date, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')
+    `);
+
+    const result = await insertStmt.run(
+      memberCode,
+      trimmedName,
+      trimmedEmail,
+      passwordHash,
+      sanitizedPhone,
+      sanitizedAddress,
+      memDate
+    );
+
+    const newMemberId = result.lastInsertRowid;
+
+    await logAudit(
+      newMemberId,
+      'REGISTER',
+      'SUCCESS',
+      `New member registered: ${trimmedName} (${memberCode}, ${trimmedEmail})`,
+      clientIp
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: 'Account created successfully! You can now sign in.',
+      user: {
+        id: Number(newMemberId),
+        member_code: memberCode,
+        name: trimmedName,
+        email: trimmedEmail,
+        role: 'Member',
+        phone: sanitizedPhone,
+        membership_date: memDate,
+        status: 'Active'
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'An error occurred during registration. Please try again.'
+    });
+  }
+}
+
+/**
  * Logout
  */
 async function logout(req, res) {
@@ -614,6 +754,7 @@ async function logout(req, res) {
 
 module.exports = {
   login,
+  register,
   requestAdminLogin,
   checkAdminApprovalStatus,
   getPendingAdminRequests,

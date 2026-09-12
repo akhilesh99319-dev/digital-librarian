@@ -169,26 +169,7 @@ const DEFAULT_MEMBERS = [
    DEFAULT USERS
 ========================================= */
 
-const DEFAULT_USERS = [
-
-    {
-        id: "U001",
-
-        name: "Library Administrator",
-
-        email: "admin@lms.com",
-
-        password: "admin123",
-
-        role: "admin",
-
-        active: true,
-
-        createdAt:
-            "2026-08-13"
-    }
-
-];
+const DEFAULT_USERS = [];
 
 /* =========================================
    INITIALIZE STORAGE

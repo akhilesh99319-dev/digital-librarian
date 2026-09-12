@@ -25,18 +25,18 @@ async function loadProfile() {
     const res = await api.get('/auth/me');
     if (res.success && res.user) {
       const u = res.user;
-      document.getElementById('profileName').value = u.name || 'Akhilesh Kumar';
-      document.getElementById('profileEmail').value = u.email || 'akhilesh@library.com';
+      document.getElementById('profileName').value = u.name || '';
+      document.getElementById('profileEmail').value = u.email || '';
       document.getElementById('profilePhone').value = u.phone || '';
       
       const roleBadge = document.getElementById('profileRoleBadge');
-      if (roleBadge) roleBadge.textContent = 'Librarian';
+      if (roleBadge) roleBadge.textContent = u.role || 'Librarian';
 
       const cardName = document.getElementById('profileCardName');
-      if (cardName) cardName.textContent = u.name || 'Akhilesh Kumar';
+      if (cardName) cardName.textContent = u.name || 'Library User';
 
       const cardEmail = document.getElementById('profileCardEmail');
-      if (cardEmail) cardEmail.textContent = u.email || 'akhilesh@library.com';
+      if (cardEmail) cardEmail.textContent = u.email || '';
     }
   } catch (err) {
     console.error('Failed to load profile:', err);

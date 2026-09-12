@@ -5,6 +5,7 @@ const { authenticateToken, requireLibrarian } = require('../middleware/auth');
 
 // Public routes
 router.post('/login', authController.login);
+router.post('/register', authController.register);
 router.post('/admin-request', authController.requestAdminLogin);
 router.get('/admin-request/:token', authController.checkAdminApprovalStatus);
 

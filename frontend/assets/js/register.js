@@ -1,657 +1,129 @@
-/* =========================================
-   LIBRARY MANAGEMENT SYSTEM
-   REGISTER PAGE JAVASCRIPT
+/**
+ * Library Management System - Standalone Registration Controller
+ * Digital Librarian System
+ */
 
-   Connected With:
-   lms-data.js
-========================================= */
+document.addEventListener('DOMContentLoaded', () => {
+  const registerForm = document.getElementById('registerForm');
+  const fullNameInput = document.getElementById('fullName');
+  const emailInput = document.getElementById('email');
+  const phoneInput = document.getElementById('phone');
+  const passwordInput = document.getElementById('password');
+  const confirmPasswordInput = document.getElementById('confirmPassword');
+  const termsCheckbox = document.getElementById('terms');
+  const formMessage = document.getElementById('formMessage');
 
+  const passwordToggle = document.getElementById('passwordToggle');
+  const confirmPasswordToggle = document.getElementById('confirmPasswordToggle');
 
-/* =========================================
-   PAGE INITIALIZATION
-========================================= */
+  // Setup password toggles
+  if (passwordToggle && passwordInput) {
+    passwordToggle.addEventListener('click', () => {
+      const isPass = passwordInput.type === 'password';
+      passwordInput.type = isPass ? 'text' : 'password';
+      passwordToggle.textContent = isPass ? '🙈' : '👁️';
+    });
+  }
 
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
+  if (confirmPasswordToggle && confirmPasswordInput) {
+    confirmPasswordToggle.addEventListener('click', () => {
+      const isPass = confirmPasswordInput.type === 'password';
+      confirmPasswordInput.type = isPass ? 'text' : 'password';
+      confirmPasswordToggle.textContent = isPass ? '🙈' : '👁️';
+    });
+  }
 
-        const registerForm =
-            document.getElementById(
-                "registerForm"
-            );
+  if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
+      const name = fullNameInput ? fullNameInput.value.trim() : '';
+      const email = emailInput ? emailInput.value.trim() : '';
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      const password = passwordInput ? passwordInput.value : '';
+      const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
+      const terms = termsCheckbox ? termsCheckbox.checked : true;
 
-        const password =
-            document.getElementById(
-                "password"
-            );
+      // Validation
+      if (!name || name.length < 2) {
+        showMessage('Please enter a valid full name (at least 2 characters).', 'error');
+        if (fullNameInput) fullNameInput.focus();
+        return;
+      }
 
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
+        showMessage('Please enter a valid email address.', 'error');
+        if (emailInput) emailInput.focus();
+        return;
+      }
 
-        const confirmPassword =
-            document.getElementById(
-                "confirmPassword"
-            );
+      if (!password || password.length < 6) {
+        showMessage('Password must contain at least 6 characters.', 'error');
+        if (passwordInput) passwordInput.focus();
+        return;
+      }
 
+      if (password !== confirmPassword) {
+        showMessage('Passwords do not match.', 'error');
+        if (confirmPasswordInput) confirmPasswordInput.focus();
+        return;
+      }
 
-        const passwordToggle =
-            document.getElementById(
-                "passwordToggle"
-            );
+      if (!terms) {
+        showMessage('Please accept the Terms & Conditions.', 'error');
+        return;
+      }
 
+      const submitBtn = registerForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Creating Account...</span>';
+      }
 
-        const confirmPasswordToggle =
-            document.getElementById(
-                "confirmPasswordToggle"
-            );
+      clearMessage();
 
+      try {
+        const res = await api.post('/auth/register', {
+          name,
+          email,
+          phone,
+          password,
+          confirm_password: confirmPassword
+        });
 
-        const formMessage =
-            document.getElementById(
-                "formMessage"
-            );
-
-
-        /* =================================
-           CHECK FORM
-        ================================= */
-
-        if (!registerForm) {
-
-            console.error(
-                "Register form not found!"
-            );
-
-            return;
-
+        if (res.success) {
+          showMessage(res.message || 'Account created successfully! Redirecting to login...', 'success');
+          registerForm.reset();
+          setTimeout(() => {
+            window.location.href = './login.html';
+          }, 1200);
+        } else {
+          showMessage(res.message || 'Registration failed.', 'error');
         }
-
-
-        /* =================================
-           PASSWORD TOGGLE
-        ================================= */
-
-        if (passwordToggle) {
-
-            passwordToggle.addEventListener(
-                "click",
-                function () {
-
-                    if (
-                        password.type ===
-                        "password"
-                    ) {
-
-                        password.type =
-                            "text";
-
-                        passwordToggle.textContent =
-                            "🙈";
-
-                        passwordToggle.setAttribute(
-                            "aria-label",
-                            "Hide password"
-                        );
-
-                    } else {
-
-                        password.type =
-                            "password";
-
-                        passwordToggle.textContent =
-                            "👁️";
-
-                        passwordToggle.setAttribute(
-                            "aria-label",
-                            "Show password"
-                        );
-
-                    }
-
-                }
-            );
-
+      } catch (err) {
+        showMessage(err.message || 'Registration failed. Please check your inputs.', 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Create Account</span> <span>→</span>';
         }
-
-
-        /* =================================
-           CONFIRM PASSWORD TOGGLE
-        ================================= */
-
-        if (confirmPasswordToggle) {
-
-            confirmPasswordToggle.addEventListener(
-                "click",
-                function () {
-
-                    if (
-                        confirmPassword.type ===
-                        "password"
-                    ) {
-
-                        confirmPassword.type =
-                            "text";
-
-                        confirmPasswordToggle.textContent =
-                            "🙈";
-
-                        confirmPasswordToggle.setAttribute(
-                            "aria-label",
-                            "Hide password"
-                        );
-
-                    } else {
-
-                        confirmPassword.type =
-                            "password";
-
-                        confirmPasswordToggle.textContent =
-                            "👁️";
-
-                        confirmPasswordToggle.setAttribute(
-                            "aria-label",
-                            "Show password"
-                        );
-
-                    }
-
-                }
-            );
-
-        }
-
-
-        /* =================================
-           SHOW MESSAGE
-        ================================= */
-
-        function showMessage(
-            message,
-            type
-        ) {
-
-            if (!formMessage) {
-
-                return;
-
-            }
-
-
-            formMessage.textContent =
-                message;
-
-
-            formMessage.className =
-                "form-message " +
-                type;
-
-        }
-
-
-        /* =================================
-           REGISTER FORM SUBMIT
-        ================================= */
-
-        registerForm.addEventListener(
-            "submit",
-            function (event) {
-
-                event.preventDefault();
-
-
-                /* =================================
-                   GET FORM VALUES
-                ================================= */
-
-                const fullName =
-                    document
-                        .getElementById(
-                            "fullName"
-                        )
-                        .value
-                        .trim();
-
-
-                const email =
-                    document
-                        .getElementById(
-                            "email"
-                        )
-                        .value
-                        .trim()
-                        .toLowerCase();
-
-
-                const phone =
-                    document
-                        .getElementById(
-                            "phone"
-                        )
-                        .value
-                        .trim();
-
-
-                const role =
-                    document
-                        .getElementById(
-                            "role"
-                        )
-                        .value;
-
-
-                const passwordValue =
-                    password.value;
-
-
-                const confirmPasswordValue =
-                    confirmPassword.value;
-
-
-                const terms =
-                    document
-                        .getElementById(
-                            "terms"
-                        )
-                        .checked;
-
-
-                /* =================================
-                   NAME VALIDATION
-                ================================= */
-
-                if (
-                    fullName.length < 3
-                ) {
-
-                    showMessage(
-                        "Please enter a valid full name.",
-                        "error"
-                    );
-
-                    return;
-
-                }
-
-
-                /* =================================
-                   EMAIL VALIDATION
-                ================================= */
-
-                const emailPattern =
-                    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-
-                if (
-                    !emailPattern.test(
-                        email
-                    )
-                ) {
-
-                    showMessage(
-                        "Please enter a valid email address.",
-                        "error"
-                    );
-
-                    return;
-
-                }
-
-
-                /* =================================
-                   PHONE VALIDATION
-                ================================= */
-
-                if (
-                    phone !== "" &&
-                    !/^[0-9]{10}$/.test(
-                        phone
-                    )
-                ) {
-
-                    showMessage(
-                        "Phone number must contain 10 digits.",
-                        "error"
-                    );
-
-                    return;
-
-                }
-
-
-                /* =================================
-                   ROLE VALIDATION
-                ================================= */
-
-                if (
-                    role !== "member" &&
-                    role !== "librarian"
-                ) {
-
-                    showMessage(
-                        "Please select a valid account type.",
-                        "error"
-                    );
-
-                    return;
-
-                }
-
-
-                /* =================================
-                   PASSWORD VALIDATION
-                ================================= */
-
-                if (
-                    passwordValue.length < 8
-                ) {
-
-                    showMessage(
-                        "Password must contain at least 8 characters.",
-                        "error"
-                    );
-
-                    return;
-
-                }
-
-
-                /* =================================
-                   PASSWORD MATCH
-                ================================= */
-
-                if (
-                    passwordValue !==
-                    confirmPasswordValue
-                ) {
-
-                    showMessage(
-                        "Passwords do not match.",
-                        "error"
-                    );
-
-                    return;
-
-                }
-
-
-                /* =================================
-                   TERMS VALIDATION
-                ================================= */
-
-                if (!terms) {
-
-                    showMessage(
-                        "Please accept the Terms & Conditions.",
-                        "error"
-                    );
-
-                    return;
-
-                }
-
-
-                /* =================================
-                   GET USERS FROM STORAGE
-                ================================= */
-
-                let users =
-                    getUsers();
-
-
-                /* =================================
-                   CHECK DUPLICATE EMAIL
-                ================================= */
-
-                const existingUser =
-                    users.find(
-                        function (user) {
-
-                            return (
-                                String(
-                                    user.email || ""
-                                )
-                                    .toLowerCase()
-                                    .trim()
-                                ===
-                                email
-                            );
-
-                        }
-                    );
-
-
-                if (existingUser) {
-
-                    showMessage(
-                        "An account with this email already exists.",
-                        "error"
-                    );
-
-                    return;
-
-                }
-
-
-                /* =================================
-                   GENERATE USER ID
-                ================================= */
-
-                let number = 1;
-
-
-                if (
-                    users.length > 0
-                ) {
-
-                    const numbers =
-                        users.map(
-                            function (user) {
-
-                                const match =
-                                    String(
-                                        user.id || ""
-                                    ).match(
-                                        /(\d+)$/
-                                    );
-
-
-                                return match
-                                    ? Number(
-                                        match[1]
-                                    )
-                                    : 0;
-
-                            }
-                        );
-
-
-                    number =
-                        Math.max(
-                            ...numbers
-                        ) + 1;
-
-                }
-
-
-                const newUserId =
-                    "U" +
-                    String(
-                        number
-                    ).padStart(
-                        3,
-                        "0"
-                    );
-
-
-                /* =================================
-                   CREATE NEW USER
-                ================================= */
-
-                const newUser = {
-
-                    id:
-                        newUserId,
-
-                    name:
-                        fullName,
-
-                    email:
-                        email,
-
-                    password:
-                        passwordValue,
-
-                    role:
-                        role,
-
-                    active:
-                        true,
-
-                    createdAt:
-                        getToday()
-
-                };
-
-
-                /* =================================
-                   SAVE USER
-                ================================= */
-
-                users.push(
-                    newUser
-                );
-
-
-                saveUsers(
-                    users
-                );
-
-
-                /* =================================
-                   SUCCESS MESSAGE
-                ================================= */
-
-                showMessage(
-                    "Registration successful! Redirecting to login...",
-                    "success"
-                );
-
-
-                /* =================================
-                   REDIRECT TO LOGIN
-                ================================= */
-
-                setTimeout(
-                    function () {
-
-                        window.location.href =
-                            "./login.html";
-
-                    },
-                    1500
-                );
-
-            }
-        );
-
+      }
+    });
+  }
+
+  function showMessage(msg, type = 'error') {
+    if (formMessage) {
+      formMessage.textContent = msg;
+      formMessage.className = `form-message ${type}`;
+      formMessage.style.display = 'block';
     }
-);
+  }
 
-
-/* =========================================
-   USER STORAGE FUNCTIONS
-========================================= */
-
-function getUsers() {
-
-    const storedUsers =
-        localStorage.getItem(
-            "lmsUsers"
-        );
-
-
-    if (!storedUsers) {
-
-        return [];
-
+  function clearMessage() {
+    if (formMessage) {
+      formMessage.textContent = '';
+      formMessage.style.display = 'none';
     }
-
-
-    try {
-
-        return JSON.parse(
-            storedUsers
-        ) || [];
-
-    } catch (error) {
-
-        console.error(
-            "Unable to read users:",
-            error
-        );
-
-        return [];
-
-    }
-
-}
-
-
-/* =========================================
-   SAVE USERS
-========================================= */
-
-function saveUsers(
-    users
-) {
-
-    localStorage.setItem(
-        "lmsUsers",
-        JSON.stringify(
-            users
-        )
-    );
-
-}
-
-
-/* =========================================
-   GET TODAY
-========================================= */
-
-function getToday() {
-
-    const date =
-        new Date();
-
-
-    const year =
-        date.getFullYear();
-
-
-    const month =
-        String(
-            date.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        );
-
-
-    const day =
-        String(
-            date.getDate()
-        ).padStart(
-            2,
-            "0"
-        );
-
-
-    return (
-        year +
-        "-" +
-        month +
-        "-" +
-        day
-    );
-
-}
+  }
+});

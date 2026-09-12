@@ -43,7 +43,7 @@ function runScript(scriptRelativePath) {
 function restoreCleanBaseline() {
   console.log('\n--> Restoring Clean Authoritative Baseline in SQLite Database...');
   
-  // Clean up any test loans and fines
+  // Clean up any test loans, fines, audit logs, and test-registered members
   db.exec(`
     DELETE FROM fines WHERE loan_id IN (SELECT id FROM loans WHERE notes LIKE '%test%' OR notes LIKE '%Test%');
     DELETE FROM loans WHERE notes LIKE '%test%' OR notes LIKE '%Test%' OR return_date IS NULL;
@@ -51,6 +51,8 @@ function restoreCleanBaseline() {
     UPDATE loans SET status = 'Returned', return_date = date('now') WHERE return_date IS NULL;
     DELETE FROM fines;
     DELETE FROM loans;
+    DELETE FROM audit_logs WHERE user_id IN (SELECT id FROM members WHERE id > 8);
+    DELETE FROM members WHERE id > 8;
   `);
 
   console.log('--> Baseline Cleaned. Checking final state:');
@@ -92,6 +94,9 @@ async function main() {
 
     // 5. E2E HTTP Suite
     await runScript('e2e_http_test.js');
+
+    // 6. Registration & Security Suite (Phase 13)
+    await runScript('verify_registration_and_security.js');
 
     // Restore clean baseline
     restoreCleanBaseline();
