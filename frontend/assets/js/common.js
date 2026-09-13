@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
 
   const isLoginPage = window.location.pathname.endsWith('login.html');
-  const isMemberPortal = window.location.pathname.endsWith('member-portal.html');
+  const isMemberPage = window.location.pathname.endsWith('my-books.html') || window.location.pathname.endsWith('available-books.html');
   const user = api.getUser();
 
   // Authentication check
@@ -91,8 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Role based routing check
-  if (user && user.role === 'Member' && !isMemberPortal && !isLoginPage) {
-    window.location.href = '/member-portal.html';
+  if (user && user.role === 'Member' && !isMemberPage && !isLoginPage) {
+    window.location.href = '/my-books.html';
     return;
   }
 

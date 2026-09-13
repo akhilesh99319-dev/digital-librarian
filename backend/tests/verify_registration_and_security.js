@@ -256,7 +256,24 @@ async function runAllTests() {
     assert.ok(!authJs.includes('akhilesh@library.com'), 'auth.js must not contain hardcoded demo email');
   });
 
-  // 15. Clean up test members created during test
+  // 15. Member Redirect Target Verification (Phase 13.1)
+  await step('Member Redirect Verification: Target is /my-books.html and serves HTTP 200', async () => {
+    const authJs = fs.readFileSync(path.join(__dirname, '../../frontend/assets/js/auth.js'), 'utf8');
+    const commonJs = fs.readFileSync(path.join(__dirname, '../../frontend/assets/js/common.js'), 'utf8');
+
+    assert.ok(!authJs.includes('member-portal.html'), 'auth.js must not reference member-portal.html');
+    assert.ok(!commonJs.includes('member-portal.html'), 'common.js must not reference member-portal.html');
+    assert.ok(authJs.includes('/my-books.html'), 'auth.js must redirect Member to /my-books.html');
+    assert.ok(commonJs.includes('/my-books.html'), 'common.js must route Member to /my-books.html');
+
+    const myBooksPath = path.join(__dirname, '../../frontend/my-books.html');
+    assert.ok(fs.existsSync(myBooksPath), 'frontend/my-books.html must exist');
+
+    const res = await apiRequest('GET', '/my-books.html');
+    assert.strictEqual(res.status, 200, 'Express server must serve /my-books.html with HTTP 200');
+  });
+
+  // 16. Clean up test members created during test
   await step('Database Cleanup: Remove test-created members and verify baseline integrity', async () => {
     db.exec(`
       DELETE FROM audit_logs WHERE user_id IN (SELECT id FROM members WHERE id > 8);

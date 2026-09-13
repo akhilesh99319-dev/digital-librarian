@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (api.isAuthenticated() && !window.location.search.includes('expired')) {
     const user = api.getUser();
     if (user && user.role === 'Member') {
-      window.location.href = '/member-portal.html';
+      window.location.href = '/my-books.html';
     } else {
       window.location.href = '/index.html';
     }
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
           
           setTimeout(() => {
             if (res.user && res.user.role === 'Member') {
-              window.location.href = '/member-portal.html';
+              window.location.href = '/my-books.html';
             } else {
               window.location.href = '/index.html';
             }
