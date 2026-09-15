@@ -80,10 +80,11 @@ if (isPostgres) {
       await pool.query(schemaSql);
     }
 
-    // Check if seeded
-    const userCheck = await pool.query('SELECT COUNT(*) as count FROM users');
-    if (parseInt(userCheck.rows[0].count) === 0) {
-      console.log('Seeding initial PostgreSQL authoritative records...');
+    // Check if seeded with authoritative catalog (62 books)
+    const bookCheck = await pool.query('SELECT COUNT(*) as count FROM books');
+    if (parseInt(bookCheck.rows[0].count) < 62) {
+      console.log('Seeding / Synchronizing PostgreSQL authoritative records (62 books)...');
+      await pool.query('DROP TABLE IF EXISTS audit_logs, admin_approval_requests, book_requests, fines, loans, members, books, categories, users CASCADE;');
       const importFile = path.join(__dirname, '../../database/digital_librarian_postgresql_import.sql');
       if (fs.existsSync(importFile)) {
         const importSql = fs.readFileSync(importFile, 'utf8');
