@@ -41,6 +41,22 @@ function setupEventListeners() {
 }
 
 async function loadMemberDashboard() {
+  if (!api.isAuthenticated()) {
+    window.location.href = '/login.html';
+    return;
+  }
+
+  const user = api.getUser();
+  if (!user || !user.id) {
+    window.location.href = '/login.html';
+    return;
+  }
+
+  if (user.role && user.role !== 'Member') {
+    window.location.href = '/index.html';
+    return;
+  }
+
   const loadingEl = document.getElementById('memberDashboardLoading');
   const contentEl = document.getElementById('memberDashboardContent');
   const errorEl = document.getElementById('memberDashboardError');
@@ -48,13 +64,6 @@ async function loadMemberDashboard() {
   if (loadingEl) loadingEl.style.display = 'flex';
   if (contentEl) contentEl.style.display = 'none';
   if (errorEl) errorEl.style.display = 'none';
-
-  const user = api.getUser();
-  if (!user || !user.id) {
-    if (loadingEl) loadingEl.style.display = 'none';
-    window.location.href = '/login.html';
-    return;
-  }
 
   try {
     // Fetch profile and my-books in parallel

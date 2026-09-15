@@ -11,6 +11,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadDashboardData() {
+  if (!api.isAuthenticated()) {
+    window.location.href = '/login.html';
+    return;
+  }
+
+  const user = api.getUser();
+  if (user && user.role === 'Member') {
+    window.location.href = '/dashboard.html';
+    return;
+  }
+
   const loadingContainer = document.getElementById('dashboardLoading');
   const contentContainer = document.getElementById('dashboardContent');
   const errorContainer = document.getElementById('dashboardError');
@@ -21,17 +32,23 @@ async function loadDashboardData() {
 
   try {
     const res = await api.get('/dashboard/stats');
-    if (res.success && res.data) {
+    if (res && res.success && res.data) {
       renderMetrics(res.data.metrics);
       renderCharts(res.data.charts);
       renderRecentLoans(res.data.recentLoans);
 
       if (loadingContainer) loadingContainer.style.display = 'none';
       if (contentContainer) contentContainer.style.display = 'block';
+    } else if (res && res.message && res.message.includes('Session expired')) {
+      return;
     } else {
-      throw new Error(res.message || 'Failed to load dashboard data');
+      throw new Error(res?.message || 'Failed to load dashboard data');
     }
   } catch (err) {
+    if (!api.isAuthenticated()) {
+      window.location.href = '/login.html';
+      return;
+    }
     console.error('Dashboard loading error:', err);
     if (loadingContainer) loadingContainer.style.display = 'none';
     if (errorContainer) {
@@ -43,6 +60,10 @@ async function loadDashboardData() {
 }
 
 async function loadPendingMemberRequests() {
+  if (!api.isAuthenticated()) return;
+  const user = api.getUser();
+  if (user && user.role === 'Member') return;
+
   const tbody = document.getElementById('pendingRequestsTableBody');
   const badge = document.getElementById('pendingRequestsBadge');
   if (!tbody) return;

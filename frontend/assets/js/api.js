@@ -67,7 +67,7 @@ class ApiClient {
         if (!window.location.pathname.endsWith('login.html')) {
           this.clearSession();
           window.location.href = '/login.html?expired=1';
-          return;
+          return { success: false, message: 'Session expired. Redirecting to login...' };
         }
       }
 
