@@ -46,7 +46,7 @@ async function getAllBooks(req, res) {
     }
 
     // Get total count for pagination
-    const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
+    const countQuery = `SELECT COUNT(*) as total FROM (${query}) AS count_subquery`;
     const countStmt = db.prepare(countQuery);
     const countRow = await countStmt.get(...params);
     const totalCount = countRow ? Number(countRow.total || 0) : 0;

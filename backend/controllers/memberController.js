@@ -50,7 +50,7 @@ async function getAllMembers(req, res) {
     query += ` GROUP BY m.id, m.member_code, m.full_name, m.email, m.phone, m.address, m.membership_date, m.status, m.created_at`;
 
     // Count query
-    const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
+    const countQuery = `SELECT COUNT(*) as total FROM (${query}) AS count_subquery`;
     const countRow = await db.prepare(countQuery).get(...params);
     const totalCount = countRow ? Number(countRow.total || 0) : 0;
 

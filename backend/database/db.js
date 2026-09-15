@@ -12,6 +12,10 @@ function convertSql(sql) {
   pgSql = pgSql.replace(/date\('now',\s*'-6 months'\)/gi, "(CURRENT_DATE - INTERVAL '6 months')");
   pgSql = pgSql.replace(/date\('now'\)/gi, "CURRENT_DATE");
   pgSql = pgSql.replace(/datetime\('now'\)/gi, "CURRENT_TIMESTAMP");
+  // Automatically ensure subqueries in FROM clause have aliases in PostgreSQL
+  pgSql = pgSql.replace(/FROM\s*\(([\s\S]+?)\)\s*$/i, (match, inner) => {
+    return `FROM (${inner}) AS count_subquery`;
+  });
   return pgSql;
 }
 

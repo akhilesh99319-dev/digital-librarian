@@ -399,7 +399,7 @@ async function getAuditLogs(req, res) {
       params.push(action);
     }
 
-    const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
+    const countQuery = `SELECT COUNT(*) as total FROM (${query}) AS count_subquery`;
     const countRow = await db.prepare(countQuery).get(...params);
     const totalCount = countRow ? Number(countRow.total || 0) : 0;
 

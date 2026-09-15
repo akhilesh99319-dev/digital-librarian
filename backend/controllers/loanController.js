@@ -306,7 +306,7 @@ async function getActiveLoans(req, res) {
     }
 
     // Total Count
-    const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
+    const countQuery = `SELECT COUNT(*) as total FROM (${query}) AS count_subquery`;
     const countRow = await db.prepare(countQuery).get(...params);
     const totalCount = countRow ? Number(countRow.total || 0) : 0;
 
@@ -389,7 +389,7 @@ async function getOverdueLoans(req, res) {
       params.push(s, s, s, s, s);
     }
 
-    const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
+    const countQuery = `SELECT COUNT(*) as total FROM (${query}) AS count_subquery`;
     const countRow = await db.prepare(countQuery).get(...params);
     const totalCount = countRow ? Number(countRow.total || 0) : 0;
 
@@ -807,7 +807,7 @@ async function getMemberRequests(req, res) {
       params.push(status);
     }
 
-    const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
+    const countQuery = `SELECT COUNT(*) as total FROM (${query}) AS count_subquery`;
     const countRow = await db.prepare(countQuery).get(...params);
     const totalCount = countRow ? Number(countRow.total || 0) : 0;
 
