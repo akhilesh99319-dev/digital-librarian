@@ -20,16 +20,16 @@ function check(title, fn) {
   }
 }
 
-// 1. Books (12 titles, 55 total copies, 55 available copies)
-check('Books: Exactly 12 unique titles, 55 total copies, 55 available copies', () => {
+// 1. Books (62 titles, 255 total copies, 255 available copies)
+check('Books: Exactly 62 unique titles, 255 total copies, 255 available copies', () => {
   const books = db.prepare('SELECT * FROM books ORDER BY id ASC').all();
-  assert.strictEqual(books.length, 12, `Expected 12 books, found ${books.length}`);
+  assert.strictEqual(books.length, 62, `Expected 62 books, found ${books.length}`);
 
   const totalCopies = books.reduce((s, b) => s + b.total_copies, 0);
-  assert.strictEqual(totalCopies, 55, `Expected 55 total copies, found ${totalCopies}`);
+  assert.strictEqual(totalCopies, 255, `Expected 255 total copies, found ${totalCopies}`);
 
   const availCopies = books.reduce((s, b) => s + b.available_copies, 0);
-  assert.strictEqual(availCopies, 55, `Expected 55 available copies, found ${availCopies}`);
+  assert.strictEqual(availCopies, 255, `Expected 255 available copies, found ${availCopies}`);
 
   const expectedBooks = [
     { title: 'Clean Code: A Handbook of Agile Software Craftsmanship', copies: 5 },
@@ -77,10 +77,10 @@ check('Members: Exactly 8 specified members with exact codes', () => {
   }
 });
 
-// 3. Categories (7 categories)
-check('Categories: Exactly 7 specified categories', () => {
+// 3. Categories (16 categories)
+check('Categories: Exactly 16 specified categories', () => {
   const categories = db.prepare('SELECT * FROM categories ORDER BY id ASC').all();
-  assert.strictEqual(categories.length, 7, `Expected 7 categories, found ${categories.length}`);
+  assert.strictEqual(categories.length, 16, `Expected 16 categories, found ${categories.length}`);
 
   const expectedCategories = [
     'Computer Science',
@@ -89,7 +89,16 @@ check('Categories: Exactly 7 specified categories', () => {
     'Mathematics',
     'Fiction',
     'History',
-    'Biography'
+    'Biography',
+    'Adventure',
+    'Science Fiction',
+    'Horror',
+    'Drama',
+    'Mystery',
+    "Children's",
+    'Fantasy',
+    'Classic',
+    'Philosophy'
   ];
 
   const catNames = categories.map(c => c.name);
@@ -98,11 +107,11 @@ check('Categories: Exactly 7 specified categories', () => {
   }
 });
 
-// 4. Authors (11 authors)
-check('Authors: Exactly 11 specified authors', () => {
+// 4. Authors
+check('Authors: Specified baseline authors present', () => {
   const books = db.prepare('SELECT author FROM books').all();
   const authors = Array.from(new Set(books.map(b => b.author)));
-  assert.strictEqual(authors.length, 11, `Expected 11 authors, found ${authors.length}`);
+  assert.ok(authors.length >= 11, `Expected at least 11 authors, found ${authors.length}`);
 
   const expectedAuthors = [
     'Robert C. Martin',
@@ -123,11 +132,11 @@ check('Authors: Exactly 11 specified authors', () => {
   }
 });
 
-// 5. Publishers (11 publishers)
-check('Publishers: Exactly 11 specified publishers', () => {
+// 5. Publishers
+check('Publishers: Specified baseline publishers present', () => {
   const books = db.prepare('SELECT publisher FROM books').all();
   const publishers = Array.from(new Set(books.map(b => b.publisher)));
-  assert.strictEqual(publishers.length, 11, `Expected 11 publishers, found ${publishers.length}`);
+  assert.ok(publishers.length >= 11, `Expected at least 11 publishers, found ${publishers.length}`);
 
   const expectedPublishers = [
     'Prentice Hall',

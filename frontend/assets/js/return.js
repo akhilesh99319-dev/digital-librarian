@@ -14,6 +14,7 @@ function setupEventListeners() {
   const searchInput = document.getElementById('returnSearchInput');
   const returnForm = document.getElementById('processReturnForm');
   const returnDateInput = document.getElementById('modalReturnDate');
+  const btnScanReturnQR = document.getElementById('btnScanReturnQR');
 
   if (searchInput) {
     let debounceTimer;
@@ -25,12 +26,61 @@ function setupEventListeners() {
     });
   }
 
+  if (btnScanReturnQR) {
+    btnScanReturnQR.addEventListener('click', () => {
+      if (typeof QRCore === 'undefined') {
+        showToast('QR Core engine is loading...', 'info');
+        return;
+      }
+      QRCore.createQRScannerModal({
+        title: 'Scan Book QR to Return',
+        expectedType: 'BOOK',
+        onScanned: (parsed, raw) => {
+          handleScannedBookForReturn(parsed);
+        }
+      });
+    });
+  }
+
   if (returnDateInput) {
     returnDateInput.addEventListener('change', updateModalFineCalculation);
   }
 
   if (returnForm) {
     returnForm.addEventListener('submit', handleReturnSubmit);
+  }
+}
+
+async function handleScannedBookForReturn(parsed) {
+  const targetBookId = parseInt(parsed.bookId || parsed.id || 0);
+  if (!targetBookId) {
+    showToast('Invalid Book QR Code payload.', 'error');
+    return;
+  }
+  let matchedLoan = activeLoansList.find(l => l.book_id === targetBookId);
+
+  if (!matchedLoan) {
+    // If not in currently loaded 100 rows, fetch from server
+    try {
+      showToast(`Searching active loans for Book ID #${targetBookId}...`, 'info');
+      const res = await api.get('/loans/active', { limit: 500 });
+      if (res.success && res.data) {
+        matchedLoan = res.data.find(l => l.book_id === targetBookId);
+        if (matchedLoan) {
+          activeLoansList = res.data;
+          renderReturnLoansTable(activeLoansList);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to search active loans:', err);
+    }
+  }
+
+  if (matchedLoan) {
+    showToast(`Identified loan for "${matchedLoan.book_title}" borrowed by ${matchedLoan.member_name}`, 'success');
+    openReturnModal(matchedLoan.id);
+  } else {
+    showToast(`No active loan found for Book ID #${targetBookId}. Book is already in library.`, 'warning');
   }
 }
 

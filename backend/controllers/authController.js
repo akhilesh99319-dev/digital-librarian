@@ -72,8 +72,8 @@ async function login(req, res) {
       }
     }
 
-    // 2. Try Member Login
-    const member = await db.prepare('SELECT * FROM members WHERE LOWER(email) = ?').get(trimmedEmail);
+    // 2. Try Member Login (supports login by email or member_code)
+    const member = await db.prepare('SELECT * FROM members WHERE (email IS NOT NULL AND LOWER(email) = ?) OR LOWER(member_code) = ?').get(trimmedEmail, trimmedEmail);
     if (member) {
       if (member.status === 'Suspended') {
         await logAudit(member.id, 'LOGIN', 'BLOCKED', `Suspended member ${member.full_name} attempt`, clientIp);

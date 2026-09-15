@@ -52,6 +52,7 @@ function restoreCleanBaseline() {
     DELETE FROM fines;
     DELETE FROM loans;
     DELETE FROM audit_logs WHERE user_id IN (SELECT id FROM members WHERE id > 8);
+    DELETE FROM book_requests;
     DELETE FROM members WHERE id > 8;
   `);
 
@@ -80,6 +81,9 @@ async function main() {
   }
 
   try {
+    // Restore clean baseline before running
+    restoreCleanBaseline();
+
     // 1. Authoritative Data Suite
     await runScript('verify_authoritative_data.js');
 
@@ -97,6 +101,21 @@ async function main() {
 
     // 6. Registration & Security Suite (Phase 13)
     await runScript('verify_registration_and_security.js');
+
+    // 7. Member Portal & Book Request Flow Suite (Phase 14)
+    await runScript('verify_member_portal.js');
+
+    // 8. Full Member Portal UI/UX & Isolation Suite (Phase 15)
+    await runScript('verify_full_member_portal_experience.js');
+
+    // 9. QR-based Book Issue, Member ID & UPI Fine Payment Suite (Phase 16)
+    await runScript('verify_qr_system.js');
+
+    // 10. Comprehensive Real-World Circulation & Two-QR Lifecycle Suite
+    await runScript('verify_realworld_circulation_suite.js');
+
+    // 11. Final UAT, UI/UX & Production Readiness Suite
+    await runScript('verify_final_uat_and_production_readiness.js');
 
     // Restore clean baseline
     restoreCleanBaseline();

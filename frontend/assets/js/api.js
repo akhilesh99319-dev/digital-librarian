@@ -62,8 +62,8 @@ class ApiClient {
     try {
       const response = await fetch(url, config);
 
-      // Handle 401 / 403 Unauthorized / Expired Session
-      if (response.status === 401 || response.status === 403) {
+      // Handle 401 Unauthorized / Expired Session
+      if (response.status === 401) {
         if (!window.location.pathname.endsWith('login.html')) {
           this.clearSession();
           window.location.href = '/login.html?expired=1';

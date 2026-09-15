@@ -1,5 +1,5 @@
 /**
- * Dashboard Controller: Real-time Database Metrics, Charts, and Recent Activities
+ * Dashboard Controller: Real-time Database Metrics, Charts, Recent Activities, and Member Requests
  */
 
 let categoryChartInstance = null;
@@ -7,6 +7,7 @@ let activityChartInstance = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   loadDashboardData();
+  loadPendingMemberRequests();
 });
 
 async function loadDashboardData() {
@@ -38,6 +39,105 @@ async function loadDashboardData() {
       const msgEl = errorContainer.querySelector('.error-msg');
       if (msgEl) msgEl.textContent = err.message || 'Unable to connect to library database.';
     }
+  }
+}
+
+async function loadPendingMemberRequests() {
+  const tbody = document.getElementById('pendingRequestsTableBody');
+  const badge = document.getElementById('pendingRequestsBadge');
+  if (!tbody) return;
+
+  try {
+    const res = await api.get('/loans/requests?status=Pending');
+    const requests = res.data || [];
+
+    if (badge) {
+      if (requests.length > 0) {
+        badge.style.display = 'inline-block';
+        badge.textContent = `${requests.length} Pending`;
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    if (requests.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8;">No pending book requests in queue.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = requests.map(req => {
+      const avail = Number(req.available_copies ?? 0);
+      const availClass = avail > 0 ? 'badge-success' : 'badge-danger';
+      const canIssue = avail > 0;
+
+      return `
+        <tr>
+          <td><small style="color:#94a3b8;">${formatDate(req.request_date)}</small></td>
+          <td>
+            <div style="font-weight:600;color:#fff;">${escapeHtml(req.book_title)}</div>
+            <small style="color:#64748b;">${escapeHtml(req.book_author || '')}</small>
+          </td>
+          <td>
+            <div style="color:#e2e8f0;font-weight:500;">${escapeHtml(req.member_name)}</div>
+            <small style="color:#64748b;">${escapeHtml(req.member_code || req.member_email || '')}</small>
+          </td>
+          <td>
+            <span class="badge ${availClass}">${avail} Available</span>
+          </td>
+          <td>
+            <span style="font-size:13px;color:#cbd5e1;">${escapeHtml(req.notes || '—')}</span>
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button class="btn btn-sm btn-primary" onclick="processRequestAction(${req.id}, 'ISSUE')" ${canIssue ? '' : 'disabled'} title="${canIssue ? 'Directly Issue Book to Member' : 'No Copies Available'}">
+                Issue Book
+              </button>
+              <button class="btn btn-sm btn-secondary" onclick="processRequestAction(${req.id}, 'APPROVE')" title="Approve for Member Pickup">
+                Approve
+              </button>
+              <button class="btn btn-sm btn-outline-danger" style="color:#ef4444;border:1px solid rgba(239,68,68,0.3);padding:4px 8px;border-radius:6px;background:none;" onclick="processRequestAction(${req.id}, 'REJECT')" title="Decline Request">
+                Reject
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Failed to load pending requests:', err);
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:16px;color:#ef4444;">Failed to load request queue.</td></tr>`;
+  }
+}
+
+async function processRequestAction(requestId, action) {
+  let promptMsg = '';
+  let rejectionReason = '';
+
+  if (action === 'ISSUE') {
+    if (!confirm('Issue this book directly to the member now? This will create an active loan and decrement available copies.')) {
+      return;
+    }
+  } else if (action === 'APPROVE') {
+    if (!confirm('Approve this request for member pickup?')) {
+      return;
+    }
+  } else if (action === 'REJECT') {
+    rejectionReason = prompt('Please provide a reason for declining this request (optional):', 'Currently unavailable');
+    if (rejectionReason === null) return;
+  }
+
+  try {
+    const res = await api.post(`/loans/requests/${requestId}/action`, {
+      action,
+      rejection_reason: rejectionReason
+    });
+
+    showToast(res.message || `Request updated to ${action}`, 'success');
+    loadPendingMemberRequests();
+    loadDashboardData(); // refresh loan metrics
+  } catch (err) {
+    console.error('Action error:', err);
+    showToast(err.message || 'Failed to process request.', 'error');
   }
 }
 

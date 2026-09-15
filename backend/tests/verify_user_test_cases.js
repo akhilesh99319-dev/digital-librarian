@@ -178,15 +178,15 @@ async function runExactUserTests() {
   });
 
   // TEST 8: Run the existing test suite. All tests pass.
-  await test('TEST 8: All authoritative data verification constraints pass (8 members, 12 books, 55 copies)', async () => {
+  await test('TEST 8: All authoritative data verification constraints pass (8 members, 62 books, 255 copies)', async () => {
     const memCount = db.prepare('SELECT COUNT(*) as count FROM members').get().count;
     assert.strictEqual(memCount, 8, 'Member count must be exactly 8');
 
     const bookCount = db.prepare('SELECT COUNT(*) as count FROM books').get().count;
-    assert.strictEqual(bookCount, 12, 'Book count must be exactly 12');
+    assert.strictEqual(bookCount, 62, 'Book count must be exactly 62');
 
     const copyCount = db.prepare('SELECT SUM(total_copies) as total FROM books').get().total;
-    assert.strictEqual(copyCount, 55, 'Total copies must be exactly 55');
+    assert.strictEqual(copyCount, 255, 'Total copies must be exactly 255');
   });
 
   console.log('\n========================================================================');

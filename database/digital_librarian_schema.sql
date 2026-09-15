@@ -133,3 +133,22 @@ CREATE TABLE IF NOT EXISTS `audit_logs` (
   `ip_address` VARCHAR(100) DEFAULT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for table `book_requests`
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `book_requests` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `member_id` INT NOT NULL,
+  `book_id` INT NOT NULL,
+  `status` VARCHAR(50) NOT NULL DEFAULT 'Pending',
+  `notes` TEXT DEFAULT NULL,
+  `request_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `processed_by` INT DEFAULT NULL,
+  `processed_at` DATETIME DEFAULT NULL,
+  `rejection_reason` TEXT DEFAULT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_requests_member` FOREIGN KEY (`member_id`) REFERENCES `members` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_requests_book` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

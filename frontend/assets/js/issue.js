@@ -1,5 +1,5 @@
 /**
- * Issue Book Workflow Controller
+ * Issue Book Workflow Controller with QR Integration
  */
 
 let allMembers = [];
@@ -7,6 +7,7 @@ let availableBooks = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   initIssueForm();
+  initQRScanning();
   loadMembersAndBooks();
   loadRecentIssued();
 });
@@ -38,8 +39,190 @@ function initIssueForm() {
     dueDateInput.value = formatDateVal(dueDefault);
   }
 
+  const memberSelect = document.getElementById('selectMember');
+  if (memberSelect) {
+    memberSelect.addEventListener('change', () => {
+      updateVerifiedMemberCard(memberSelect.value);
+    });
+  }
+
+  const bookSelect = document.getElementById('selectBook');
+  if (bookSelect) {
+    bookSelect.addEventListener('change', () => {
+      updateVerifiedBookCard(bookSelect.value);
+    });
+  }
+
   if (form) {
     form.addEventListener('submit', handleIssueSubmit);
+  }
+}
+
+function initQRScanning() {
+  const scanMemberBtns = [
+    document.getElementById('btnScanMemberQR'),
+    document.getElementById('btnInlineScanMember')
+  ];
+
+  scanMemberBtns.forEach(btn => {
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      if (typeof QRCore === 'undefined') {
+        showToast('QR Core engine is loading...', 'info');
+        return;
+      }
+      QRCore.createQRScannerModal({
+        title: 'Scan Member QR Code',
+        expectedType: 'MEMBER',
+        onScanned: (parsed, raw) => {
+          handleScannedMember(parsed);
+        }
+      });
+    });
+  });
+
+  const scanBookBtns = [
+    document.getElementById('btnScanBookQR'),
+    document.getElementById('btnInlineScanBook')
+  ];
+
+  scanBookBtns.forEach(btn => {
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      if (typeof QRCore === 'undefined') {
+        showToast('QR Core engine is loading...', 'info');
+        return;
+      }
+      QRCore.createQRScannerModal({
+        title: 'Scan Book QR Code',
+        expectedType: 'BOOK',
+        onScanned: (parsed, raw) => {
+          handleScannedBook(parsed);
+        }
+      });
+    });
+  });
+}
+
+function handleScannedMember(parsed) {
+  const memberSelect = document.getElementById('selectMember');
+  if (!memberSelect) return;
+
+  const targetId = String(parsed.memberId || parsed.id || '');
+  if (!targetId) {
+    showToast('Invalid Member QR Code payload.', 'error');
+    return;
+  }
+
+  const foundOption = Array.from(memberSelect.options).find(opt => opt.value === targetId);
+
+  if (foundOption) {
+    memberSelect.value = targetId;
+    updateVerifiedMemberCard(targetId);
+    showToast(`Member identified: ${foundOption.text.split('(')[0].trim()}`, 'success');
+  } else {
+    // If not loaded in dropdown or different status
+    showToast(`Member ID #${targetId} scanned, verifying account...`, 'info');
+    api.get(`/members/${targetId}`).then(res => {
+      if (res.success && res.data) {
+        const m = res.data;
+        if (m.status !== 'Active') {
+          showToast(`Member status is ${m.status}. Only Active members can borrow books.`, 'warning');
+          return;
+        }
+        // Add to select if not present
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = `${m.full_name} (${m.member_code}) • ${m.phone || ''}`;
+        memberSelect.appendChild(opt);
+        memberSelect.value = m.id;
+        updateVerifiedMemberCard(m.id, m);
+        showToast(`Member verified: ${m.full_name}`, 'success');
+      } else {
+        showToast('Member not found in system records.', 'error');
+      }
+    }).catch(err => {
+      showToast('Failed to verify scanned member.', 'error');
+    });
+  }
+}
+
+function handleScannedBook(parsed) {
+  const bookSelect = document.getElementById('selectBook');
+  if (!bookSelect) return;
+
+  const targetId = String(parsed.bookId || parsed.id || '');
+  if (!targetId) {
+    showToast('Invalid Book QR Code payload.', 'error');
+    return;
+  }
+
+  const foundOption = Array.from(bookSelect.options).find(opt => opt.value === targetId);
+
+  if (foundOption) {
+    bookSelect.value = targetId;
+    updateVerifiedBookCard(targetId);
+    showToast(`Book identified: ${foundOption.text.split('(')[0].trim()}`, 'success');
+  } else {
+    // Check if book exists but no available copies
+    api.get(`/books/${targetId}`).then(res => {
+      if (res.success && res.data) {
+        const b = res.data;
+        if ((b.available_copies || 0) <= 0) {
+          showToast(`"${b.title}" has 0 available copies currently in library.`, 'warning');
+        } else {
+          const opt = document.createElement('option');
+          opt.value = b.id;
+          opt.textContent = `${b.title} (${b.book_code || ''}) - [${b.available_copies} available]`;
+          bookSelect.appendChild(opt);
+          bookSelect.value = b.id;
+          updateVerifiedBookCard(b.id, b);
+          showToast(`Book verified: ${b.title}`, 'success');
+        }
+      } else {
+        showToast('Book not found in library records.', 'error');
+      }
+    }).catch(err => {
+      showToast('Failed to verify scanned book.', 'error');
+    });
+  }
+}
+
+function updateVerifiedMemberCard(memberId, memberObj = null) {
+  const card = document.getElementById('verifiedMemberCard');
+  if (!card) return;
+
+  if (!memberId) {
+    card.style.display = 'none';
+    return;
+  }
+
+  const member = memberObj || allMembers.find(m => String(m.id) === String(memberId));
+  if (member) {
+    document.getElementById('verifiedMemberName').textContent = member.full_name || 'Member';
+    document.getElementById('verifiedMemberSub').textContent = `${member.member_code || ''} • ${member.email || member.phone || ''}`;
+    card.style.display = 'flex';
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+function updateVerifiedBookCard(bookId, bookObj = null) {
+  const card = document.getElementById('verifiedBookCard');
+  if (!card) return;
+
+  if (!bookId) {
+    card.style.display = 'none';
+    return;
+  }
+
+  const book = bookObj || availableBooks.find(b => String(b.id) === String(bookId));
+  if (book) {
+    document.getElementById('verifiedBookTitle').textContent = book.title || 'Book';
+    document.getElementById('verifiedBookSub').textContent = `${book.book_code || ''} • by ${book.author || 'Unknown'} (Shelf: ${book.shelf_location || '—'})`;
+    card.style.display = 'flex';
+  } else {
+    card.style.display = 'none';
   }
 }
 
@@ -70,6 +253,20 @@ async function loadMembersAndBooks() {
             <option value="${b.id}">${escapeHtml(b.title)} (${escapeHtml(b.book_code || '')}) - [${b.available_copies} available] (Shelf: ${escapeHtml(b.shelf_location || '—')})</option>
           `).join('');
       }
+    }
+
+    // Check URL parameters for pre-selected book or member
+    const urlParams = new URLSearchParams(window.location.search);
+    const preMemberId = urlParams.get('member_id');
+    const preBookId = urlParams.get('book_id');
+
+    if (preMemberId && document.getElementById('selectMember')) {
+      document.getElementById('selectMember').value = preMemberId;
+      updateVerifiedMemberCard(preMemberId);
+    }
+    if (preBookId && document.getElementById('selectBook')) {
+      document.getElementById('selectBook').value = preBookId;
+      updateVerifiedBookCard(preBookId);
     }
   } catch (err) {
     console.error('Failed to load members/books for issue form:', err);
@@ -112,6 +309,7 @@ async function handleIssueSubmit(e) {
       // Reset form
       document.getElementById('selectBook').value = '';
       document.getElementById('issueNotes').value = '';
+      updateVerifiedBookCard(null);
 
       // Reload dropdowns and recent table
       loadMembersAndBooks();
@@ -182,3 +380,4 @@ async function loadRecentIssued() {
     console.error('Failed to load recent active loans:', err);
   }
 }
+

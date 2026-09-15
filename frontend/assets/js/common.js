@@ -80,29 +80,83 @@ function closeModal(modalId) {
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
 
-  const isLoginPage = window.location.pathname.endsWith('login.html');
-  const isMemberPage = window.location.pathname.endsWith('my-books.html') || window.location.pathname.endsWith('available-books.html');
+  const path = window.location.pathname;
+  const isPublicPage = ['login.html', 'register.html', 'forgot-password.html', 'reset-password.html'].some(p => path.endsWith(p));
+  const memberAllowedPages = ['dashboard.html', 'available-books.html', 'my-books.html', 'notifications.html', 'profile.html', 'book-details.html'];
+  const isMemberPage = memberAllowedPages.some(page => path.endsWith(page));
   const user = api.getUser();
 
   // Authentication check
-  if (!isLoginPage && !api.isAuthenticated()) {
+  if (!isPublicPage && !api.isAuthenticated()) {
     window.location.href = '/login.html';
     return;
   }
 
-  // Role based routing check
-  if (user && user.role === 'Member' && !isMemberPage && !isLoginPage) {
-    window.location.href = '/my-books.html';
-    return;
+  // Strict Role based routing check
+  if (user && user.role === 'Member') {
+    if (!isPublicPage && !isMemberPage) {
+      if (path.endsWith('books.html')) {
+        window.location.href = '/available-books.html';
+      } else {
+        window.location.href = '/dashboard.html';
+      }
+      return;
+    }
+  } else if (user && (user.role === 'Librarian' || user.role === 'Admin')) {
+    if (path.endsWith('dashboard.html') || path === '/') {
+      window.location.href = '/index.html';
+      return;
+    }
   }
+
+  // Role Adaptive Sidebar Navigation Switching
+  const memberSidebarNav = document.getElementById('memberSidebarNav');
+  const librarianSidebarNav = document.getElementById('librarianSidebarNav');
+  const sidebarBrandRole = document.getElementById('sidebarBrandRole');
+
+  if (user && user.role === 'Member') {
+    if (memberSidebarNav) memberSidebarNav.style.display = 'block';
+    if (librarianSidebarNav) librarianSidebarNav.style.display = 'none';
+    if (sidebarBrandRole) sidebarBrandRole.textContent = 'Member Portal';
+  } else if (user) {
+    if (memberSidebarNav) memberSidebarNav.style.display = 'none';
+    if (librarianSidebarNav) librarianSidebarNav.style.display = 'block';
+    if (sidebarBrandRole) sidebarBrandRole.textContent = 'Management System';
+  }
+
+  // Active Navigation State Auto-Highlight
+  document.querySelectorAll('.sidebar-nav a.nav-item').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && (path.endsWith(href) || (href === '/dashboard.html' && path.endsWith('/dashboard.html')))) {
+      link.classList.add('active');
+    }
+  });
 
   // Populate User info in sidebar & header
   if (user) {
-    const librarianNameEls = document.querySelectorAll('.librarian-display-name');
-    librarianNameEls.forEach(el => el.textContent = user.name || (user.role === 'Librarian' ? 'Akhilesh Kumar' : 'Member'));
-    
-    const librarianRoleEls = document.querySelectorAll('.librarian-display-role');
-    librarianRoleEls.forEach(el => el.textContent = user.role || 'Librarian');
+    const isMember = user.role === 'Member';
+    const initials = (user.name || (isMember ? 'M' : 'AK'))
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+
+    document.querySelectorAll('.librarian-display-name').forEach(el => el.textContent = user.name || (user.role === 'Librarian' ? 'Akhilesh Kumar' : 'Member'));
+    document.querySelectorAll('.librarian-display-role').forEach(el => el.textContent = user.role || 'Librarian');
+    document.querySelectorAll('.member-display-name').forEach(el => el.textContent = user.name || 'Member');
+    document.querySelectorAll('.member-display-role').forEach(el => el.textContent = user.role || 'Member');
+    document.querySelectorAll('.member-display-code').forEach(el => el.textContent = user.member_code || `MEM-${String(user.id).padStart(3, '0')}`);
+    document.querySelectorAll('.member-display-email').forEach(el => el.textContent = user.email || 'No email registered');
+    document.querySelectorAll('.member-display-phone').forEach(el => el.textContent = user.phone || '—');
+    document.querySelectorAll('.member-display-status').forEach(el => el.textContent = user.status || 'Active');
+    document.querySelectorAll('.member-display-date').forEach(el => el.textContent = user.membership_date ? formatDate(user.membership_date) : (user.created_at ? formatDate(user.created_at) : '—'));
+
+    document.querySelectorAll('#sidebarAvatar, .sidebar-avatar, .librarian-avatar').forEach(el => {
+      if (initials && !el.textContent.includes('👤') && !el.textContent.includes('AK')) {
+        el.textContent = initials;
+      }
+    });
   }
 
   // Mobile Sidebar Toggle

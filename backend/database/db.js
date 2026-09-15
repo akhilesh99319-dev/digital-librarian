@@ -243,6 +243,21 @@ if (isPostgres) {
         ip_address TEXT,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS book_requests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        member_id INTEGER NOT NULL,
+        book_id INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'Pending',
+        notes TEXT,
+        request_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+        processed_by INTEGER,
+        processed_at DATETIME,
+        rejection_reason TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE,
+        FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
+      );
     `);
 
     // Migration 1: password_hash in members

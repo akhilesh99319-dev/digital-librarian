@@ -256,21 +256,77 @@ async function runAllTests() {
     assert.ok(!authJs.includes('akhilesh@library.com'), 'auth.js must not contain hardcoded demo email');
   });
 
-  // 15. Member Redirect Target Verification (Phase 13.1)
-  await step('Member Redirect Verification: Target is /my-books.html and serves HTTP 200', async () => {
+  // 15. Member Redirect Target & Dashboard Verification (Phase 13.2)
+  await step('Member Redirect Verification: Target is /dashboard.html and serves HTTP 200', async () => {
     const authJs = fs.readFileSync(path.join(__dirname, '../../frontend/assets/js/auth.js'), 'utf8');
     const commonJs = fs.readFileSync(path.join(__dirname, '../../frontend/assets/js/common.js'), 'utf8');
 
     assert.ok(!authJs.includes('member-portal.html'), 'auth.js must not reference member-portal.html');
     assert.ok(!commonJs.includes('member-portal.html'), 'common.js must not reference member-portal.html');
-    assert.ok(authJs.includes('/my-books.html'), 'auth.js must redirect Member to /my-books.html');
-    assert.ok(commonJs.includes('/my-books.html'), 'common.js must route Member to /my-books.html');
+    assert.ok(authJs.includes('/dashboard.html'), 'auth.js must redirect Member to /dashboard.html');
+    assert.ok(commonJs.includes('/dashboard.html'), 'common.js must route Member to /dashboard.html');
+
+    const dashboardPath = path.join(__dirname, '../../frontend/dashboard.html');
+    assert.ok(fs.existsSync(dashboardPath), 'frontend/dashboard.html must exist');
 
     const myBooksPath = path.join(__dirname, '../../frontend/my-books.html');
     assert.ok(fs.existsSync(myBooksPath), 'frontend/my-books.html must exist');
 
-    const res = await apiRequest('GET', '/my-books.html');
-    assert.strictEqual(res.status, 200, 'Express server must serve /my-books.html with HTTP 200');
+    const dashRes = await apiRequest('GET', '/dashboard.html');
+    assert.strictEqual(dashRes.status, 200, 'Express server must serve /dashboard.html with HTTP 200');
+
+    const myBooksRes = await apiRequest('GET', '/my-books.html');
+    assert.strictEqual(myBooksRes.status, 200, 'Express server must serve /my-books.html with HTTP 200');
+
+    const portal404Res = await apiRequest('GET', '/member-portal.html');
+    assert.strictEqual(portal404Res.status, 404, '/member-portal.html must return HTTP 404');
+  });
+
+  // 16. Book API Security: Member cannot create/update/delete books; can read catalog
+  await step('Book API Security: Member write operations blocked (403), Read operations allowed (200)', async () => {
+    // Member login
+    const memLoginRes = await apiRequest('POST', '/api/auth/login', {
+      email: testRegEmail,
+      password: testRegPassword
+    });
+    assert.strictEqual(memLoginRes.status, 200);
+    const memberToken = memLoginRes.body.token;
+    const memberHeaders = { 'Authorization': `Bearer ${memberToken}` };
+
+    // Member GET /api/books -> 200
+    const getRes = await apiRequest('GET', '/api/books?limit=100', null, memberHeaders);
+    assert.strictEqual(getRes.status, 200);
+    assert.ok(Array.isArray(getRes.body.data));
+    assert.strictEqual(getRes.body.data.length, 62);
+    assert.strictEqual(getRes.body.pagination.total, 62);
+
+    // Member POST /api/books -> 403
+    const postRes = await apiRequest('POST', '/api/books', {
+      title: 'Hacked Book',
+      author: 'Attacker',
+      category_id: 1,
+      isbn: '978-9999999999'
+    }, memberHeaders);
+    assert.strictEqual(postRes.status, 403, 'Member POST /api/books must return 403 Forbidden');
+
+    // Member PUT /api/books/1 -> 403
+    const putRes = await apiRequest('PUT', '/api/books/1', {
+      title: 'Hacked Title'
+    }, memberHeaders);
+    assert.strictEqual(putRes.status, 403, 'Member PUT /api/books/1 must return 403 Forbidden');
+
+    // Member DELETE /api/books/1 -> 403
+    const delRes = await apiRequest('DELETE', '/api/books/1', null, memberHeaders);
+    assert.strictEqual(delRes.status, 403, 'Member DELETE /api/books/1 must return 403 Forbidden');
+
+    // Unauthenticated POST /api/books -> 401
+    const unauthPost = await apiRequest('POST', '/api/books', {
+      title: 'Unauth Book',
+      author: 'Ghost',
+      category_id: 1,
+      isbn: '978-8888888888'
+    });
+    assert.strictEqual(unauthPost.status, 401, 'Unauthenticated POST /api/books must return 401 Unauthorized');
   });
 
   // 16. Clean up test members created during test

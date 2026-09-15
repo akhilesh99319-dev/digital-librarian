@@ -207,6 +207,36 @@
             </div>
           </div>
 
+          <!-- Pending Member Book Requests -->
+          <div class="card" style="margin-bottom:24px;">
+            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <h3>📥 Pending Member Book Requests</h3>
+                <span id="pendingRequestsBadge" class="badge badge-warning" style="display:none;">0 Pending</span>
+              </div>
+              <button class="btn btn-sm btn-secondary" onclick="loadPendingMemberRequests()">Refresh Queue</button>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <div class="table-responsive">
+                <table class="custom-table">
+                  <thead>
+                    <tr>
+                      <th>Req Date</th>
+                      <th>Book Requested</th>
+                      <th>Member</th>
+                      <th>Available Copies</th>
+                      <th>Notes</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="pendingRequestsTableBody">
+                    <tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8;">Loading member requests...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <!-- Recent Loans Table -->
           <div class="card">
             <div class="card-header">

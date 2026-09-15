@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Librarian Profile - Digital Librarian</title>
+  <title>User Profile - Digital Librarian</title>
   <link rel="stylesheet" href="/assets/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,17 +11,49 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- Sidebar -->
+    <!-- Sidebar (Role Adaptive) -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="brand-icon">📚</div>
         <div class="brand-text">
           <h1>DIGITAL LIBRARIAN</h1>
-          <span>Management System</span>
+          <span id="sidebarBrandRole">Portal</span>
         </div>
       </div>
 
-      <div class="sidebar-nav">
+      <!-- Member Navigation -->
+      <div class="sidebar-nav" id="memberSidebarNav" style="display:none;">
+        <div class="nav-category">Personal Library</div>
+        <a href="/dashboard.html" class="nav-item">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Dashboard
+        </a>
+        <a href="/available-books.html" class="nav-item">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          Available Books
+        </a>
+        <a href="/my-books.html" class="nav-item">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          My Books
+        </a>
+
+        <div class="nav-category">Account & Alerts</div>
+        <a href="/notifications.html" class="nav-item">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          Notifications
+        </a>
+        <a href="/profile.html" class="nav-item active">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          Profile
+        </a>
+        <a href="#" class="nav-item btn-logout">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Logout
+        </a>
+      </div>
+
+      <!-- Librarian / Admin Navigation -->
+      <div class="sidebar-nav" id="librarianSidebarNav" style="display:none;">
         <div class="nav-category">Main Menu</div>
         <a href="/index.html" class="nav-item">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -75,10 +107,10 @@
 
       <div class="sidebar-footer">
         <div class="librarian-card">
-          <div class="librarian-avatar">AK</div>
+          <div class="librarian-avatar" id="sidebarAvatar">AK</div>
           <div class="librarian-info">
-            <div class="name librarian-display-name">Akhilesh Kumar</div>
-            <span class="role-badge librarian-display-role">Librarian</span>
+            <div class="name librarian-display-name">User Name</div>
+            <span class="role-badge librarian-display-role">Role</span>
           </div>
           <button class="btn-logout" title="Logout">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
@@ -95,9 +127,15 @@
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
           <div class="header-title">
-            <h2>Librarian Profile</h2>
-            <p>Account details and system configuration</p>
+            <h2 id="profilePageHeading">User Profile</h2>
+            <p id="profilePageSubheading">Account details and personal configuration</p>
           </div>
+        </div>
+
+        <div class="header-actions">
+          <button type="button" class="btn btn-sm btn-secondary theme-toggle-btn" aria-label="Toggle Theme">
+            🌙 Dark
+          </button>
         </div>
       </header>
 
@@ -105,19 +143,37 @@
         <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;">
           <!-- Profile Badge Card -->
           <div class="card" style="text-align:center;padding:30px 20px;">
-            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg, #6366f1, #a855f7);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:#fff;margin:0 auto 16px auto;box-shadow:var(--shadow-glow);">
-              AK
+            <div id="profileAvatarBig" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg, #6366f1, #a855f7);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:#fff;margin:0 auto 16px auto;box-shadow:var(--shadow-glow);">
+              👤
             </div>
-            <h3 id="profileCardName" style="color:#fff;font-size:18px;">Akhilesh Kumar</h3>
+            <h3 id="profileCardName" style="color:#fff;font-size:18px;">User Name</h3>
             <div style="margin:4px 0 12px 0;">
-              <span id="profileRoleBadge" class="badge badge-info" style="font-size:12px;padding:5px 12px;">Librarian</span>
+              <span id="profileRoleBadge" class="badge badge-info" style="font-size:12px;padding:5px 12px;">Role</span>
             </div>
             <p id="profileCardEmail" style="color:#94a3b8;font-size:13px;word-break:break-all;">-</p>
 
             <div style="margin-top:24px;border-top:1px solid var(--border-color);padding-top:20px;text-align:left;font-size:13px;display:flex;flex-direction:column;gap:10px;">
-              <div><span style="color:#64748b;">Database:</span> <strong style="color:#34d399;">SQLite (Active)</strong></div>
-              <div><span style="color:#64748b;">System Role:</span> <strong style="color:#38bdf8;">Librarian</strong></div>
-              <div><span style="color:#64748b;">Fine Policy:</span> <strong style="color:#fbbf24;">₹5 / overdue day</strong></div>
+              <div id="profileCodeRow"><span style="color:#64748b;">Identifier:</span> <strong id="profileIdDisplay" style="color:#a78bfa;">—</strong></div>
+              <div><span style="color:#64748b;">Account Status:</span> <strong id="profileStatusDisplay" style="color:#34d399;">Active</strong></div>
+              <div id="profileJoinedRow"><span style="color:#64748b;">Member Since:</span> <strong id="profileJoinedDisplay" style="color:var(--text-main);">—</strong></div>
+            </div>
+
+            <!-- My Member QR Code Card (Rendered for Members) -->
+            <div class="card" id="memberQRCard" style="display:none;text-align:center;padding:20px 16px;margin-top:20px;border:1px solid rgba(167,139,250,0.25);background:rgba(30,41,59,0.7);">
+              <div style="font-weight:700;font-size:15px;color:#fff;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;">
+                <span>📱</span> My Member QR
+              </div>
+              <div id="memberQRCodeContainer" style="display:flex;justify-content:center;margin:8px 0;"></div>
+              <div style="margin-top:8px;">
+                <div style="font-weight:600;font-size:14px;color:#fff;" id="qrMemberName">Member Name</div>
+                <div style="font-size:12.5px;color:#a78bfa;font-weight:600;" id="qrMemberCode">MEM-001</div>
+              </div>
+              <p style="color:#94a3b8;font-size:11.5px;margin:10px 0 12px 0;line-height:1.4;">
+                Present this QR code to the Librarian for rapid checkout and identification.
+              </p>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnPrintMemberQR" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+                <span>🖨️</span> Print / Save QR
+              </button>
             </div>
           </div>
 
@@ -146,6 +202,11 @@
                       <label for="profilePhone" class="form-label">Contact Phone</label>
                       <input type="tel" id="profilePhone" class="form-control" placeholder="+91 98765 43210">
                     </div>
+                  </div>
+
+                  <div class="form-group" id="addressFormGroup">
+                    <label for="profileAddress" class="form-label">Address</label>
+                    <input type="text" id="profileAddress" class="form-control" placeholder="City, State">
                   </div>
 
                   <button type="submit" id="btnSaveProfile" class="btn btn-primary" style="margin-top:8px;">
@@ -193,6 +254,7 @@
 
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/qr-core.js"></script>
   <script src="/assets/js/profile.js"></script>
 </body>
 </html>

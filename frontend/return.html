@@ -102,11 +102,14 @@
       </header>
 
       <main class="page-content">
-        <div class="toolbar">
-          <div class="search-box" style="max-width:500px;">
+        <div class="toolbar" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <div class="search-box" style="max-width:500px;flex:1;">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             <input type="text" id="returnSearchInput" class="form-control" placeholder="Search active loans by member name, book title, loan code, or phone...">
           </div>
+          <button type="button" id="btnScanReturnQR" class="btn btn-primary" style="display:flex;align-items:center;gap:8px;white-space:nowrap;background:linear-gradient(135deg,#0284c7,#0369a1);">
+            <span>📷</span> Scan Book QR to Return
+          </button>
         </div>
 
         <div class="card">
@@ -189,6 +192,7 @@
 
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/qr-core.js"></script>
   <script src="/assets/js/return.js"></script>
 </body>
 </html>

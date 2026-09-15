@@ -5,6 +5,13 @@ const { db } = require('../database/db');
  */
 async function getAllMembers(req, res) {
   try {
+    if (req.user && req.user.role === 'Member') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access forbidden. Administrator or Librarian privileges required.'
+      });
+    }
+
     const { search, status, page = 1, limit = 50 } = req.query;
 
     let query = `
@@ -78,6 +85,13 @@ async function getAllMembers(req, res) {
 async function getMemberById(req, res) {
   try {
     const { id } = req.params;
+
+    if (req.user && req.user.role === 'Member' && parseInt(req.user.id) !== parseInt(id)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access forbidden. You can only view your own membership account.'
+      });
+    }
 
     const member = await db.prepare('SELECT * FROM members WHERE id = ?').get(id);
     if (!member) {

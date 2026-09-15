@@ -44,8 +44,20 @@ function requireLibrarian(req, res, next) {
   next();
 }
 
+function requireAdminOrLibrarian(req, res, next) {
+  if (!req.user || (req.user.role !== 'Librarian' && req.user.role !== 'Admin')) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access forbidden. Administrator or Librarian privileges required.'
+    });
+  }
+  next();
+}
+
 module.exports = {
   authenticateToken,
   requireLibrarian,
+  requireAdminOrLibrarian,
   JWT_SECRET
 };
+

@@ -45,11 +45,14 @@ async function runTests() {
   });
 
   // 2. Categories Verification
-  test('Initial categories match exact catalog categories (7 categories)', () => {
+  test('Initial categories match exact catalog categories (16 categories)', () => {
     const categories = db.prepare('SELECT * FROM categories').all();
-    assert.strictEqual(categories.length, 7, 'Should have exactly 7 categories with actual books');
+    assert.strictEqual(categories.length, 16, 'Should have exactly 16 categories with actual books');
     const catNames = categories.map(c => c.name);
-    const requiredCats = ['Fiction', 'Science', 'Technology', 'History', 'Mathematics', 'Computer Science', 'Biography'];
+    const requiredCats = [
+      'Fiction', 'Science', 'Technology', 'History', 'Mathematics', 'Computer Science', 'Biography',
+      'Adventure', 'Science Fiction', 'Horror', 'Drama', 'Mystery', "Children's", 'Fantasy', 'Classic', 'Philosophy'
+    ];
     for (const reqCat of requiredCats) {
       assert.ok(catNames.includes(reqCat), `Category "${reqCat}" must be present`);
     }

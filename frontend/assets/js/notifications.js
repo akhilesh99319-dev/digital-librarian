@@ -1,555 +1,136 @@
-/* =========================================
-   NOTIFICATIONS MANAGEMENT
-========================================= */
-
-
-/* =========================================
-   SAMPLE NOTIFICATIONS
-========================================= */
-
-let notifications = [
-
-    {
-        id: 1,
-        title: "Book Due Date Approaching",
-        message: "Python Crash Course is due on 15 Aug 2026.",
-        type: "book",
-        icon: "📖",
-        iconClass: "",
-        important: true,
-        read: false,
-        time: "10 minutes ago"
-    },
-
-    {
-        id: 2,
-        title: "Book Overdue",
-        message: "Introduction to Algorithms is overdue. Please return it as soon as possible.",
-        type: "book",
-        icon: "⚠️",
-        iconClass: "warning",
-        important: true,
-        read: false,
-        time: "1 hour ago"
-    },
-
-    {
-        id: 3,
-        title: "Book Successfully Issued",
-        message: "JavaScript: The Good Parts has been successfully issued to your account.",
-        type: "book",
-        icon: "📚",
-        iconClass: "success",
-        important: false,
-        read: true,
-        time: "Yesterday"
-    },
-
-    {
-        id: 4,
-        title: "Library Announcement",
-        message: "The library will remain open until 8:00 PM during examination week.",
-        type: "general",
-        icon: "📢",
-        iconClass: "",
-        important: false,
-        read: true,
-        time: "2 days ago"
-    },
-
-    {
-        id: 5,
-        title: "Fine Generated",
-        message: "A fine of ₹45 has been added for your overdue book.",
-        type: "general",
-        icon: "💰",
-        iconClass: "danger",
-        important: true,
-        read: false,
-        time: "3 days ago"
-    }
-
-];
-
-
-/* =========================================
-   DOM ELEMENTS
-========================================= */
-
-const notificationsList =
-    document.getElementById("notificationsList");
-
-const notificationSearch =
-    document.getElementById("notificationSearch");
-
-const markAllBtn =
-    document.getElementById("markAllBtn");
-
-const clearAllBtn =
-    document.getElementById("clearAllBtn");
-
-const filterButtons =
-    document.querySelectorAll(".filter-button");
-
-
-/* =========================================
-   CURRENT FILTER
-========================================= */
-
-let currentFilter = "all";
-
-
-/* =========================================
-   PAGE LOAD
-========================================= */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-
-        displayNotifications();
-
-        updateStatistics();
-
-        notificationSearch.addEventListener(
-            "input",
-            displayNotifications
-        );
-
-
-        filterButtons.forEach(
-            function (button) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        filterButtons.forEach(
-                            function (item) {
-
-                                item.classList.remove(
-                                    "active"
-                                );
-
-                            }
-                        );
-
-
-                        button.classList.add(
-                            "active"
-                        );
-
-
-                        currentFilter =
-                            button.dataset.filter;
-
-
-                        displayNotifications();
-
-                    }
-                );
-
-            }
-        );
-
-
-        markAllBtn.addEventListener(
-            "click",
-            markAllAsRead
-        );
-
-
-        clearAllBtn.addEventListener(
-            "click",
-            clearAllNotifications
-        );
-
-    }
-);
-
-
-/* =========================================
-   DISPLAY NOTIFICATIONS
-========================================= */
-
-function displayNotifications() {
-
-    const searchText =
-        notificationSearch.value
-            .toLowerCase()
-            .trim();
-
-
-    let filteredNotifications =
-        notifications.filter(
-            function (notification) {
-
-                const matchesSearch =
-
-                    notification.title
-                        .toLowerCase()
-                        .includes(searchText)
-
-                    ||
-
-                    notification.message
-                        .toLowerCase()
-                        .includes(searchText);
-
-
-                if (!matchesSearch) {
-                    return false;
-                }
-
-
-                if (currentFilter === "unread") {
-
-                    return notification.read === false;
-
-                }
-
-
-                if (currentFilter === "book") {
-
-                    return notification.type === "book";
-
-                }
-
-
-                if (currentFilter === "important") {
-
-                    return notification.important === true;
-
-                }
-
-
-                return true;
-
-            }
-        );
-
-
-    notificationsList.innerHTML = "";
-
-
-    if (filteredNotifications.length === 0) {
-
-        notificationsList.innerHTML = `
-
-            <div class="empty-notifications">
-
-                <div class="empty-notifications-icon">
-                    🔔
-                </div>
-
-                <h3>
-                    No Notifications Found
-                </h3>
-
-                <p>
-                    There are no notifications matching your search or filter.
-                </p>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    filteredNotifications.forEach(
-        function (notification) {
-
-            const card =
-                document.createElement("article");
-
-
-            card.className =
-                "notification-card";
-
-
-            if (!notification.read) {
-
-                card.classList.add("unread");
-
-            }
-
-
-            const unreadBadge =
-                !notification.read
-                    ? `<span class="notification-badge">NEW</span>`
-                    : "";
-
-
-            const markReadButton =
-                !notification.read
-
-                    ? `
-                        <button
-                            type="button"
-                            class="mark-read"
-                            data-id="${notification.id}"
-                            title="Mark as read">
-
-                            ✓
-
-                        </button>
-                      `
-
-                    : "";
-
-
-            card.innerHTML = `
-
-                <div class="notification-icon ${notification.iconClass}">
-                    ${notification.icon}
-                </div>
-
-
-                <div class="notification-content">
-
-                    <h3>
-                        ${notification.title}
-
-                        ${unreadBadge}
-                    </h3>
-
-                    <p>
-                        ${notification.message}
-                    </p>
-
-                    <span class="notification-time">
-                        ${notification.time}
-                    </span>
-
-                </div>
-
-
-                <div class="notification-card-actions">
-
-                    ${markReadButton}
-
-
-                    <button
-                        type="button"
-                        class="delete-notification"
-                        data-id="${notification.id}"
-                        title="Delete notification">
-
-                        🗑
-
-                    </button>
-
-                </div>
-
-            `;
-
-
-            notificationsList.appendChild(card);
-
-        }
-    );
-
-
-    attachNotificationActions();
-
+/**
+ * Notifications Management Controller
+ * Digital Librarian System
+ */
+
+let allNotifications = [];
+let currentFilter = 'all';
+let readNotificationIds = new Set(JSON.parse(localStorage.getItem('read_notifications') || '[]'));
+
+document.addEventListener('DOMContentLoaded', () => {
+  initNotificationsPage();
+});
+
+async function initNotificationsPage() {
+  setupFilterHandlers();
+  await loadNotifications();
 }
 
+function setupFilterHandlers() {
+  const filterPills = document.querySelectorAll('.filter-pill');
+  filterPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      filterPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentFilter = pill.getAttribute('data-filter');
+      renderNotifications();
+    });
+  });
 
-/* =========================================
-   CARD ACTIONS
-========================================= */
+  const markAllBtn = document.getElementById('btnMarkAllRead');
+  if (markAllBtn) {
+    markAllBtn.addEventListener('click', () => {
+      allNotifications.forEach(n => readNotificationIds.add(n.id));
+      localStorage.setItem('read_notifications', JSON.stringify(Array.from(readNotificationIds)));
+      showToast('All notifications marked as read.', 'success');
+      renderNotifications();
+    });
+  }
 
-function attachNotificationActions() {
-
-
-    const markReadButtons =
-        document.querySelectorAll(
-            ".mark-read"
-        );
-
-
-    markReadButtons.forEach(
-        function (button) {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    const id =
-                        Number(
-                            button.dataset.id
-                        );
-
-
-                    const notification =
-                        notifications.find(
-                            item =>
-                                item.id === id
-                        );
-
-
-                    if (notification) {
-
-                        notification.read = true;
-
-                    }
-
-
-                    displayNotifications();
-
-                    updateStatistics();
-
-                }
-            );
-
-        }
-    );
-
-
-    const deleteButtons =
-        document.querySelectorAll(
-            ".delete-notification"
-        );
-
-
-    deleteButtons.forEach(
-        function (button) {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    const id =
-                        Number(
-                            button.dataset.id
-                        );
-
-
-                    notifications =
-                        notifications.filter(
-                            item =>
-                                item.id !== id
-                        );
-
-
-                    displayNotifications();
-
-                    updateStatistics();
-
-                }
-            );
-
-        }
-    );
-
+  const refreshBtn = document.getElementById('btnRefreshNotifs');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      loadNotifications();
+      showToast('Notifications refreshed.', 'info');
+    });
+  }
 }
 
+async function loadNotifications() {
+  const loadingEl = document.getElementById('notifLoading');
+  const emptyEl = document.getElementById('notifEmpty');
+  const listEl = document.getElementById('notificationsList');
 
-/* =========================================
-   MARK ALL AS READ
-========================================= */
+  if (loadingEl) loadingEl.style.display = 'flex';
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (listEl) listEl.innerHTML = '';
 
-function markAllAsRead() {
-
-    notifications.forEach(
-        function (notification) {
-
-            notification.read = true;
-
-        }
-    );
-
-
-    displayNotifications();
-
-    updateStatistics();
-
+  try {
+    const res = await api.get('/loans/notifications');
+    if (res.success && Array.isArray(res.data)) {
+      allNotifications = res.data;
+      if (loadingEl) loadingEl.style.display = 'none';
+      renderNotifications();
+    } else {
+      throw new Error(res.message || 'Failed to retrieve notifications');
+    }
+  } catch (err) {
+    console.error('Failed to load notifications:', err);
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (emptyEl) emptyEl.style.display = 'block';
+  }
 }
 
+function renderNotifications() {
+  const listEl = document.getElementById('notificationsList');
+  const emptyEl = document.getElementById('notifEmpty');
+  const badgeEl = document.getElementById('notifCountBadge');
 
-/* =========================================
-   CLEAR ALL
-========================================= */
+  if (!listEl) return;
 
-function clearAllNotifications() {
+  let filtered = allNotifications.filter(n => {
+    if (currentFilter === 'requests') {
+      return n.type.startsWith('request_') || n.type === 'book_issued';
+    } else if (currentFilter === 'due') {
+      return n.type === 'book_due_soon' || n.type === 'book_overdue' || n.type === 'overdue_summary';
+    } else if (currentFilter === 'fines') {
+      return n.type === 'fine_unpaid';
+    }
+    return true;
+  });
 
-    if (notifications.length === 0) {
-        return;
+  if (badgeEl) badgeEl.textContent = `${filtered.length} Total`;
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '';
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  listEl.innerHTML = filtered.map(n => {
+    const isRead = readNotificationIds.has(n.id);
+    const unreadIndicator = !isRead 
+      ? '<span style="width:8px;height:8px;border-radius:50%;background:#38bdf8;display:inline-block;margin-left:6px;" title="Unread"></span>' 
+      : '';
+
+    let formattedDate = 'Recent';
+    if (n.date) {
+      try {
+        formattedDate = new Date(n.date).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (e) {
+        formattedDate = n.date;
+      }
     }
 
-
-    const confirmation =
-        confirm(
-            "Are you sure you want to clear all notifications?"
-        );
-
-
-    if (!confirmation) {
-        return;
-    }
-
-
-    notifications = [];
-
-
-    displayNotifications();
-
-    updateStatistics();
-
-}
-
-
-/* =========================================
-   STATISTICS
-========================================= */
-
-function updateStatistics() {
-
-    const total =
-        notifications.length;
-
-
-    const unread =
-        notifications.filter(
-            notification =>
-                notification.read === false
-        ).length;
-
-
-    const bookAlerts =
-        notifications.filter(
-            notification =>
-                notification.type === "book"
-        ).length;
-
-
-    const important =
-        notifications.filter(
-            notification =>
-                notification.important === true
-        ).length;
-
-
-    document.getElementById(
-        "totalNotifications"
-    ).textContent = total;
-
-
-    document.getElementById(
-        "unreadNotifications"
-    ).textContent = unread;
-
-
-    document.getElementById(
-        "bookAlerts"
-    ).textContent = bookAlerts;
-
-
-    document.getElementById(
-        "importantNotifications"
-    ).textContent = important;
-
+    return `
+      <div class="notif-item" style="opacity:${isRead ? '0.75' : '1'};">
+        <div class="notif-icon">${n.icon || '🔔'}</div>
+        <div class="notif-content">
+          <div class="notif-title">
+            ${escapeHtml(n.title || 'Notification')}
+            ${unreadIndicator}
+          </div>
+          <div class="notif-desc">${escapeHtml(n.message || '')}</div>
+          <div class="notif-time">${escapeHtml(formattedDate)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }

@@ -189,13 +189,13 @@ async function runFeatureVerification() {
   });
 
   // 15. Verify books and circulation data remain unchanged
-  await step(15, 'Verify books (12 titles, 55 copies) and circulation baseline remain unchanged', async () => {
+  await step(15, 'Verify books (62 titles, 255 copies) and circulation baseline remain unchanged', async () => {
     const books = db.prepare('SELECT * FROM books').all();
-    assert.strictEqual(books.length, 12, 'Must have exactly 12 book titles');
+    assert.strictEqual(books.length, 62, 'Must have exactly 62 book titles');
     const totalCopies = books.reduce((s, b) => s + b.total_copies, 0);
     const availCopies = books.reduce((s, b) => s + b.available_copies, 0);
-    assert.strictEqual(totalCopies, 55, 'Total copies must be 55');
-    assert.strictEqual(availCopies, 55, 'Available copies must be 55');
+    assert.strictEqual(totalCopies, 255, 'Total copies must be 255');
+    assert.strictEqual(availCopies, 255, 'Available copies must be 255');
 
     const activeLoans = db.prepare('SELECT COUNT(*) as c FROM loans WHERE return_date IS NULL').get().c;
     assert.strictEqual(activeLoans, 0, 'Active loans count must be 0');
