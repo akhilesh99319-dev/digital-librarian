@@ -125,6 +125,22 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- --------------------------------------------------------
+-- Table structure for table "book_requests"
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS book_requests (
+  id SERIAL PRIMARY KEY,
+  member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+  notes TEXT DEFAULT NULL,
+  request_date TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  processed_by INTEGER DEFAULT NULL,
+  processed_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NULL,
+  rejection_reason TEXT DEFAULT NULL,
+  created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for high-performance lookups
 CREATE INDEX IF NOT EXISTS idx_books_isbn ON books(isbn);
 CREATE INDEX IF NOT EXISTS idx_books_category ON books(category_id);
@@ -133,3 +149,7 @@ CREATE INDEX IF NOT EXISTS idx_members_email ON members(email);
 CREATE INDEX IF NOT EXISTS idx_loans_code ON loans(loan_code);
 CREATE INDEX IF NOT EXISTS idx_loans_status ON loans(status);
 CREATE INDEX IF NOT EXISTS idx_admin_req_token ON admin_approval_requests(request_token);
+CREATE INDEX IF NOT EXISTS idx_book_requests_member ON book_requests(member_id);
+CREATE INDEX IF NOT EXISTS idx_book_requests_book ON book_requests(book_id);
+CREATE INDEX IF NOT EXISTS idx_book_requests_status ON book_requests(status);
+

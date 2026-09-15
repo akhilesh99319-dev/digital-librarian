@@ -41,6 +41,10 @@ if (isPostgres) {
       return res.rows;
     },
     async exec(sql) {
+      const trimmed = (sql || '').trim().toUpperCase();
+      if (trimmed === 'BEGIN' || trimmed === 'BEGIN TRANSACTION' || trimmed === 'COMMIT' || trimmed === 'ROLLBACK') {
+        return; // Autocommit per-query mode against connection pool
+      }
       await pool.query(sql);
     },
     prepare(sql) {
@@ -79,6 +83,25 @@ if (isPostgres) {
       const schemaSql = fs.readFileSync(schemaFile, 'utf8');
       await pool.query(schemaSql);
     }
+
+    // Ensure book_requests table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS book_requests (
+        id SERIAL PRIMARY KEY,
+        member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+        notes TEXT DEFAULT NULL,
+        request_date TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        processed_by INTEGER DEFAULT NULL,
+        processed_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NULL,
+        rejection_reason TEXT DEFAULT NULL,
+        created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_book_requests_member ON book_requests(member_id);
+      CREATE INDEX IF NOT EXISTS idx_book_requests_book ON book_requests(book_id);
+      CREATE INDEX IF NOT EXISTS idx_book_requests_status ON book_requests(status);
+    `);
 
     // Check if seeded with authoritative catalog (62 books)
     const bookCheck = await pool.query('SELECT COUNT(*) as count FROM books');
