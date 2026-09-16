@@ -75,13 +75,11 @@ A clean, modern, robust, and production-ready Library Management System built wi
 
 | Metric | Authoritative Count |
 |---|---|
-| **Unique Book Titles** | Exactly 12 |
-| **Physical Book Copies** | Exactly 55 |
-| **Available Book Copies (Baseline)** | Exactly 55 |
+| **Unique Book Titles** | Exactly 62 |
+| **Physical Book Copies** | Exactly 255 |
+| **Available Book Copies (Baseline)** | Exactly 255 |
 | **Registered Members** | Exactly 8 (`MEM-001` to `MEM-008`) |
-| **Categories** | Exactly 7 |
-| **Authors** | Exactly 11 |
-| **Publishers** | Exactly 11 |
+| **Categories** | Exactly 16 |
 | **Active Loans (Baseline)** | 0 |
 | **Overdue Loans (Baseline)** | 0 |
 | **Pending Fines (Baseline)** | ₹0.00 |
