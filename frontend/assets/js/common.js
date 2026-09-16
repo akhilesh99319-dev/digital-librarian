@@ -26,8 +26,21 @@ function updateThemeToggleUI(theme) {
   });
 }
 
-// Toast Notifications System
+// Toast Notifications System with Duplicate Debouncing
+let lastToastTime = 0;
+let lastToastMessage = '';
+
 function showToast(message, type = 'info', duration = 3500) {
+  if (!message) return;
+
+  // Deduplicate identical toasts appearing within 1.5 seconds
+  const now = Date.now();
+  if (message === lastToastMessage && (now - lastToastTime) < 1500) {
+    return;
+  }
+  lastToastTime = now;
+  lastToastMessage = message;
+
   let container = document.getElementById('toastContainer');
   if (!container) {
     container = document.createElement('div');

@@ -433,8 +433,9 @@ async function getAuditLogs(req, res) {
  */
 async function getMe(req, res) {
   try {
+    const userId = parseInt(req.user.id) || req.user.id;
     if (req.user.role === 'Member') {
-      const member = await db.prepare('SELECT id, member_code, full_name as name, email, phone, address, membership_date, status, created_at FROM members WHERE id = ?').get(req.user.id);
+      const member = await db.prepare('SELECT id, member_code, full_name, full_name as name, email, phone, address, membership_date, status, created_at FROM members WHERE id = ?').get(userId);
       if (!member) {
         return res.status(404).json({ success: false, message: 'Member profile not found.' });
       }
@@ -445,7 +446,7 @@ async function getMe(req, res) {
     }
 
     // Default: Librarian/Admin
-    const user = await db.prepare('SELECT id, name, role, email, phone, created_at FROM users WHERE id = ?').get(req.user.id);
+    const user = await db.prepare('SELECT id, name, role, email, phone, created_at FROM users WHERE id = ?').get(userId);
     if (!user) {
       return res.status(404).json({
         success: false,

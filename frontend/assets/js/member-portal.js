@@ -47,12 +47,7 @@ async function loadMemberDashboard() {
   }
 
   const user = api.getUser();
-  if (!user || !user.id) {
-    window.location.href = '/login.html';
-    return;
-  }
-
-  if (user.role && user.role !== 'Member') {
+  if (user && user.role && user.role !== 'Member') {
     window.location.href = '/index.html';
     return;
   }
@@ -66,27 +61,30 @@ async function loadMemberDashboard() {
   if (errorEl) errorEl.style.display = 'none';
 
   try {
-    // Fetch profile and my-books in parallel
-    const [memberRes, booksRes] = await Promise.all([
-      api.get(`/members/${user.id}`),
+    // Fetch authenticated profile and my-books in parallel
+    const [meRes, booksRes] = await Promise.all([
+      api.get('/auth/me'),
       api.get('/loans/my-books')
     ]);
 
-    if (!memberRes.success || !memberRes.data) {
-      throw new Error(memberRes.message || 'Failed to load member profile');
+    if (!meRes.success || !meRes.user) {
+      throw new Error(meRes.message || 'Failed to load member profile');
     }
 
-    const m = memberRes.data;
+    const m = meRes.user;
+    // Keep local session storage in sync with authoritative server profile
+    api.setSession(api.getToken(), m);
+
     const loansData = booksRes.success && booksRes.data ? booksRes.data : {
-      active_loans: m.active_loans || [],
-      loan_history: m.loan_history || [],
-      fines: m.fines || [],
+      active_loans: [],
+      loan_history: [],
+      fines: [],
       book_requests: []
     };
 
     // Update Member info everywhere on the page
-    const patronName = m.full_name || user.name || 'Member';
-    const patronCode = m.member_code || 'MEM-***';
+    const patronName = m.full_name || m.name || (user ? user.name : 'Member');
+    const patronCode = m.member_code || (user ? user.member_code : 'MEM-***');
     const patronEmail = m.email || 'No email registered';
     const patronPhone = m.phone || '—';
     const patronDate = formatDate(m.membership_date);

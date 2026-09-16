@@ -86,19 +86,37 @@ async function getMemberById(req, res) {
   try {
     const { id } = req.params;
 
-    if (req.user && req.user.role === 'Member' && parseInt(req.user.id) !== parseInt(id)) {
-      return res.status(403).json({
+    if (!id || id === 'undefined' || id === 'null') {
+      return res.status(400).json({
         success: false,
-        message: 'Access forbidden. You can only view your own membership account.'
+        message: 'Valid Member ID or Member Code is required.'
       });
     }
 
-    const member = await db.prepare('SELECT * FROM members WHERE id = ?').get(id);
+    // Support both numeric id and member_code lookup (e.g. 3 or MEM-003)
+    const isNumeric = /^\d+$/.test(String(id).trim());
+    let member;
+    if (isNumeric) {
+      member = await db.prepare('SELECT * FROM members WHERE id = ?').get(parseInt(id));
+    } else {
+      member = await db.prepare('SELECT * FROM members WHERE LOWER(member_code) = ?').get(String(id).trim().toLowerCase());
+    }
+
     if (!member) {
       return res.status(404).json({
         success: false,
         message: 'Member not found.'
       });
+    }
+
+    // Role check: If caller is a Member, they can only view their own account
+    if (req.user && req.user.role === 'Member') {
+      if (parseInt(req.user.id) !== parseInt(member.id)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access forbidden. You can only view your own membership account.'
+        });
+      }
     }
 
     // Get active loans
@@ -118,7 +136,7 @@ async function getMemberById(req, res) {
       JOIN books b ON l.book_id = b.id
       WHERE l.member_id = ? AND l.return_date IS NULL
       ORDER BY l.due_date ASC
-    `).all(id);
+    `).all(member.id);
 
     // Get past returned loans
     const loanHistory = await db.prepare(`
@@ -139,7 +157,7 @@ async function getMemberById(req, res) {
       WHERE l.member_id = ? AND l.return_date IS NOT NULL
       ORDER BY l.return_date DESC
       LIMIT 15
-    `).all(id);
+    `).all(member.id);
 
     // Get fines
     const fines = await db.prepare(`
@@ -156,7 +174,7 @@ async function getMemberById(req, res) {
       LEFT JOIN loans l ON f.loan_id = l.id
       WHERE f.member_id = ?
       ORDER BY f.id DESC
-    `).all(id);
+    `).all(member.id);
 
     return res.status(200).json({
       success: true,
