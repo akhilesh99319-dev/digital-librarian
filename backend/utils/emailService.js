@@ -52,6 +52,9 @@ function createTransporter() {
       host,
       port,
       secure,
+      // Force IPv4 at the SMTP socket level; Render may resolve Gmail to IPv6
+      // even when Node's global DNS result order prefers IPv4.
+      family: 4,
       auth: {
         user,
         pass
