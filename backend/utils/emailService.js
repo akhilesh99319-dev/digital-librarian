@@ -1,5 +1,13 @@
 const nodemailer = require('nodemailer');
 const crypto = require('node:crypto');
+const dns = require('node:dns');
+
+// Render environments may have IPv6 DNS records but no working IPv6 route.
+// Prefer IPv4 so SMTP connections (for example smtp.gmail.com:587) do not
+// fail with ENETUNREACH before the OTP email can be sent.
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
 const fs = require('node:fs');
 const path = require('node:path');
 
