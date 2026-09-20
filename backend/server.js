@@ -100,7 +100,7 @@ function startServer(port = PORT) {
     console.log('  DIGITAL LIBRARIAN — PRODUCTION SERVER');
     console.log(`  Server listening on: http://0.0.0.0:${port}`);
     console.log(`  Local URL:           http://localhost:${port}`);
-    console.log(`  Librarian Account:   akhilesh@library.com`);
+    console.log(`  Librarian Account:   ${process.env.LIBRARIAN_EMAIL || 'configured production account'}`);
     console.log('====================================================');
   });
 }
