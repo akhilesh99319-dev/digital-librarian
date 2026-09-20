@@ -105,13 +105,40 @@ if (isPostgres) {
       CREATE INDEX IF NOT EXISTS idx_book_requests_member ON book_requests(member_id);
       CREATE INDEX IF NOT EXISTS idx_book_requests_book ON book_requests(book_id);
       CREATE INDEX IF NOT EXISTS idx_book_requests_status ON book_requests(status);
+
+      CREATE TABLE IF NOT EXISTS auth_otps (
+        id SERIAL PRIMARY KEY,
+        identifier VARCHAR(191) DEFAULT NULL,
+        email VARCHAR(191) NOT NULL,
+        otp_hash VARCHAR(255) NOT NULL,
+        otp_type VARCHAR(50) NOT NULL,
+        metadata TEXT DEFAULT NULL,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        max_attempts INTEGER NOT NULL DEFAULT 5,
+        resend_count INTEGER NOT NULL DEFAULT 0,
+        last_sent_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+        verified INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_auth_otps_email ON auth_otps(email);
+      CREATE INDEX IF NOT EXISTS idx_auth_otps_type ON auth_otps(otp_type);
+
+      -- Safe column additions for Google Auth and Email verification in PostgreSQL
+      ALTER TABLE members ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NULL;
+      ALTER TABLE members ADD COLUMN IF NOT EXISTS google_id VARCHAR(255) DEFAULT NULL;
+      ALTER TABLE members ADD COLUMN IF NOT EXISTS google_email VARCHAR(191) DEFAULT NULL;
+
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255) DEFAULT NULL;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS google_email VARCHAR(191) DEFAULT NULL;
     `);
 
     // Check if seeded with authoritative catalog (62 books)
     const bookCheck = await pool.query('SELECT COUNT(*) as count FROM books');
     if (parseInt(bookCheck.rows[0].count) < 62) {
       console.log('Seeding / Synchronizing PostgreSQL authoritative records (62 books)...');
-      await pool.query('DROP TABLE IF EXISTS audit_logs, admin_approval_requests, book_requests, fines, loans, members, books, categories, users CASCADE;');
+      await pool.query('DROP TABLE IF EXISTS audit_logs, admin_approval_requests, book_requests, auth_otps, fines, loans, members, books, categories, users CASCADE;');
       const importFile = path.join(__dirname, '../../database/digital_librarian_postgresql_import.sql');
       if (fs.existsSync(importFile)) {
         const importSql = fs.readFileSync(importFile, 'utf8');
@@ -286,6 +313,22 @@ if (isPostgres) {
         FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE,
         FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
       );
+
+      CREATE TABLE IF NOT EXISTS auth_otps (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        identifier TEXT,
+        email TEXT NOT NULL,
+        otp_hash TEXT NOT NULL,
+        otp_type TEXT NOT NULL,
+        metadata TEXT,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        max_attempts INTEGER NOT NULL DEFAULT 5,
+        resend_count INTEGER NOT NULL DEFAULT 0,
+        last_sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        expires_at DATETIME NOT NULL,
+        verified INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
     // Migration 1: password_hash in members
@@ -295,8 +338,40 @@ if (isPostgres) {
       if (!hasPass) {
         sqliteDb.exec('ALTER TABLE members ADD COLUMN password_hash TEXT;');
       }
+      const hasEmailVerified = memCols.some(c => c.name === 'email_verified_at');
+      if (!hasEmailVerified) {
+        sqliteDb.exec('ALTER TABLE members ADD COLUMN email_verified_at DATETIME;');
+      }
+      const hasGoogleId = memCols.some(c => c.name === 'google_id');
+      if (!hasGoogleId) {
+        sqliteDb.exec('ALTER TABLE members ADD COLUMN google_id TEXT;');
+      }
+      const hasGoogleEmail = memCols.some(c => c.name === 'google_email');
+      if (!hasGoogleEmail) {
+        sqliteDb.exec('ALTER TABLE members ADD COLUMN google_email TEXT;');
+      }
     } catch (migErr) {
-      console.error('Password hash migration notice:', migErr.message);
+      console.error('Member columns migration notice:', migErr.message);
+    }
+
+    // Migration for users table (Google Auth & Email verification)
+    try {
+      const userCols = sqliteDb.prepare('PRAGMA table_info(users)').all();
+      const hasEmailVerified = userCols.some(c => c.name === 'email_verified_at');
+      if (!hasEmailVerified) {
+        sqliteDb.exec('ALTER TABLE users ADD COLUMN email_verified_at DATETIME;');
+        sqliteDb.exec("UPDATE users SET email_verified_at = datetime('now') WHERE email_verified_at IS NULL;");
+      }
+      const hasGoogleId = userCols.some(c => c.name === 'google_id');
+      if (!hasGoogleId) {
+        sqliteDb.exec('ALTER TABLE users ADD COLUMN google_id TEXT;');
+      }
+      const hasGoogleEmail = userCols.some(c => c.name === 'google_email');
+      if (!hasGoogleEmail) {
+        sqliteDb.exec('ALTER TABLE users ADD COLUMN google_email TEXT;');
+      }
+    } catch (migErr) {
+      console.error('User columns migration notice:', migErr.message);
     }
 
     // Migration 2: nullable email in members
@@ -316,6 +391,9 @@ if (isPostgres) {
             address TEXT,
             membership_date DATE NOT NULL,
             status TEXT NOT NULL DEFAULT 'Active',
+            email_verified_at DATETIME,
+            google_id TEXT,
+            google_email TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
           );
           INSERT INTO members_nullable_email (id, member_code, full_name, email, password_hash, phone, address, membership_date, status, created_at)

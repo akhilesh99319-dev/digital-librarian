@@ -11,6 +11,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { db } = require('../database/db');
 const { JWT_SECRET } = require('../middleware/auth');
+const { getTestOtp } = require('../utils/emailService');
 
 const BASE_URL = 'http://localhost:3000';
 
@@ -36,6 +37,30 @@ function makeRequest(method, reqPath, data = null, token = null) {
     req.on('error', reject);
     if (data) req.write(JSON.stringify(data));
     req.end();
+  });
+}
+
+async function performOtpLogin(email, password) {
+  const loginRes = await makeRequest('POST', '/api/auth/login', { email, password });
+  if (loginRes.status !== 200 || !loginRes.data.temp_token) {
+    return loginRes;
+  }
+  const otp = getTestOtp(email);
+  return await makeRequest('POST', '/api/auth/verify-otp', {
+    temp_token: loginRes.data.temp_token,
+    otp
+  });
+}
+
+async function performOtpRegister(payload) {
+  const regRes = await makeRequest('POST', '/api/auth/register', payload);
+  if (regRes.status !== 200 || !regRes.data.temp_token) {
+    return regRes;
+  }
+  const otp = getTestOtp(payload.email);
+  return await makeRequest('POST', '/api/auth/verify-register-otp', {
+    temp_token: regRes.data.temp_token,
+    otp
   });
 }
 
@@ -112,10 +137,7 @@ async function runFinalUATSuite() {
     // ----------------------------------------------------
     console.log('\n[PHASE 3 & 4] Admin & Librarian User Acceptance Tests');
     // Login
-    const libRes = await makeRequest('POST', '/api/auth/login', {
-      email: 'akhilesh@library.com',
-      password: 'Password@123'
-    });
+    const libRes = await performOtpLogin('akhilesh@library.com', 'Password@123');
     assert.strictEqual(libRes.status, 200, 'Librarian login must succeed');
     assert.strictEqual(libRes.data.user.role, 'Librarian', 'Role must be Librarian');
     librarianToken = libRes.data.token;
@@ -160,7 +182,7 @@ async function runFinalUATSuite() {
     logPass('Member Registration Validation: Password mismatch safely rejected (HTTP 400)');
 
     // Successful Registration
-    const regRes = await makeRequest('POST', '/api/auth/register', {
+    const regRes = await performOtpRegister({
       name: 'UAT Verified Patron',
       email: testPatronEmail,
       phone: '9888877777',
@@ -173,10 +195,7 @@ async function runFinalUATSuite() {
     logPass(`Member Registration: Created new patron account (ID: ${testMemberId})`);
 
     // Member Login
-    const memLoginRes = await makeRequest('POST', '/api/auth/login', {
-      email: testPatronEmail,
-      password: testPatronPass
-    });
+    const memLoginRes = await performOtpLogin(testPatronEmail, testPatronPass);
     assert.strictEqual(memLoginRes.status, 200, 'Member login must succeed');
     assert.strictEqual(memLoginRes.data.user.role, 'Member', 'Role must be Member');
     memberToken = memLoginRes.data.token;

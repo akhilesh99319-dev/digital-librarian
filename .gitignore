@@ -17,6 +17,7 @@ database/*.db-wal
 database/*.db-shm
 database/*.bak
 database/backups/
+database/test_otps_cache.json
 
 # Uploads runtime files
 uploads/*

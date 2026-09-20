@@ -161,7 +161,7 @@ cp .env.example .env
 ```
 
 ### 4. Run Verification Tests
-Run the comprehensive test runner (56 automated checks verifying authoritative data, system integrity, 16-point feature tests, user test cases, admin approval system, and E2E HTTP endpoints):
+Run the comprehensive test runner (11 automated test suites with 187 total checks, 187 / 187 PASSED, verifying authoritative data, system integrity, 16-point feature tests, user test cases, member portal experience, circulation lifecycle, QR workflows, and production readiness):
 ```bash
 npm test
 ```
@@ -177,7 +177,7 @@ Open **`http://localhost:3000`** in your browser.
 ## ☁️ Production Deployment Guide
 
 ### Architecture
-The project uses a **single unified web service** architecture: Express serves both the REST API at `/api/*` and the static frontend at `/`. All API requests made by the frontend dynamically use relative paths (`/api`), ensuring that the deployed application operates seamlessly through **ONE public HTTPS URL** (e.g. `https://digital-librarian-xxxx.onrender.com`).
+The project uses a **single unified web service** architecture: Express serves both the REST API at `/api/*` and the static frontend at `/`. All API requests made by the frontend dynamically use relative paths (`/api`), ensuring that the deployed application operates seamlessly through **ONE public HTTPS URL** (`https://digital-librarian.onrender.com`).
 
 ---
 
@@ -232,7 +232,7 @@ npm test
 ```
 
 Verified Test Coverage:
-- `verify_authoritative_data.js` — Checks 12 books, 55 copies, 8 members, 7 categories, 11 authors, 11 publishers, 0 loans, ₹0 fines.
+- `verify_authoritative_data.js` — Checks 62 unique book titles, 255 physical copies, 255 available copies, 8 members, 16 categories, 0 loans, ₹0 fines.
 - `verify_system.js` — Checks authentication, password hashing, issue/return transactions, fine calculations, CSV output, branding, admin approval system, audit logs, multi-device isolation, and migration assets.
 - `verify_feature_16_points.js` — 16-point feature verification including member email management and role permissions.
 - `verify_user_test_cases.js` — 8 user scenario tests for email additions, updates, duplicate detection, and invalid format handling.

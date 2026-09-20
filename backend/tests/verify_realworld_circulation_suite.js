@@ -7,6 +7,7 @@
 const http = require('node:http');
 const assert = require('node:assert');
 const { db } = require('../database/db');
+const { getTestOtp, getCachedTestOtps } = require('../utils/emailService');
 
 const BASE_URL = 'http://localhost:3000';
 
@@ -32,6 +33,25 @@ function makeRequest(method, path, data = null, token = null) {
     req.on('error', reject);
     if (data) req.write(JSON.stringify(data));
     req.end();
+  });
+}
+
+async function performOtpLogin(identifier, password) {
+  const loginRes = await makeRequest('POST', '/api/auth/login', { email: identifier, password });
+  if (loginRes.status !== 200 || !loginRes.data.temp_token) {
+    return loginRes;
+  }
+  let targetEmail = identifier;
+  if (!targetEmail.includes('@')) {
+    const memberRow = db.prepare('SELECT email FROM members WHERE member_code = ?').get(identifier);
+    if (memberRow && memberRow.email) {
+      targetEmail = memberRow.email;
+    }
+  }
+  const otp = getTestOtp(targetEmail);
+  return await makeRequest('POST', '/api/auth/verify-otp', {
+    temp_token: loginRes.data.temp_token,
+    otp
   });
 }
 
@@ -65,6 +85,7 @@ async function runSuite() {
   db.prepare('DELETE FROM loans WHERE member_id = ?').run(amanMemberId);
   db.prepare('DELETE FROM book_requests WHERE member_id = ?').run(amanMemberId);
   db.prepare('UPDATE books SET available_copies = total_copies WHERE id = ?').run(testBookId);
+  db.prepare("UPDATE members SET email = 'aman.kumar.bihar@gmail.com' WHERE id = ?").run(amanMemberId);
 
   try {
     // 1. Pre-Flight System Check
@@ -77,20 +98,14 @@ async function runSuite() {
     // 2. Test Data Safety & Actor Authentication
     console.log('\n[SECTION 2] Test Data Safety & Authentication');
     // Librarian login
-    const libRes = await makeRequest('POST', '/api/auth/login', {
-      email: 'akhilesh@library.com',
-      password: 'Password@123'
-    });
+    const libRes = await performOtpLogin('akhilesh@library.com', 'Password@123');
     assert.strictEqual(libRes.status, 200, 'Librarian login must succeed');
     assert.strictEqual(libRes.data.user.role, 'Librarian', 'Role must be Librarian');
     librarianToken = libRes.data.token;
     logPass('Librarian Login: Authenticated akhilesh@library.com');
 
     // Member login with baseline member Aman Kumar (MEM-003)
-    const memRes = await makeRequest('POST', '/api/auth/login', {
-      email: 'MEM-003',
-      password: 'Member@123'
-    });
+    const memRes = await performOtpLogin('MEM-003', 'Member@123');
     assert.strictEqual(memRes.status, 200, 'Member login with MEM-003 must succeed');
     assert.strictEqual(memRes.data.user.name, 'Aman Kumar', 'Must identify Aman Kumar');
     assert.strictEqual(memRes.data.user.role, 'Member', 'Role must be Member');

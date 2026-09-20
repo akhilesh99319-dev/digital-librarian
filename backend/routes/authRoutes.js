@@ -2,11 +2,20 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { authenticateToken, requireLibrarian } = require('../middleware/auth');
+const { authRateLimiter } = require('../middleware/rateLimiter');
 
-// Public routes
-router.post('/login', authController.login);
-router.post('/register', authController.register);
-router.post('/admin-request', authController.requestAdminLogin);
+// Public Authentication Routes (Email OTP & Google Sign-In)
+router.post('/login', authRateLimiter, authController.login);
+router.post('/verify-otp', authController.verifyLoginOtp);
+router.post('/resend-otp', authController.resendOtp);
+
+router.post('/register', authRateLimiter, authController.register);
+router.post('/verify-register-otp', authController.verifyRegisterOtp);
+
+router.post('/google', authRateLimiter, authController.googleLogin);
+
+// Admin Approval Routes
+router.post('/admin-request', authRateLimiter, authController.requestAdminLogin);
 router.get('/admin-request/:token', authController.checkAdminApprovalStatus);
 
 // Protected routes (Any authenticated role)

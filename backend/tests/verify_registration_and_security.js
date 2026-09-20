@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const bcrypt = require('bcryptjs');
 const { db } = require('../database/db');
+const { getTestOtp } = require('../utils/emailService');
 
 console.log('================================================================');
 console.log('  USER REGISTRATION & SECURITY VERIFICATION SUITE');
@@ -57,6 +58,30 @@ function apiRequest(method, endpoint, body = null, headers = {}) {
     req.on('error', reject);
     if (dataString) req.write(dataString);
     req.end();
+  });
+}
+
+async function performOtpLogin(email, password) {
+  const loginRes = await apiRequest('POST', '/api/auth/login', { email, password });
+  if (loginRes.status !== 200 || !loginRes.body.temp_token) {
+    return loginRes;
+  }
+  const otp = getTestOtp(email);
+  return await apiRequest('POST', '/api/auth/verify-otp', {
+    temp_token: loginRes.body.temp_token,
+    otp
+  });
+}
+
+async function performOtpRegister(payload) {
+  const regRes = await apiRequest('POST', '/api/auth/register', payload);
+  if (regRes.status !== 200 || !regRes.body.temp_token) {
+    return regRes;
+  }
+  const otp = getTestOtp(payload.email);
+  return await apiRequest('POST', '/api/auth/verify-register-otp', {
+    temp_token: regRes.body.temp_token,
+    otp
   });
 }
 
@@ -116,7 +141,7 @@ async function runAllTests() {
   // 5. Successful registration
   let createdUserId = null;
   await step('Registration: Valid payload creates account with HTTP 201', async () => {
-    const res = await apiRequest('POST', '/api/auth/register', {
+    const res = await performOtpRegister({
       name: 'Rohit Sharma',
       email: testRegEmail,
       phone: '+91 98765 11111',
@@ -166,7 +191,7 @@ async function runAllTests() {
 
   // 8. Role Security: Attempting to register as Admin or Librarian is forced to Member
   await step('Role Security: Passing privileged role (Admin/Librarian) is forced to Member', async () => {
-    const res = await apiRequest('POST', '/api/auth/register', {
+    const res = await performOtpRegister({
       name: 'Sneaky User',
       email: 'sneaky.admin@example.com',
       password: testRegPassword,
@@ -197,10 +222,7 @@ async function runAllTests() {
   // 10. Login integration: Newly registered member can log in and receives JWT with role Member
   let memberToken = null;
   await step('Login Integration: Newly registered member can log in via /api/auth/login', async () => {
-    const res = await apiRequest('POST', '/api/auth/login', {
-      email: testRegEmail,
-      password: testRegPassword
-    });
+    const res = await performOtpLogin(testRegEmail, testRegPassword);
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
     assert.ok(res.body.token);
@@ -232,10 +254,7 @@ async function runAllTests() {
 
   // 13. Regression Check: Existing Librarian login still works perfectly
   await step('Regression: Librarian login with akhilesh@library.com still works', async () => {
-    const res = await apiRequest('POST', '/api/auth/login', {
-      email: 'akhilesh@library.com',
-      password: 'Password@123'
-    });
+    const res = await performOtpLogin('akhilesh@library.com', 'Password@123');
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
     assert.strictEqual(res.body.user.role, 'Librarian');
@@ -285,10 +304,7 @@ async function runAllTests() {
   // 16. Book API Security: Member cannot create/update/delete books; can read catalog
   await step('Book API Security: Member write operations blocked (403), Read operations allowed (200)', async () => {
     // Member login
-    const memLoginRes = await apiRequest('POST', '/api/auth/login', {
-      email: testRegEmail,
-      password: testRegPassword
-    });
+    const memLoginRes = await performOtpLogin(testRegEmail, testRegPassword);
     assert.strictEqual(memLoginRes.status, 200);
     const memberToken = memLoginRes.body.token;
     const memberHeaders = { 'Authorization': `Bearer ${memberToken}` };

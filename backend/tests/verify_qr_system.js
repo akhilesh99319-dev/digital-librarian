@@ -6,6 +6,7 @@
 const http = require('node:http');
 const assert = require('node:assert');
 const { db } = require('../database/db');
+const { getTestOtp } = require('../utils/emailService');
 
 const BASE_URL = 'http://localhost:3000';
 
@@ -34,6 +35,30 @@ function makeRequest(method, path, data = null, token = null) {
   });
 }
 
+async function performOtpLogin(email, password) {
+  const loginRes = await makeRequest('POST', '/api/auth/login', { email, password });
+  if (loginRes.status !== 200 || !loginRes.data.temp_token) {
+    return loginRes;
+  }
+  const otp = getTestOtp(email);
+  return await makeRequest('POST', '/api/auth/verify-otp', {
+    temp_token: loginRes.data.temp_token,
+    otp
+  });
+}
+
+async function performOtpRegister(payload) {
+  const regRes = await makeRequest('POST', '/api/auth/register', payload);
+  if (regRes.status !== 200 || !regRes.data.temp_token) {
+    return regRes;
+  }
+  const otp = getTestOtp(payload.email);
+  return await makeRequest('POST', '/api/auth/verify-register-otp', {
+    temp_token: regRes.data.temp_token,
+    otp
+  });
+}
+
 let memberToken = null;
 let otherMemberToken = null;
 let librarianToken = null;
@@ -46,10 +71,7 @@ async function runQRTests() {
   console.log('\n[1] Authenticating Test Actors...');
   
   // 1. Librarian (akhilesh@library.com)
-  const libRes = await makeRequest('POST', '/api/auth/login', {
-    email: 'akhilesh@library.com',
-    password: 'Password@123'
-  });
+  const libRes = await performOtpLogin('akhilesh@library.com', 'Password@123');
   assert.strictEqual(libRes.status, 200, `Librarian login failed: ${JSON.stringify(libRes.data)}`);
   librarianToken = libRes.data.token || libRes.data.data?.token;
   console.log(`  ✓ Logged in Librarian (Role: ${libRes.data.user?.role || 'Librarian'})`);
@@ -57,16 +79,16 @@ async function runQRTests() {
   // 2. Member 1 Setup & Login
   const mem1Email = 'qr.member1@example.com';
   const mem1Pass = 'QrMember@2026';
-  let memRes = await makeRequest('POST', '/api/auth/login', { email: mem1Email, password: mem1Pass });
+  let memRes = await performOtpLogin(mem1Email, mem1Pass);
   if (memRes.status !== 200) {
-    await makeRequest('POST', '/api/auth/register', {
+    await performOtpRegister({
       name: 'QR Test Patron One',
       email: mem1Email,
       phone: '9888811111',
       password: mem1Pass,
       confirm_password: mem1Pass
     });
-    memRes = await makeRequest('POST', '/api/auth/login', { email: mem1Email, password: mem1Pass });
+    memRes = await performOtpLogin(mem1Email, mem1Pass);
   }
   assert.strictEqual(memRes.status, 200, `Member 1 login failed: ${JSON.stringify(memRes.data)}`);
   memberToken = memRes.data.token;
@@ -76,16 +98,16 @@ async function runQRTests() {
   // 3. Member 2 Setup & Login
   const mem2Email = 'qr.member2@example.com';
   const mem2Pass = 'QrMember@2026';
-  let otherMemRes = await makeRequest('POST', '/api/auth/login', { email: mem2Email, password: mem2Pass });
+  let otherMemRes = await performOtpLogin(mem2Email, mem2Pass);
   if (otherMemRes.status !== 200) {
-    await makeRequest('POST', '/api/auth/register', {
+    await performOtpRegister({
       name: 'QR Test Patron Two',
       email: mem2Email,
       phone: '9888822222',
       password: mem2Pass,
       confirm_password: mem2Pass
     });
-    otherMemRes = await makeRequest('POST', '/api/auth/login', { email: mem2Email, password: mem2Pass });
+    otherMemRes = await performOtpLogin(mem2Email, mem2Pass);
   }
   assert.strictEqual(otherMemRes.status, 200, `Member 2 login failed: ${JSON.stringify(otherMemRes.data)}`);
   otherMemberToken = otherMemRes.data.token;

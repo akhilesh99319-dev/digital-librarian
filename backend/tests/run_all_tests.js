@@ -54,6 +54,8 @@ function restoreCleanBaseline() {
     DELETE FROM audit_logs WHERE user_id IN (SELECT id FROM members WHERE id > 8);
     DELETE FROM book_requests;
     DELETE FROM members WHERE id > 8;
+    UPDATE members SET email = NULL WHERE id <= 8;
+    DELETE FROM auth_otps;
   `);
 
   console.log('--> Baseline Cleaned. Checking final state:');
@@ -116,6 +118,9 @@ async function main() {
 
     // 11. Final UAT, UI/UX & Production Readiness Suite
     await runScript('verify_final_uat_and_production_readiness.js');
+
+    // 12. Secure Authentication Suite (Email OTP + Google Sign-In)
+    await runScript('verify_secure_auth_suite.js');
 
     // Restore clean baseline
     restoreCleanBaseline();

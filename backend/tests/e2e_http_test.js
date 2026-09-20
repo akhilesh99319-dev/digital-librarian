@@ -63,10 +63,25 @@ async function runE2ETests() {
     });
     assert.strictEqual(res.status, 200);
     const data = await res.json();
-    assert.ok(data.token, 'Token must be returned');
-    assert.strictEqual(data.user.name, 'Akhilesh Kumar');
-    assert.strictEqual(data.user.role, 'Librarian');
-    authToken = data.token;
+    if (data.otp_required && data.temp_token) {
+      const { getTestOtp } = require('../utils/emailService');
+      const otp = getTestOtp('akhilesh@library.com');
+      const vRes = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ temp_token: data.temp_token, otp })
+      });
+      const vData = await vRes.json();
+      assert.ok(vData.token, 'Token must be returned');
+      assert.strictEqual(vData.user.name, 'Akhilesh Kumar');
+      assert.strictEqual(vData.user.role, 'Librarian');
+      authToken = vData.token;
+    } else {
+      assert.ok(data.token, 'Token must be returned');
+      assert.strictEqual(data.user.name, 'Akhilesh Kumar');
+      assert.strictEqual(data.user.role, 'Librarian');
+      authToken = data.token;
+    }
   });
 
   const authHeaders = () => ({

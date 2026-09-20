@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(191) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   phone VARCHAR(50) DEFAULT NULL,
+  email_verified_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  google_id VARCHAR(255) DEFAULT NULL,
+  google_email VARCHAR(191) DEFAULT NULL,
   created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -58,6 +61,28 @@ CREATE TABLE IF NOT EXISTS members (
   address TEXT DEFAULT NULL,
   membership_date DATE NOT NULL,
   status VARCHAR(50) NOT NULL DEFAULT 'Active',
+  email_verified_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NULL,
+  google_id VARCHAR(255) DEFAULT NULL,
+  google_email VARCHAR(191) DEFAULT NULL,
+  created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- --------------------------------------------------------
+-- Table structure for table "auth_otps"
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS auth_otps (
+  id SERIAL PRIMARY KEY,
+  identifier VARCHAR(191) DEFAULT NULL,
+  email VARCHAR(191) NOT NULL,
+  otp_hash VARCHAR(255) NOT NULL,
+  otp_type VARCHAR(50) NOT NULL,
+  metadata TEXT DEFAULT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  max_attempts INTEGER NOT NULL DEFAULT 5,
+  resend_count INTEGER NOT NULL DEFAULT 0,
+  last_sent_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+  verified INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -3,6 +3,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const { db } = require('../database/db');
+const { getTestOtp } = require('../utils/emailService');
 
 console.log('========================================================================');
 console.log('  FULL DEDICATED MEMBER PORTAL UI/UX & ISOLATION VERIFICATION SUITE');
@@ -58,6 +59,30 @@ function apiRequest(method, endpoint, body = null, token = null) {
     req.on('error', reject);
     if (dataString) req.write(dataString);
     req.end();
+  });
+}
+
+async function performOtpLogin(email, password) {
+  const loginRes = await apiRequest('POST', '/api/auth/login', { email, password });
+  if (loginRes.status !== 200 || !loginRes.body.temp_token) {
+    return loginRes;
+  }
+  const otp = getTestOtp(email);
+  return await apiRequest('POST', '/api/auth/verify-otp', {
+    temp_token: loginRes.body.temp_token,
+    otp
+  });
+}
+
+async function performOtpRegister(payload) {
+  const regRes = await apiRequest('POST', '/api/auth/register', payload);
+  if (regRes.status !== 200 || !regRes.body.temp_token) {
+    return regRes;
+  }
+  const otp = getTestOtp(payload.email);
+  return await apiRequest('POST', '/api/auth/verify-register-otp', {
+    temp_token: regRes.body.temp_token,
+    otp
   });
 }
 
@@ -149,10 +174,7 @@ async function run() {
   let createdRequestId;
 
   await step('Librarian Login: akhilesh@library.com authenticates successfully', async () => {
-    const res = await apiRequest('POST', '/api/auth/login', {
-      email: 'akhilesh@library.com',
-      password: 'Password@123'
-    });
+    const res = await performOtpLogin('akhilesh@library.com', 'Password@123');
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.user.role, 'Librarian');
     librarianToken = res.body.token;
@@ -160,7 +182,7 @@ async function run() {
 
   await step('Member Setup / Login: Authenticates as Member', async () => {
     const testEmail = 'rahul.portal.test@library.com';
-    const regRes = await apiRequest('POST', '/api/auth/register', {
+    const regRes = await performOtpRegister({
       name: 'Rahul Sharma',
       email: testEmail,
       phone: '9876543210',
@@ -169,18 +191,12 @@ async function run() {
     });
 
     if (regRes.status === 201) {
-      const loginRes = await apiRequest('POST', '/api/auth/login', {
-        email: testEmail,
-        password: 'Password@123'
-      });
+      const loginRes = await performOtpLogin(testEmail, 'Password@123');
       assert.strictEqual(loginRes.status, 200);
       memberToken = loginRes.body.token;
       memberUser = loginRes.body.user;
     } else {
-      const loginRes = await apiRequest('POST', '/api/auth/login', {
-        email: testEmail,
-        password: 'Password@123'
-      });
+      const loginRes = await performOtpLogin(testEmail, 'Password@123');
       assert.strictEqual(loginRes.status, 200);
       memberToken = loginRes.body.token;
       memberUser = loginRes.body.user;

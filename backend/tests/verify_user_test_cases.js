@@ -1,3 +1,4 @@
+require('dotenv').config();
 const assert = require('node:assert');
 const { db } = require('../database/db');
 const jwt = require('jsonwebtoken');
@@ -32,7 +33,18 @@ async function runExactUserTests() {
     body: JSON.stringify({ email: 'akhilesh@library.com', password: 'Password@123' })
   });
   const loginData = await loginRes.json();
-  const librarianToken = loginData.token;
+  let librarianToken = loginData.token;
+  if (!librarianToken && loginData.otp_required && loginData.temp_token) {
+    const { getTestOtp } = require('../utils/emailService');
+    const otp = getTestOtp('akhilesh@library.com');
+    const vRes = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ temp_token: loginData.temp_token, otp })
+    });
+    const vData = await vRes.json();
+    librarianToken = vData.token;
+  }
 
   const librarianHeaders = () => ({
     'Content-Type': 'application/json',

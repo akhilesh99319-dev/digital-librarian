@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken');
 const crypto = require('node:crypto');
 const { db } = require('../database/db');
 const { JWT_SECRET } = require('../middleware/auth');
+const { generateOTP, maskEmail, sendOTPEmail } = require('../utils/emailService');
+const { verifyGoogleIdToken } = require('../utils/googleAuth');
+const { checkResendCooldown, recordOtpIssued } = require('../middleware/rateLimiter');
 
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
@@ -21,118 +24,801 @@ async function logAudit(userId, action, result, details = null, ipAddress = null
 }
 
 /**
- * Handle Unified Login (Librarian, Admin, or Member)
+ * Helper: Validate email format
+ */
+function isValidEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  const trimmed = email.trim();
+  if (trimmed.length > 254) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(trimmed);
+}
+
+/**
+ * Handle Unified Login Step 1: Validate Credentials & Issue OTP
+ * (Supports Librarian, Admin, or Member via Email or Member Code)
  */
 async function login(req, res) {
   try {
-    const { email, password, login_type = 'librarian' } = req.body;
+    const { email, password, login_type = 'all' } = req.body;
     const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
 
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide both email and password.'
+        message: 'Please provide both email/member code and password.'
+      });
+    }
+
+    const trimmedIdentifier = email.trim().toLowerCase();
+    let account = null;
+    let accountType = null; // 'user' or 'member'
+
+    // 1. Try Librarian / Admin lookup
+    if (login_type === 'librarian' || login_type === 'admin' || login_type === 'all') {
+      const user = await db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(trimmedIdentifier);
+      if (user && user.password_hash && typeof user.password_hash === 'string') {
+        const isPasswordValid = bcrypt.compareSync(password, user.password_hash);
+        if (isPasswordValid) {
+          account = user;
+          accountType = 'user';
+        }
+      }
+    }
+
+    // 2. Try Member lookup (by verified email or member_code)
+    if (!account) {
+      const member = await db.prepare(`
+        SELECT * FROM members 
+        WHERE (email IS NOT NULL AND LOWER(email) = ?) OR LOWER(member_code) = ?
+      `).get(trimmedIdentifier, trimmedIdentifier);
+
+      if (member) {
+        if (member.status === 'Suspended') {
+          await logAudit(member.id, 'LOGIN', 'BLOCKED', `Suspended member ${member.full_name} attempt`, clientIp);
+          return res.status(403).json({
+            success: false,
+            message: 'Your library membership account is currently suspended. Please contact the Librarian.'
+          });
+        }
+
+        let isPassMatch = false;
+        if (member.password_hash && typeof member.password_hash === 'string') {
+          isPassMatch = bcrypt.compareSync(password, member.password_hash);
+        } else if (password === 'Member@123') {
+          isPassMatch = true;
+        }
+
+        if (isPassMatch) {
+          account = member;
+          accountType = 'member';
+        }
+      }
+    }
+
+    // Generic Authentication Failure (Prevent account enumeration)
+    if (!account) {
+      await logAudit(null, 'LOGIN', 'FAILED', `Failed credentials attempt for: ${trimmedIdentifier}`, clientIp);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email/member code or password.'
+      });
+    }
+
+    // Determine target email for OTP delivery
+    const recipientEmail = accountType === 'user' ? account.email : account.email;
+    const recipientName = accountType === 'user' ? account.name : account.full_name;
+
+    if (!recipientEmail || !isValidEmail(recipientEmail)) {
+      await logAudit(account.id, 'LOGIN_OTP', 'FAILED', `No verified email found for account ${trimmedIdentifier}`, clientIp);
+      return res.status(400).json({
+        success: false,
+        message: 'No registered email address found for this account. Please contact the Librarian to link your verified email.'
+      });
+    }
+
+    // Generate cryptographically secure 6-digit OTP
+    const otp = generateOTP();
+    const otpHash = bcrypt.hashSync(otp, 10);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes
+
+    // Invalidate existing active login OTPs for this email
+    await db.prepare(`
+      UPDATE auth_otps 
+      SET verified = 2 
+      WHERE email = ? AND otp_type = 'LOGIN' AND verified = 0
+    `).run(recipientEmail.toLowerCase());
+
+    // Insert new OTP record
+    const insertOtp = db.prepare(`
+      INSERT INTO auth_otps (
+        identifier, email, otp_hash, otp_type, metadata, attempts, max_attempts, resend_count, last_sent_at, expires_at, verified, created_at
+      ) VALUES (?, ?, ?, 'LOGIN', ?, 0, 5, 0, datetime('now'), ?, 0, datetime('now'))
+    `);
+
+    const metadata = JSON.stringify({
+      user_type: accountType,
+      user_id: account.id,
+      name: recipientName,
+      role: accountType === 'user' ? (account.role || 'Librarian') : 'Member',
+      member_code: account.member_code || null
+    });
+
+    await insertOtp.run(trimmedIdentifier, recipientEmail.toLowerCase(), otpHash, metadata, expiresAt);
+
+    // Create 5-minute temporary verification token
+    const tempToken = jwt.sign({
+      purpose: 'OTP_VERIFY',
+      otp_type: 'LOGIN',
+      email: recipientEmail.toLowerCase(),
+      user_type: accountType,
+      user_id: account.id
+    }, JWT_SECRET, { expiresIn: '5m' });
+
+    // Record OTP issuance in rate limiter for cooldown
+    recordOtpIssued(recipientEmail.toLowerCase());
+
+    // Send OTP to registered email
+    await sendOTPEmail(recipientEmail, otp, 'LOGIN', recipientName);
+
+    await logAudit(account.id, 'LOGIN_OTP_SENT', 'SUCCESS', `Login OTP sent to ${maskEmail(recipientEmail)}`, clientIp);
+
+    // Return response without JWT
+    return res.status(200).json({
+      success: true,
+      otp_required: true,
+      temp_token: tempToken,
+      email_masked: maskEmail(recipientEmail),
+      message: 'We have sent a 6-digit verification code to your registered email.'
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'An internal server error occurred during authentication. Please try again.'
+    });
+  }
+}
+
+/**
+ * Handle Login OTP Verification & Session Issuance
+ */
+async function verifyLoginOtp(req, res) {
+  try {
+    const { temp_token, otp } = req.body;
+    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+
+    if (!temp_token || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token and 6-digit code are required.'
+      });
+    }
+
+    const cleanOtp = String(otp).trim();
+    if (!/^\d{6}$/.test(cleanOtp)) {
+      return res.status(400).json({
+        success: false,
+        message: 'The verification code must be exactly 6 digits.'
+      });
+    }
+
+    // Verify temp_token
+    let decoded;
+    try {
+      decoded = jwt.verify(temp_token, JWT_SECRET);
+      if (decoded.purpose !== 'OTP_VERIFY' || decoded.otp_type !== 'LOGIN') {
+        throw new Error('Invalid token purpose');
+      }
+    } catch (tokenErr) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification session has expired or is invalid. Please sign in again.'
+      });
+    }
+
+    const email = decoded.email.toLowerCase();
+
+    // Retrieve active OTP record
+    const otpRecord = await db.prepare(`
+      SELECT * FROM auth_otps 
+      WHERE LOWER(email) = ? AND otp_type = 'LOGIN' AND verified = 0 
+      ORDER BY id DESC LIMIT 1
+    `).get(email);
+
+    if (!otpRecord) {
+      return res.status(400).json({
+        success: false,
+        message: 'The verification code is incorrect or expired.'
+      });
+    }
+
+    // Check expiration
+    const now = new Date();
+    const expiresAt = new Date(otpRecord.expires_at);
+    if (now > expiresAt) {
+      await db.prepare('UPDATE auth_otps SET verified = 2 WHERE id = ?').run(otpRecord.id);
+      return res.status(400).json({
+        success: false,
+        message: 'This verification code has expired. Please request a new code.'
+      });
+    }
+
+    // Check attempts
+    if (otpRecord.attempts >= otpRecord.max_attempts) {
+      await db.prepare('UPDATE auth_otps SET verified = 2 WHERE id = ?').run(otpRecord.id);
+      return res.status(400).json({
+        success: false,
+        message: 'Too many failed attempts. This verification code has been invalidated. Please request a new code.'
+      });
+    }
+
+    // Verify OTP against bcrypt hash
+    const isOtpValid = bcrypt.compareSync(cleanOtp, otpRecord.otp_hash);
+    if (!isOtpValid) {
+      await db.prepare('UPDATE auth_otps SET attempts = attempts + 1 WHERE id = ?').run(otpRecord.id);
+      await logAudit(decoded.user_id, 'LOGIN_OTP_VERIFY', 'FAILED', `Invalid OTP attempt from ${clientIp}`, clientIp);
+      return res.status(400).json({
+        success: false,
+        message: 'The verification code is incorrect or expired.'
+      });
+    }
+
+    // Invalidate OTP (single-use)
+    await db.prepare('UPDATE auth_otps SET verified = 1 WHERE id = ?').run(otpRecord.id);
+
+    // Retrieve authoritative account data
+    let userObj = null;
+    let payload = null;
+
+    if (decoded.user_type === 'member') {
+      const member = await db.prepare('SELECT * FROM members WHERE id = ?').get(decoded.user_id);
+      if (!member) {
+        return res.status(404).json({ success: false, message: 'Member account not found.' });
+      }
+
+      payload = {
+        id: member.id,
+        name: member.full_name,
+        role: 'Member',
+        email: member.email,
+        member_code: member.member_code
+      };
+
+      userObj = {
+        id: member.id,
+        name: member.full_name,
+        role: 'Member',
+        email: member.email,
+        member_code: member.member_code,
+        phone: member.phone,
+        membership_date: member.membership_date,
+        status: member.status
+      };
+    } else {
+      const user = await db.prepare('SELECT * FROM users WHERE id = ?').get(decoded.user_id);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User account not found.' });
+      }
+
+      payload = {
+        id: user.id,
+        name: user.name,
+        role: user.role || 'Librarian',
+        email: user.email
+      };
+
+      userObj = {
+        id: user.id,
+        name: user.name,
+        role: user.role || 'Librarian',
+        email: user.email,
+        phone: user.phone,
+        created_at: user.created_at
+      };
+    }
+
+    // Issue authoritative JWT
+    const authToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+    await logAudit(payload.id, 'LOGIN', 'SUCCESS', `User ${payload.name} (${payload.role}) authenticated via Email OTP from ${clientIp}`, clientIp);
+
+    return res.status(200).json({
+      success: true,
+      message: `Login successful. Welcome back, ${payload.name}!`,
+      token: authToken,
+      user: userObj
+    });
+  } catch (error) {
+    console.error('verifyLoginOtp error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to verify verification code.'
+    });
+  }
+}
+
+/**
+ * Handle Resending OTP with Rate-Limit & Cooldown
+ */
+async function resendOtp(req, res) {
+  try {
+    const { temp_token } = req.body;
+    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+
+    if (!temp_token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token is required.'
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(temp_token, JWT_SECRET);
+      if (decoded.purpose !== 'OTP_VERIFY') {
+        throw new Error('Invalid token purpose');
+      }
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification session has expired. Please restart the authentication process.'
+      });
+    }
+
+    const email = decoded.email.toLowerCase();
+
+    // Check cooldown & limits
+    const cooldownCheck = checkResendCooldown(email, 45, 3);
+    if (!cooldownCheck.allowed) {
+      return res.status(429).json({
+        success: false,
+        message: cooldownCheck.reason
+      });
+    }
+
+    // Find active OTP record
+    const activeOtp = await db.prepare(`
+      SELECT * FROM auth_otps 
+      WHERE LOWER(email) = ? AND otp_type = ? AND verified = 0 
+      ORDER BY id DESC LIMIT 1
+    `).get(email, decoded.otp_type);
+
+    if (!activeOtp) {
+      return res.status(400).json({
+        success: false,
+        message: 'No active verification session found. Please start over.'
+      });
+    }
+
+    // Generate new 6-digit OTP
+    const newOtp = generateOTP();
+    const newOtpHash = bcrypt.hashSync(newOtp, 10);
+    const newExpiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+    // Update OTP record
+    await db.prepare(`
+      UPDATE auth_otps 
+      SET otp_hash = ?, attempts = 0, resend_count = resend_count + 1, last_sent_at = datetime('now'), expires_at = ? 
+      WHERE id = ?
+    `).run(newOtpHash, newExpiresAt, activeOtp.id);
+
+    // Send new OTP email
+    let recipientName = 'User';
+    if (activeOtp.metadata) {
+      try {
+        const meta = JSON.parse(activeOtp.metadata);
+        recipientName = meta.name || 'User';
+      } catch (_) {}
+    }
+
+    await sendOTPEmail(email, newOtp, decoded.otp_type, recipientName);
+    await logAudit(decoded.user_id || null, 'OTP_RESEND', 'SUCCESS', `Resent ${decoded.otp_type} OTP to ${maskEmail(email)}`, clientIp);
+
+    return res.status(200).json({
+      success: true,
+      message: 'A new 6-digit verification code has been sent to your email.'
+    });
+  } catch (error) {
+    console.error('resendOtp error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to resend verification code. Please try again.'
+    });
+  }
+}
+
+/**
+ * Handle Public Member Registration Step 1: Validate Fields & Issue Registration OTP
+ */
+async function register(req, res) {
+  try {
+    const { name, full_name, email, password, confirm_password, confirmPassword, phone, address } = req.body;
+    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+
+    const rawName = name || full_name;
+    if (!rawName || typeof rawName !== 'string' || rawName.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Full name is required (at least 2 characters).'
+      });
+    }
+
+    const trimmedName = rawName.trim();
+
+    if (!email || !isValidEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.'
       });
     }
 
     const trimmedEmail = email.trim().toLowerCase();
 
-    // 1. Try Librarian/Admin Login first if requested or by default
-    if (login_type === 'librarian' || login_type === 'all' || login_type === 'admin') {
-      const user = await db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(trimmedEmail);
-
-      if (user && user.password_hash && typeof user.password_hash === 'string') {
-        const isPasswordValid = bcrypt.compareSync(password, user.password_hash);
-        if (isPasswordValid) {
-          const payload = {
-            id: user.id,
-            name: user.name,
-            role: user.role || 'Librarian',
-            email: user.email
-          };
-
-          const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-
-          await logAudit(user.id, 'LOGIN', 'SUCCESS', `User ${user.name} logged in from ${clientIp}`, clientIp);
-
-          return res.status(200).json({
-            success: true,
-            message: `Login successful. Welcome back, ${user.role} ${user.name}!`,
-            token,
-            user: {
-              id: user.id,
-              name: user.name,
-              role: user.role || 'Librarian',
-              email: user.email,
-              phone: user.phone,
-              created_at: user.created_at
-            }
-          });
-        }
-      }
+    if (!password || typeof password !== 'string' || password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long.'
+      });
     }
 
-    // 2. Try Member Login (supports login by email or member_code)
-    const member = await db.prepare('SELECT * FROM members WHERE (email IS NOT NULL AND LOWER(email) = ?) OR LOWER(member_code) = ?').get(trimmedEmail, trimmedEmail);
+    const confirmPass = confirm_password !== undefined ? confirm_password : confirmPassword;
+    if (confirmPass !== undefined && confirmPass !== password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match.'
+      });
+    }
+
+    // Check duplicate email across both users and members
+    const existingUser = await db.prepare('SELECT id FROM users WHERE LOWER(email) = ?').get(trimmedEmail);
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email already exists.'
+      });
+    }
+
+    const existingMember = await db.prepare('SELECT id FROM members WHERE LOWER(email) = ?').get(trimmedEmail);
+    if (existingMember) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email already exists.'
+      });
+    }
+
+    // Generate secure password hash
+    const salt = bcrypt.genSaltSync(10);
+    const passwordHash = bcrypt.hashSync(password, salt);
+
+    const sanitizedPhone = phone && typeof phone === 'string' ? phone.trim() : '';
+    const sanitizedAddress = address && typeof address === 'string' ? address.trim() : '';
+
+    // Generate 6-digit Registration OTP
+    const otp = generateOTP();
+    const otpHash = bcrypt.hashSync(otp, 10);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+    // Invalidate previous registration OTPs for this email
+    await db.prepare(`
+      UPDATE auth_otps 
+      SET verified = 2 
+      WHERE email = ? AND otp_type = 'REGISTER' AND verified = 0
+    `).run(trimmedEmail);
+
+    const metadata = JSON.stringify({
+      name: trimmedName,
+      email: trimmedEmail,
+      password_hash: passwordHash,
+      phone: sanitizedPhone,
+      address: sanitizedAddress
+    });
+
+    await db.prepare(`
+      INSERT INTO auth_otps (
+        identifier, email, otp_hash, otp_type, metadata, attempts, max_attempts, resend_count, last_sent_at, expires_at, verified, created_at
+      ) VALUES (?, ?, ?, 'REGISTER', ?, 0, 5, 0, datetime('now'), ?, 0, datetime('now'))
+    `).run(trimmedEmail, trimmedEmail, otpHash, metadata, expiresAt);
+
+    const tempToken = jwt.sign({
+      purpose: 'OTP_VERIFY',
+      otp_type: 'REGISTER',
+      email: trimmedEmail
+    }, JWT_SECRET, { expiresIn: '5m' });
+
+    // Record OTP issuance for cooldown
+    recordOtpIssued(trimmedEmail);
+
+    // Send Registration OTP Email
+    await sendOTPEmail(trimmedEmail, otp, 'REGISTER', trimmedName);
+
+    await logAudit(null, 'REGISTER_OTP_SENT', 'SUCCESS', `Registration OTP sent to ${maskEmail(trimmedEmail)}`, clientIp);
+
+    return res.status(200).json({
+      success: true,
+      otp_required: true,
+      temp_token: tempToken,
+      email_masked: maskEmail(trimmedEmail),
+      message: 'We have sent a 6-digit verification code to your email.'
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'An error occurred during registration. Please try again.'
+    });
+  }
+}
+
+/**
+ * Handle Registration OTP Verification & Member Activation
+ */
+async function verifyRegisterOtp(req, res) {
+  try {
+    const { temp_token, otp } = req.body;
+    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+
+    if (!temp_token || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token and 6-digit code are required.'
+      });
+    }
+
+    const cleanOtp = String(otp).trim();
+    if (!/^\d{6}$/.test(cleanOtp)) {
+      return res.status(400).json({
+        success: false,
+        message: 'The verification code must be exactly 6 digits.'
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(temp_token, JWT_SECRET);
+      if (decoded.purpose !== 'OTP_VERIFY' || decoded.otp_type !== 'REGISTER') {
+        throw new Error('Invalid token purpose');
+      }
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: 'Registration verification session has expired. Please register again.'
+      });
+    }
+
+    const email = decoded.email.toLowerCase();
+
+    // Fetch active registration OTP
+    const otpRecord = await db.prepare(`
+      SELECT * FROM auth_otps 
+      WHERE LOWER(email) = ? AND otp_type = 'REGISTER' AND verified = 0 
+      ORDER BY id DESC LIMIT 1
+    `).get(email);
+
+    if (!otpRecord) {
+      return res.status(400).json({
+        success: false,
+        message: 'The verification code is incorrect or expired.'
+      });
+    }
+
+    // Check expiry
+    const now = new Date();
+    if (now > new Date(otpRecord.expires_at)) {
+      await db.prepare('UPDATE auth_otps SET verified = 2 WHERE id = ?').run(otpRecord.id);
+      return res.status(400).json({
+        success: false,
+        message: 'This verification code has expired. Please request a new code.'
+      });
+    }
+
+    // Check attempts
+    if (otpRecord.attempts >= otpRecord.max_attempts) {
+      await db.prepare('UPDATE auth_otps SET verified = 2 WHERE id = ?').run(otpRecord.id);
+      return res.status(400).json({
+        success: false,
+        message: 'Too many failed attempts. This code has been invalidated. Please register again.'
+      });
+    }
+
+    // Verify code
+    const isOtpValid = bcrypt.compareSync(cleanOtp, otpRecord.otp_hash);
+    if (!isOtpValid) {
+      await db.prepare('UPDATE auth_otps SET attempts = attempts + 1 WHERE id = ?').run(otpRecord.id);
+      return res.status(400).json({
+        success: false,
+        message: 'The verification code is incorrect or expired.'
+      });
+    }
+
+    // Mark OTP as verified
+    await db.prepare('UPDATE auth_otps SET verified = 1 WHERE id = ?').run(otpRecord.id);
+
+    const metadata = JSON.parse(otpRecord.metadata || '{}');
+
+    // Auto-generate next unique member code (e.g. MEM-009)
+    const maxIdRow = await db.prepare('SELECT MAX(id) as max_id FROM members').get();
+    let nextNum = (maxIdRow?.max_id || 0) + 1;
+    let memberCode = `MEM-${String(nextNum).padStart(3, '0')}`;
+
+    let codeExists = await db.prepare('SELECT id FROM members WHERE member_code = ?').get(memberCode);
+    while (codeExists) {
+      nextNum++;
+      memberCode = `MEM-${String(nextNum).padStart(3, '0')}`;
+      codeExists = await db.prepare('SELECT id FROM members WHERE member_code = ?').get(memberCode);
+    }
+
+    const memDate = new Date().toISOString().split('T')[0];
+
+    // Insert verified member
+    const insertStmt = db.prepare(`
+      INSERT INTO members (member_code, full_name, email, password_hash, phone, address, membership_date, status, email_verified_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'Active', datetime('now'))
+    `);
+
+    const result = await insertStmt.run(
+      memberCode,
+      metadata.name,
+      metadata.email,
+      metadata.password_hash,
+      metadata.phone || '',
+      metadata.address || '',
+      memDate
+    );
+
+    const newMemberId = result.lastInsertRowid;
+
+    await logAudit(
+      newMemberId,
+      'REGISTER',
+      'SUCCESS',
+      `New member registered and email verified: ${metadata.name} (${memberCode}, ${metadata.email})`,
+      clientIp
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: 'Account verified and created successfully! You can now sign in with your credentials.',
+      user: {
+        id: Number(newMemberId),
+        member_code: memberCode,
+        name: metadata.name,
+        email: metadata.email,
+        role: 'Member',
+        phone: metadata.phone || '',
+        membership_date: memDate,
+        status: 'Active'
+      }
+    });
+  } catch (error) {
+    console.error('verifyRegisterOtp error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to verify registration code.'
+    });
+  }
+}
+
+/**
+ * Handle Google Sign-In (OpenID Connect / Google ID Token Verification)
+ */
+async function googleLogin(req, res) {
+  try {
+    const { id_token } = req.body;
+    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+
+    if (!id_token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google ID token credential is required.'
+      });
+    }
+
+    // Authoritatively verify Google ID token with Google servers
+    let googlePayload;
+    try {
+      googlePayload = await verifyGoogleIdToken(id_token);
+    } catch (verErr) {
+      await logAudit(null, 'GOOGLE_AUTH', 'FAILED', `Google token verification error: ${verErr.message}`, clientIp);
+      return res.status(401).json({
+        success: false,
+        message: 'Google authentication failed: ' + verErr.message
+      });
+    }
+
+    const verifiedEmail = googlePayload.email.toLowerCase().trim();
+
+    // 1. Check Librarian/Admin match
+    const user = await db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(verifiedEmail);
+    if (user) {
+      // Link Google ID if not yet recorded
+      if (!user.google_id) {
+        await db.prepare("UPDATE users SET google_id = ?, google_email = ?, email_verified_at = COALESCE(email_verified_at, datetime('now')) WHERE id = ?")
+          .run(googlePayload.sub, verifiedEmail, user.id);
+      }
+
+      const payload = {
+        id: user.id,
+        name: user.name,
+        role: user.role || 'Librarian',
+        email: user.email
+      };
+
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+      await logAudit(user.id, 'LOGIN_GOOGLE', 'SUCCESS', `User ${user.name} logged in with Google identity`, clientIp);
+
+      return res.status(200).json({
+        success: true,
+        message: `Google authentication successful. Welcome back, ${user.role} ${user.name}!`,
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          role: user.role || 'Librarian',
+          email: user.email,
+          phone: user.phone,
+          created_at: user.created_at
+        }
+      });
+    }
+
+    // 2. Check Member match
+    const member = await db.prepare('SELECT * FROM members WHERE email IS NOT NULL AND LOWER(email) = ?').get(verifiedEmail);
     if (member) {
       if (member.status === 'Suspended') {
-        await logAudit(member.id, 'LOGIN', 'BLOCKED', `Suspended member ${member.full_name} attempt`, clientIp);
+        await logAudit(member.id, 'LOGIN_GOOGLE', 'BLOCKED', `Suspended member Google login attempt: ${member.full_name}`, clientIp);
         return res.status(403).json({
           success: false,
           message: 'Your library membership account is currently suspended. Please contact the Librarian.'
         });
       }
 
-      // Check member password
-      let isValidMemberPass = false;
-      if (member.password_hash && typeof member.password_hash === 'string') {
-        isValidMemberPass = bcrypt.compareSync(password, member.password_hash);
-      } else if (password === 'Member@123') {
-        isValidMemberPass = true;
+      // Link Google ID if not yet recorded
+      if (!member.google_id) {
+        await db.prepare("UPDATE members SET google_id = ?, google_email = ?, email_verified_at = COALESCE(email_verified_at, datetime('now')) WHERE id = ?")
+          .run(googlePayload.sub, verifiedEmail, member.id);
       }
 
-      if (isValidMemberPass) {
-        const payload = {
+      const payload = {
+        id: member.id,
+        name: member.full_name,
+        role: 'Member',
+        email: member.email,
+        member_code: member.member_code
+      };
+
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+      await logAudit(member.id, 'LOGIN_GOOGLE', 'SUCCESS', `Member ${member.full_name} logged in with Google identity`, clientIp);
+
+      return res.status(200).json({
+        success: true,
+        message: `Google authentication successful. Welcome, ${member.full_name}!`,
+        token,
+        user: {
           id: member.id,
           name: member.full_name,
           role: 'Member',
           email: member.email,
-          member_code: member.member_code
-        };
-
-        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-
-        await logAudit(member.id, 'LOGIN', 'SUCCESS', `Member ${member.full_name} (${member.member_code}) logged in`, clientIp);
-
-        return res.status(200).json({
-          success: true,
-          message: `Login successful. Welcome, ${member.full_name}!`,
-          token,
-          user: {
-            id: member.id,
-            name: member.full_name,
-            role: 'Member',
-            email: member.email,
-            member_code: member.member_code,
-            phone: member.phone,
-            membership_date: member.membership_date,
-            status: member.status
-          }
-        });
-      }
+          member_code: member.member_code,
+          phone: member.phone,
+          membership_date: member.membership_date,
+          status: member.status
+        }
+      });
     }
 
-    await logAudit(null, 'LOGIN', 'FAILED', `Failed login attempt for email: ${trimmedEmail}`, clientIp);
+    // 3. No matching library account found -> Reject safely (NO auto-creation of unrestricted accounts)
+    await logAudit(null, 'LOGIN_GOOGLE', 'UNAUTHORIZED', `Unregistered Google email attempt: ${verifiedEmail}`, clientIp);
 
-    return res.status(401).json({
+    return res.status(403).json({
       success: false,
-      message: 'Invalid email address or password.'
+      message: 'No library account is associated with this Google account. Please register first or contact the library administrator.'
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('googleLogin error:', error);
     return res.status(500).json({
       success: false,
-      message: 'An internal server error occurred during login. Please try again.'
+      message: 'Failed to authenticate with Google identity.'
     });
   }
 }
@@ -231,7 +917,6 @@ async function checkAdminApprovalStatus(req, res) {
       });
     }
 
-    // Check expiration if still pending
     const now = new Date();
     const expiresAt = new Date(request.expires_at);
 
@@ -284,7 +969,6 @@ async function checkAdminApprovalStatus(req, res) {
  */
 async function getPendingAdminRequests(req, res) {
   try {
-    // Expire old requests
     await db.prepare("UPDATE admin_approval_requests SET status = 'EXPIRED', updated_at = datetime('now') WHERE status = 'PENDING' AND expires_at < datetime('now')").run();
 
     const pendingRequests = await db.prepare(`
@@ -435,7 +1119,7 @@ async function getMe(req, res) {
   try {
     const userId = parseInt(req.user.id) || req.user.id;
     if (req.user.role === 'Member') {
-      const member = await db.prepare('SELECT id, member_code, full_name, full_name as name, email, phone, address, membership_date, status, created_at FROM members WHERE id = ?').get(userId);
+      const member = await db.prepare('SELECT id, member_code, full_name, full_name as name, email, phone, address, membership_date, status, email_verified_at, created_at FROM members WHERE id = ?').get(userId);
       if (!member) {
         return res.status(404).json({ success: false, message: 'Member profile not found.' });
       }
@@ -446,7 +1130,7 @@ async function getMe(req, res) {
     }
 
     // Default: Librarian/Admin
-    const user = await db.prepare('SELECT id, name, role, email, phone, created_at FROM users WHERE id = ?').get(userId);
+    const user = await db.prepare('SELECT id, name, role, email, phone, email_verified_at, created_at FROM users WHERE id = ?').get(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -602,146 +1286,6 @@ async function changePassword(req, res) {
 }
 
 /**
- * Helper: Validate email format
- */
-function isValidEmail(email) {
-  if (!email || typeof email !== 'string') return false;
-  const trimmed = email.trim();
-  if (trimmed.length > 254) return false;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(trimmed);
-}
-
-/**
- * Handle Public User Registration (Strictly Non-Privileged Member Role)
- */
-async function register(req, res) {
-  try {
-    const { name, full_name, email, password, confirm_password, confirmPassword, phone, address } = req.body;
-    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
-
-    const rawName = name || full_name;
-    if (!rawName || typeof rawName !== 'string' || rawName.trim().length < 2) {
-      return res.status(400).json({
-        success: false,
-        message: 'Full name is required (at least 2 characters).'
-      });
-    }
-
-    const trimmedName = rawName.trim();
-
-    if (!email || !isValidEmail(email)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide a valid email address.'
-      });
-    }
-
-    const trimmedEmail = email.trim().toLowerCase();
-
-    if (!password || typeof password !== 'string' || password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password must be at least 6 characters long.'
-      });
-    }
-
-    const confirmPass = confirm_password !== undefined ? confirm_password : confirmPassword;
-    if (confirmPass !== undefined && confirmPass !== password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Passwords do not match.'
-      });
-    }
-
-    // Check duplicate email across both users and members
-    const existingUser = await db.prepare('SELECT id FROM users WHERE LOWER(email) = ?').get(trimmedEmail);
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'An account with this email already exists.'
-      });
-    }
-
-    const existingMember = await db.prepare('SELECT id FROM members WHERE LOWER(email) = ?').get(trimmedEmail);
-    if (existingMember) {
-      return res.status(400).json({
-        success: false,
-        message: 'An account with this email already exists.'
-      });
-    }
-
-    // Generate secure password hash using bcrypt
-    const salt = bcrypt.genSaltSync(10);
-    const passwordHash = bcrypt.hashSync(password, salt);
-
-    // Auto-generate next unique member code (e.g. MEM-009)
-    const maxIdRow = await db.prepare('SELECT MAX(id) as max_id FROM members').get();
-    let nextNum = (maxIdRow?.max_id || 0) + 1;
-    let memberCode = `MEM-${String(nextNum).padStart(3, '0')}`;
-
-    // Verify member_code collision safety
-    let codeExists = await db.prepare('SELECT id FROM members WHERE member_code = ?').get(memberCode);
-    while (codeExists) {
-      nextNum++;
-      memberCode = `MEM-${String(nextNum).padStart(3, '0')}`;
-      codeExists = await db.prepare('SELECT id FROM members WHERE member_code = ?').get(memberCode);
-    }
-
-    const memDate = new Date().toISOString().split('T')[0];
-    const sanitizedPhone = phone && typeof phone === 'string' ? phone.trim() : '';
-    const sanitizedAddress = address && typeof address === 'string' ? address.trim() : '';
-
-    // Insert new member (strict 'Member' role, 'Active' status)
-    const insertStmt = db.prepare(`
-      INSERT INTO members (member_code, full_name, email, password_hash, phone, address, membership_date, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')
-    `);
-
-    const result = await insertStmt.run(
-      memberCode,
-      trimmedName,
-      trimmedEmail,
-      passwordHash,
-      sanitizedPhone,
-      sanitizedAddress,
-      memDate
-    );
-
-    const newMemberId = result.lastInsertRowid;
-
-    await logAudit(
-      newMemberId,
-      'REGISTER',
-      'SUCCESS',
-      `New member registered: ${trimmedName} (${memberCode}, ${trimmedEmail})`,
-      clientIp
-    );
-
-    return res.status(201).json({
-      success: true,
-      message: 'Account created successfully! You can now sign in.',
-      user: {
-        id: Number(newMemberId),
-        member_code: memberCode,
-        name: trimmedName,
-        email: trimmedEmail,
-        role: 'Member',
-        phone: sanitizedPhone,
-        membership_date: memDate,
-        status: 'Active'
-      }
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'An error occurred during registration. Please try again.'
-    });
-  }
-}
-
-/**
  * Logout
  */
 async function logout(req, res) {
@@ -755,7 +1299,11 @@ async function logout(req, res) {
 
 module.exports = {
   login,
+  verifyLoginOtp,
+  resendOtp,
   register,
+  verifyRegisterOtp,
+  googleLogin,
   requestAdminLogin,
   checkAdminApprovalStatus,
   getPendingAdminRequests,
@@ -767,4 +1315,3 @@ module.exports = {
   logout,
   logAudit
 };
-

@@ -29,6 +29,13 @@ function authenticateToken(req, res, next) {
       });
     }
 
+    if (!user || user.purpose === 'OTP_VERIFY') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access forbidden. Please complete OTP verification first.'
+      });
+    }
+
     req.user = user;
     next();
   });

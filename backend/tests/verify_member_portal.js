@@ -1,6 +1,7 @@
 const assert = require('node:assert');
 const http = require('node:http');
 const { db } = require('../database/db');
+const { getTestOtp } = require('../utils/emailService');
 
 console.log('================================================================');
 console.log('  DEDICATED MEMBER PORTAL & BOOK REQUEST FLOW VERIFICATION SUITE');
@@ -59,6 +60,30 @@ function apiRequest(method, endpoint, body = null, token = null) {
   });
 }
 
+async function performOtpLogin(email, password) {
+  const loginRes = await apiRequest('POST', '/api/auth/login', { email, password });
+  if (loginRes.status !== 200 || !loginRes.body.temp_token) {
+    return loginRes;
+  }
+  const otp = getTestOtp(email);
+  return await apiRequest('POST', '/api/auth/verify-otp', {
+    temp_token: loginRes.body.temp_token,
+    otp
+  });
+}
+
+async function performOtpRegister(payload) {
+  const regRes = await apiRequest('POST', '/api/auth/register', payload);
+  if (regRes.status !== 200 || !regRes.body.temp_token) {
+    return regRes;
+  }
+  const otp = getTestOtp(payload.email);
+  return await apiRequest('POST', '/api/auth/verify-register-otp', {
+    temp_token: regRes.body.temp_token,
+    otp
+  });
+}
+
 async function runMemberPortalTests() {
   let memberToken = null;
   let memberUser = null;
@@ -69,10 +94,7 @@ async function runMemberPortalTests() {
 
   // 1. Authenticate Librarian / Admin
   await step('Librarian Login: Authenticates and returns Librarian role', async () => {
-    const res = await apiRequest('POST', '/api/auth/login', {
-      email: 'akhilesh@library.com',
-      password: 'Password@123'
-    });
+    const res = await performOtpLogin('akhilesh@library.com', 'Password@123');
 
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.user.role, 'Librarian');
@@ -86,17 +108,14 @@ async function runMemberPortalTests() {
     const testMemberEmail = 'member.testportal@example.com';
     const testMemberPass = 'MemberPass@2026';
 
-    const loginRes = await apiRequest('POST', '/api/auth/login', {
-      email: testMemberEmail,
-      password: testMemberPass
-    });
+    const loginRes = await performOtpLogin(testMemberEmail, testMemberPass);
 
     if (loginRes.status === 200) {
       memberToken = loginRes.body.token;
       memberUser = loginRes.body.user;
       assert.strictEqual(memberUser.role, 'Member');
     } else {
-      const regRes = await apiRequest('POST', '/api/auth/register', {
+      const regRes = await performOtpRegister({
         name: 'Portal Test Patron',
         email: testMemberEmail,
         phone: '9876543210',
@@ -105,10 +124,7 @@ async function runMemberPortalTests() {
       });
       assert.strictEqual(regRes.status, 201);
 
-      const loginRes2 = await apiRequest('POST', '/api/auth/login', {
-        email: testMemberEmail,
-        password: testMemberPass
-      });
+      const loginRes2 = await performOtpLogin(testMemberEmail, testMemberPass);
       assert.strictEqual(loginRes2.status, 200);
       memberToken = loginRes2.body.token;
       memberUser = loginRes2.body.user;

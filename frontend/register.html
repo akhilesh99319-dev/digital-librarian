@@ -381,10 +381,11 @@
                         <button
                             type="submit"
                             class="register-button"
+                            id="registerSubmitBtn"
                         >
 
                             <span>
-                                Create Account
+                                Create Account & Verify Email
                             </span>
 
                             <span>
@@ -396,6 +397,50 @@
 
                     </form>
 
+                    <!-- OTP Verification Step -->
+                    <div id="registerOtpSection" style="display:none;margin-top:10px;">
+                        <div style="text-align:center;margin-bottom:20px;">
+                            <span style="font-size:32px;display:block;margin-bottom:8px;">🛡️</span>
+                            <h3 style="color:#f8fafc;font-size:18px;margin:0 0 6px;">Verify your email</h3>
+                            <p style="color:#94a3b8;font-size:13.5px;margin:0;">
+                                Enter the 6-digit code sent to:<br>
+                                <strong id="registerMaskedEmail" style="color:#818cf8;">a***@example.com</strong>
+                            </p>
+                        </div>
+
+                        <form id="registerOtpForm">
+                            <div class="form-group" style="text-align:center;">
+                                <label for="regOtpCode" style="display:block;margin-bottom:8px;font-size:13px;color:#94a3b8;">Enter 6-Digit Code</label>
+                                <input
+                                    type="text"
+                                    id="regOtpCode"
+                                    name="regOtpCode"
+                                    maxlength="6"
+                                    pattern="\d{6}"
+                                    placeholder="123456"
+                                    style="font-size:22px;letter-spacing:6px;text-align:center;font-weight:700;font-family:monospace;width:100%;padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#f8fafc;"
+                                    required
+                                >
+                            </div>
+
+                            <button
+                                type="submit"
+                                class="register-button"
+                                id="verifyRegOtpSubmitBtn"
+                                style="margin-top:14px;"
+                            >
+                                <span>Verify Email & Activate Account</span>
+                                <span>→</span>
+                            </button>
+                        </form>
+
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;font-size:13px;">
+                            <a href="#" id="backToFormBtn" style="color:#94a3b8;text-decoration:none;font-weight:500;">← Back to Details</a>
+                            <button type="button" id="resendRegOtpBtn" style="background:none;border:none;color:#818cf8;font-weight:600;cursor:pointer;font-size:13px;" disabled>
+                                Resend OTP in 45s
+                            </button>
+                        </div>
+                    </div>
 
 
                     <!-- Login Link -->
