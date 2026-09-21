@@ -1,5 +1,5 @@
 /**
- * Secure Authentication Controller (Email OTP + Google Sign-In)
+ * Secure Authentication Controller (Password + Google Sign-In)
  * Digital Librarian System
  */
 
@@ -16,9 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const tabRegisterBtn = document.getElementById('tabRegisterBtn');
   const authTabs = document.getElementById('authTabs');
   const loginSection = document.getElementById('loginSection');
-  const loginOtpSection = document.getElementById('loginOtpSection');
   const registerSection = document.getElementById('registerSection');
-  const registerOtpSection = document.getElementById('registerOtpSection');
 
   const linkToRegister = document.getElementById('linkToRegister');
   const linkToLogin = document.getElementById('linkToLogin');
@@ -36,13 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginPwToggle = document.getElementById('loginPwToggle');
   const customGoogleBtn = document.getElementById('customGoogleBtn');
 
-  // Login OTP Elements
-  const loginOtpForm = document.getElementById('loginOtpForm');
-  const loginOtpInput = document.getElementById('loginOtpInput');
-  const verifyLoginOtpBtn = document.getElementById('verifyLoginOtpBtn');
-  const resendLoginOtpBtn = document.getElementById('resendLoginOtpBtn');
-  const loginMaskedEmail = document.getElementById('loginMaskedEmail');
-
   // Register Form Elements
   const registerForm = document.getElementById('registerForm');
   const regNameInput = document.getElementById('regName');
@@ -54,18 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const regPwToggle = document.getElementById('regPwToggle');
   const regConfirmPwToggle = document.getElementById('regConfirmPwToggle');
 
-  // Register OTP Elements
-  const registerOtpForm = document.getElementById('registerOtpForm');
-  const regOtpInput = document.getElementById('regOtpInput');
-  const verifyRegOtpBtn = document.getElementById('verifyRegOtpBtn');
-  const resendRegOtpBtn = document.getElementById('resendRegOtpBtn');
-  const regMaskedEmail = document.getElementById('regMaskedEmail');
-
   // State
-  let loginTempToken = null;
-  let regTempToken = null;
-  let loginTimerInterval = null;
-  let regTimerInterval = null;
 
   // Handle URL parameters (#register or ?tab=register)
   const urlParams = new URLSearchParams(window.location.search);
@@ -112,13 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showSection(sectionName) {
     if (loginSection) loginSection.style.display = sectionName === 'login' ? 'block' : 'none';
-    if (loginOtpSection) loginOtpSection.style.display = sectionName === 'loginOtp' ? 'block' : 'none';
     if (registerSection) registerSection.style.display = sectionName === 'register' ? 'block' : 'none';
-    if (registerOtpSection) registerOtpSection.style.display = sectionName === 'registerOtp' ? 'block' : 'none';
 
     // Show/hide tabs when in OTP step
     if (authTabs) {
-      authTabs.style.display = (sectionName === 'loginOtp' || sectionName === 'registerOtp') ? 'none' : 'flex';
+      authTabs.style.display = 'flex';
     }
   }
 
@@ -136,129 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
       });
     }
-  }
-
-  // Format OTP inputs (digits only)
-  [loginOtpInput, regOtpInput].forEach(input => {
-    if (input) {
-      input.addEventListener('input', (e) => {
-        input.value = input.value.replace(/\D/g, '').slice(0, 6);
-      });
-    }
-  });
-
-  // --- STEP 1: LOGIN CREDENTIALS SUBMISSION ---
-  if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const email = emailInput ? emailInput.value.trim() : '';
-      const password = passwordInput ? passwordInput.value : '';
-
-      if (!email || !password) {
-        showError('Please enter both email/member code and password.');
-        return;
-      }
-
-      setLoginLoading(true);
-      clearAlerts();
-
-      try {
-        const res = await api.post('/auth/login', { email, password });
-
-        if (res.success && res.otp_required && res.temp_token) {
-          loginTempToken = res.token || res.temp_token;
-          if (loginMaskedEmail) loginMaskedEmail.textContent = res.email_masked || email;
-          
-          showSection('loginOtp');
-          showSuccess(res.message || "We've sent a 6-digit verification code to your registered email.");
-          if (loginOtpInput) {
-            loginOtpInput.value = '';
-            loginOtpInput.focus();
-          }
-          startResendCountdown('login', resendLoginOtpBtn, 45);
-        } else if (res.success && res.token) {
-          // Direct authentication fallback
-          api.setSession(res.token, res.user);
-          showToast(`Welcome back, ${res.user.name || 'User'}!`, 'success');
-          setTimeout(() => redirectByRole(res.user), 350);
-        } else {
-          showError(res.message || 'Invalid email/member code or password.');
-        }
-      } catch (err) {
-        showError(err.message || 'Invalid email/member code or password.');
-      } finally {
-        setLoginLoading(false);
-      }
-    });
-  }
-
-  // --- STEP 2: LOGIN OTP VERIFICATION ---
-  if (loginOtpForm) {
-    loginOtpForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const otp = loginOtpInput ? loginOtpInput.value.trim() : '';
-      if (!otp || otp.length !== 6) {
-        showError('Please enter the complete 6-digit verification code.');
-        if (loginOtpInput) loginOtpInput.focus();
-        return;
-      }
-
-      setVerifyOtpLoading(true, verifyLoginOtpBtn, 'Verifying OTP...');
-      clearAlerts();
-
-      try {
-        const res = await api.post('/auth/verify-otp', {
-          temp_token: loginTempToken,
-          otp
-        });
-
-        if (res.success && res.token) {
-          api.setSession(res.token, res.user);
-          showSuccess(`Authentication successful. Redirecting to portal...`);
-          showToast(`Welcome back, ${res.user.name || 'User'}!`, 'success');
-          
-          setTimeout(() => {
-            redirectByRole(res.user);
-          }, 400);
-        } else {
-          showError(res.message || 'The verification code is incorrect or expired.');
-        }
-      } catch (err) {
-        showError(err.message || 'The verification code is incorrect or expired.');
-      } finally {
-        setVerifyOtpLoading(false, verifyLoginOtpBtn, 'Verify OTP & Sign In');
-      }
-    });
-  }
-
-  // --- RESEND LOGIN OTP ---
-  if (resendLoginOtpBtn) {
-    resendLoginOtpBtn.addEventListener('click', async () => {
-      if (resendLoginOtpBtn.disabled) return;
-
-      clearAlerts();
-      resendLoginOtpBtn.disabled = true;
-      resendLoginOtpBtn.textContent = 'Sending...';
-
-      try {
-        const res = await api.post('/auth/resend-otp', { temp_token: loginTempToken });
-        if (res.success) {
-          showSuccess(res.message || 'A new verification code has been sent to your email.');
-          showToast('New verification code sent!', 'info');
-          startResendCountdown('login', resendLoginOtpBtn, 45);
-        } else {
-          showError(res.message || 'Failed to resend verification code.');
-          resendLoginOtpBtn.disabled = false;
-          resendLoginOtpBtn.textContent = 'Resend Code';
-        }
-      } catch (err) {
-        showError(err.message || 'Failed to resend code. Please wait before retrying.');
-        resendLoginOtpBtn.disabled = false;
-        resendLoginOtpBtn.textContent = 'Resend Code';
-      }
-    });
   }
 
   // --- STEP 1: REGISTRATION SUBMISSION ---
@@ -309,22 +164,12 @@ document.addEventListener('DOMContentLoaded', () => {
           confirm_password: confirmPassword
         });
 
-        if (res.success && res.otp_required && res.temp_token) {
-          regTempToken = res.temp_token;
-          if (regMaskedEmail) regMaskedEmail.textContent = res.email_masked || email;
-          
-          showSection('registerOtp');
-          showSuccess(res.message || "We've sent a 6-digit verification code to your email.");
-          if (regOtpInput) {
-            regOtpInput.value = '';
-            regOtpInput.focus();
-          }
-          startResendCountdown('register', resendRegOtpBtn, 45);
-        } else if (res.success) {
-          // Account created directly
+        if (res.success) {
           registerForm.reset();
           switchTab('login');
           showSuccess(res.message || 'Account created successfully! Please sign in.');
+          if (emailInput && res.user && res.user.email) emailInput.value = res.user.email;
+          if (passwordInput) passwordInput.focus();
         } else {
           showError(res.message || 'Registration failed.');
         }
@@ -332,82 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showError(err.message || 'Registration failed. Please check your information and try again.');
       } finally {
         setRegisterLoading(false);
-      }
-    });
-  }
-
-  // --- STEP 2: REGISTRATION OTP VERIFICATION ---
-  if (registerOtpForm) {
-    registerOtpForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const otp = regOtpInput ? regOtpInput.value.trim() : '';
-      if (!otp || otp.length !== 6) {
-        showError('Please enter the 6-digit verification code.');
-        if (regOtpInput) regOtpInput.focus();
-        return;
-      }
-
-      setVerifyOtpLoading(true, verifyRegOtpBtn, 'Activating Account...');
-      clearAlerts();
-
-      try {
-        const res = await api.post('/auth/verify-register-otp', {
-          temp_token: regTempToken,
-          otp
-        });
-
-        if (res.success) {
-          if (registerForm) registerForm.reset();
-          if (registerOtpForm) registerOtpForm.reset();
-
-          showSection('login');
-          switchTab('login');
-          showSuccess('Account verified and created successfully! You can now sign in with your credentials.');
-          showToast('Account activated! Please sign in.', 'success');
-
-          if (emailInput && res.user && res.user.email) {
-            emailInput.value = res.user.email;
-          }
-          if (passwordInput) {
-            passwordInput.value = '';
-            passwordInput.focus();
-          }
-        } else {
-          showError(res.message || 'The verification code is incorrect or expired.');
-        }
-      } catch (err) {
-        showError(err.message || 'The verification code is incorrect or expired.');
-      } finally {
-        setVerifyOtpLoading(false, verifyRegOtpBtn, 'Verify Email & Activate Account');
-      }
-    });
-  }
-
-  // --- RESEND REGISTRATION OTP ---
-  if (resendRegOtpBtn) {
-    resendRegOtpBtn.addEventListener('click', async () => {
-      if (resendRegOtpBtn.disabled) return;
-
-      clearAlerts();
-      resendRegOtpBtn.disabled = true;
-      resendRegOtpBtn.textContent = 'Sending...';
-
-      try {
-        const res = await api.post('/auth/resend-otp', { temp_token: regTempToken });
-        if (res.success) {
-          showSuccess(res.message || 'A new verification code has been sent to your email.');
-          showToast('New verification code sent!', 'info');
-          startResendCountdown('register', resendRegOtpBtn, 45);
-        } else {
-          showError(res.message || 'Failed to resend code.');
-          resendRegOtpBtn.disabled = false;
-          resendRegOtpBtn.textContent = 'Resend Code';
-        }
-      } catch (err) {
-        showError(err.message || 'Failed to resend code. Please wait before retrying.');
-        resendRegOtpBtn.disabled = false;
-        resendRegOtpBtn.textContent = 'Resend Code';
       }
     });
   }
@@ -486,30 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function startResendCountdown(type, btnEl, seconds = 45) {
-    if (!btnEl) return;
-    let remaining = seconds;
-    btnEl.disabled = true;
-    btnEl.textContent = `Resend OTP in ${remaining}s`;
-
-    if (type === 'login' && loginTimerInterval) clearInterval(loginTimerInterval);
-    if (type === 'register' && regTimerInterval) clearInterval(regTimerInterval);
-
-    const interval = setInterval(() => {
-      remaining--;
-      if (remaining <= 0) {
-        clearInterval(interval);
-        btnEl.disabled = false;
-        btnEl.textContent = 'Resend Code';
-      } else {
-        btnEl.textContent = `Resend OTP in ${remaining}s`;
-      }
-    }, 1000);
-
-    if (type === 'login') loginTimerInterval = interval;
-    if (type === 'register') regTimerInterval = interval;
-  }
-
   function setLoginLoading(isLoading) {
     if (loginBtn) {
       loginBtn.disabled = isLoading;
@@ -523,8 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (registerBtn) {
       registerBtn.disabled = isLoading;
       registerBtn.innerHTML = isLoading 
-        ? `<div class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></div> Sending Verification Code...`
-        : `Create Account & Verify Email &rarr;`;
+        ? `<div class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></div> Creating Account...`
+        : `Create Account`;
     }
   }
 
