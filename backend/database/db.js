@@ -134,11 +134,10 @@ if (isPostgres) {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS google_email VARCHAR(191) DEFAULT NULL;
     `);
 
-    // Check if seeded with authoritative catalog (62 books)
+    // Check if seeded with authoritative catalog (only seed if table is completely empty)
     const bookCheck = await pool.query('SELECT COUNT(*) as count FROM books');
-    if (parseInt(bookCheck.rows[0].count) < 62) {
-      console.log('Seeding / Synchronizing PostgreSQL authoritative records (62 books)...');
-      await pool.query('DROP TABLE IF EXISTS audit_logs, admin_approval_requests, book_requests, auth_otps, fines, loans, members, books, categories, users CASCADE;');
+    if (parseInt(bookCheck.rows[0].count, 10) === 0) {
+      console.log('Seeding PostgreSQL authoritative baseline records...');
       const importFile = path.join(__dirname, '../../database/digital_librarian_postgresql_import.sql');
       if (fs.existsSync(importFile)) {
         const importSql = fs.readFileSync(importFile, 'utf8');
@@ -146,33 +145,28 @@ if (isPostgres) {
       }
     }
 
-    // Ensure seeded librarian account has valid password_hash and authoritative email
+    // Ensure seeded librarian account has valid password_hash and authoritative email without overwriting custom passwords
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync('Password@123', salt);
 
     const existingByEmail = await pool.query("SELECT id, email, password_hash FROM users WHERE LOWER(email) = 'akhilesh@library.com'");
     if (existingByEmail.rows.length > 0) {
       const u = existingByEmail.rows[0];
-      let needsUpdate = false;
-      if (!u.password_hash || typeof u.password_hash !== 'string') {
-        needsUpdate = true;
-      } else {
-        const testMatch = bcrypt.compareSync('Password@123', u.password_hash);
-        if (!testMatch) needsUpdate = true;
-      }
-      if (needsUpdate) {
-        console.log('Updating password hash for akhilesh@library.com...');
-        await pool.query("UPDATE users SET role = 'Librarian', password_hash = $1 WHERE id = $2", [hash, u.id]);
+      if (!u.password_hash || typeof u.password_hash !== 'string' || u.password_hash.trim() === '') {
+        console.log('Initializing missing password hash for akhilesh@library.com...');
+        await pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [hash, u.id]);
       }
     } else {
       // Check if user id = 1 or librarian role exists with another email
       const fallbackUser = await pool.query("SELECT id, email, password_hash FROM users WHERE id = 1 OR LOWER(role) = 'librarian' ORDER BY id ASC LIMIT 1");
       if (fallbackUser.rows.length > 0) {
-        console.log('Restoring authoritative email akhilesh@library.com for user id ' + fallbackUser.rows[0].id + '...');
-        await pool.query("UPDATE users SET email = 'akhilesh@library.com', role = 'Librarian', password_hash = $1 WHERE id = $2", [hash, fallbackUser.rows[0].id]);
+        const u = fallbackUser.rows[0];
+        const updatePass = (!u.password_hash || typeof u.password_hash !== 'string' || u.password_hash.trim() === '') ? hash : u.password_hash;
+        console.log('Restoring authoritative email akhilesh@library.com for user id ' + u.id + '...');
+        await pool.query("UPDATE users SET email = 'akhilesh@library.com', role = 'Librarian', password_hash = $1 WHERE id = $2", [updatePass, u.id]);
       } else {
         console.log('Inserting authoritative librarian account akhilesh@library.com...');
-        await pool.query("INSERT INTO users (id, name, role, email, password_hash, phone) VALUES (1, 'Akhilesh Kumar', 'Librarian', 'akhilesh@library.com', $1, '+91 98765 43210') ON CONFLICT (id) DO UPDATE SET email = 'akhilesh@library.com', role = 'Librarian', password_hash = $1", [hash]);
+        await pool.query("INSERT INTO users (id, name, role, email, password_hash, phone) VALUES (1, 'Akhilesh Kumar', 'Librarian', 'akhilesh@library.com', $1, '+91 98765 43210') ON CONFLICT (id) DO NOTHING", [hash]);
       }
     }
 
