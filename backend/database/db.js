@@ -146,10 +146,13 @@ if (isPostgres) {
       }
     }
 
-    // Ensure seeded librarian account has valid password_hash
-    const librarianUser = await pool.query("SELECT id, email, password_hash FROM users WHERE LOWER(email) = 'akhilesh@library.com'");
-    if (librarianUser.rows.length > 0) {
-      const u = librarianUser.rows[0];
+    // Ensure seeded librarian account has valid password_hash and authoritative email
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync('Password@123', salt);
+
+    const existingByEmail = await pool.query("SELECT id, email, password_hash FROM users WHERE LOWER(email) = 'akhilesh@library.com'");
+    if (existingByEmail.rows.length > 0) {
+      const u = existingByEmail.rows[0];
       let needsUpdate = false;
       if (!u.password_hash || typeof u.password_hash !== 'string') {
         needsUpdate = true;
@@ -158,10 +161,18 @@ if (isPostgres) {
         if (!testMatch) needsUpdate = true;
       }
       if (needsUpdate) {
-        console.log('Ensuring valid bcrypt hash for librarian account...');
-        const salt = bcrypt.genSaltSync(10);
-        const hash = bcrypt.hashSync('Password@123', salt);
-        await pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [hash, u.id]);
+        console.log('Updating password hash for akhilesh@library.com...');
+        await pool.query("UPDATE users SET role = 'Librarian', password_hash = $1 WHERE id = $2", [hash, u.id]);
+      }
+    } else {
+      // Check if user id = 1 or librarian role exists with another email
+      const fallbackUser = await pool.query("SELECT id, email, password_hash FROM users WHERE id = 1 OR LOWER(role) = 'librarian' ORDER BY id ASC LIMIT 1");
+      if (fallbackUser.rows.length > 0) {
+        console.log('Restoring authoritative email akhilesh@library.com for user id ' + fallbackUser.rows[0].id + '...');
+        await pool.query("UPDATE users SET email = 'akhilesh@library.com', role = 'Librarian', password_hash = $1 WHERE id = $2", [hash, fallbackUser.rows[0].id]);
+      } else {
+        console.log('Inserting authoritative librarian account akhilesh@library.com...');
+        await pool.query("INSERT INTO users (id, name, role, email, password_hash, phone) VALUES (1, 'Akhilesh Kumar', 'Librarian', 'akhilesh@library.com', $1, '+91 98765 43210') ON CONFLICT (id) DO UPDATE SET email = 'akhilesh@library.com', role = 'Librarian', password_hash = $1", [hash]);
       }
     }
 
