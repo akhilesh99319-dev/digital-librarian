@@ -4,7 +4,7 @@ const authController = require('../controllers/authController');
 const { authenticateToken, requireLibrarian } = require('../middleware/auth');
 const { authRateLimiter } = require('../middleware/rateLimiter');
 
-// Public Authentication Routes (Email OTP & Google Sign-In)
+// Public Authentication Routes (Password & Google Sign-In)
 router.post('/login', authRateLimiter, authController.login);
 router.post('/verify-otp', authController.verifyLoginOtp);
 router.post('/resend-otp', authController.resendOtp);
