@@ -50,27 +50,27 @@ async function login(req, res) {
       });
     }
 
-    const trimmedIdentifier = email.trim().toLowerCase();
+    const trimmedIdentifier = String(email).trim().toLowerCase();
     let account = null;
-    let accountType = null; // 'user' or 'member'
+    let accountType = null;
 
-    // 1. Try Librarian / Admin lookup
+    // Registered Librarian / Admin account lookup.
     if (login_type === 'librarian' || login_type === 'admin' || login_type === 'all') {
       const user = await db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(trimmedIdentifier);
       if (user && user.password_hash && typeof user.password_hash === 'string') {
-        const isPasswordValid = bcrypt.compareSync(password, user.password_hash);
-        if (isPasswordValid) {
+        if (bcrypt.compareSync(password, user.password_hash)) {
           account = user;
           accountType = 'user';
         }
       }
     }
 
-    // 2. Try Member lookup (by verified email or member_code)
+    // Registered Member account lookup by email or member code.
     if (!account) {
       const member = await db.prepare(`
-        SELECT * FROM members 
-        WHERE (email IS NOT NULL AND LOWER(email) = ?) OR LOWER(member_code) = ?
+        SELECT * FROM members
+        WHERE (email IS NOT NULL AND LOWER(email) = ?)
+           OR LOWER(member_code) = ?
       `).get(trimmedIdentifier, trimmedIdentifier);
 
       if (member) {
@@ -96,7 +96,7 @@ async function login(req, res) {
       }
     }
 
-    // Generic Authentication Failure (Prevent account enumeration)
+    // No matching registered account or password: reject the login.
     if (!account) {
       await logAudit(null, 'LOGIN', 'FAILED', `Failed credentials attempt for: ${trimmedIdentifier}`, clientIp);
       return res.status(401).json({
@@ -105,71 +105,58 @@ async function login(req, res) {
       });
     }
 
-    // Determine target email for OTP delivery
-    const recipientEmail = accountType === 'user' ? account.email : account.email;
-    const recipientName = accountType === 'user' ? account.name : account.full_name;
+    // Issue the normal application JWT immediately. Login does not require OTP.
+    const payload = accountType === 'member'
+      ? {
+          id: account.id,
+          name: account.full_name,
+          role: 'Member',
+          email: account.email,
+          member_code: account.member_code
+        }
+      : {
+          id: account.id,
+          name: account.name,
+          role: account.role || 'Librarian',
+          email: account.email
+        };
 
-    if (!recipientEmail || !isValidEmail(recipientEmail)) {
-      await logAudit(account.id, 'LOGIN_OTP', 'FAILED', `No verified email found for account ${trimmedIdentifier}`, clientIp);
-      return res.status(400).json({
-        success: false,
-        message: 'No registered email address found for this account. Please contact the Librarian to link your verified email.'
-      });
-    }
+    const userObj = accountType === 'member'
+      ? {
+          id: account.id,
+          name: account.full_name,
+          role: 'Member',
+          email: account.email,
+          member_code: account.member_code,
+          phone: account.phone,
+          membership_date: account.membership_date,
+          status: account.status
+        }
+      : {
+          id: account.id,
+          name: account.name,
+          role: account.role || 'Librarian',
+          email: account.email,
+          phone: account.phone,
+          created_at: account.created_at
+        };
 
-    // Generate cryptographically secure 6-digit OTP
-    const otp = generateOTP();
-    const otpHash = bcrypt.hashSync(otp, 10);
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes
+    const authToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
-    // Invalidate existing active login OTPs for this email
-    await db.prepare(`
-      UPDATE auth_otps 
-      SET verified = 2 
-      WHERE email = ? AND otp_type = 'LOGIN' AND verified = 0
-    `).run(recipientEmail.toLowerCase());
+    await logAudit(
+      payload.id,
+      'LOGIN',
+      'SUCCESS',
+      `User ${payload.name} (${payload.role}) authenticated with email/member code and password from ${clientIp}`,
+      clientIp
+    );
 
-    // Insert new OTP record
-    const insertOtp = db.prepare(`
-      INSERT INTO auth_otps (
-        identifier, email, otp_hash, otp_type, metadata, attempts, max_attempts, resend_count, last_sent_at, expires_at, verified, created_at
-      ) VALUES (?, ?, ?, 'LOGIN', ?, 0, 5, 0, datetime('now'), ?, 0, datetime('now'))
-    `);
-
-    const metadata = JSON.stringify({
-      user_type: accountType,
-      user_id: account.id,
-      name: recipientName,
-      role: accountType === 'user' ? (account.role || 'Librarian') : 'Member',
-      member_code: account.member_code || null
-    });
-
-    await insertOtp.run(trimmedIdentifier, recipientEmail.toLowerCase(), otpHash, metadata, expiresAt);
-
-    // Create 5-minute temporary verification token
-    const tempToken = jwt.sign({
-      purpose: 'OTP_VERIFY',
-      otp_type: 'LOGIN',
-      email: recipientEmail.toLowerCase(),
-      user_type: accountType,
-      user_id: account.id
-    }, JWT_SECRET, { expiresIn: '5m' });
-
-    // Record OTP issuance in rate limiter for cooldown
-    recordOtpIssued(recipientEmail.toLowerCase());
-
-    // Send OTP to registered email
-    await sendOTPEmail(recipientEmail, otp, 'LOGIN', recipientName);
-
-    await logAudit(account.id, 'LOGIN_OTP_SENT', 'SUCCESS', `Login OTP sent to ${maskEmail(recipientEmail)}`, clientIp);
-
-    // Return response without JWT
     return res.status(200).json({
       success: true,
-      otp_required: true,
-      temp_token: tempToken,
-      email_masked: maskEmail(recipientEmail),
-      message: 'We have sent a 6-digit verification code to your registered email.'
+      otp_required: false,
+      message: `Login successful. Welcome back, ${payload.name}!`,
+      token: authToken,
+      user: userObj
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -179,7 +166,6 @@ async function login(req, res) {
     });
   }
 }
-
 /**
  * Handle Login OTP Verification & Session Issuance
  */
