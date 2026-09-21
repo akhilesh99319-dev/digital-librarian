@@ -3,9 +3,6 @@ const jwt = require('jsonwebtoken');
 const crypto = require('node:crypto');
 const { db } = require('../database/db');
 const { JWT_SECRET } = require('../middleware/auth');
-const { generateOTP, maskEmail, sendOTPEmail } = require('../utils/emailService');
-const { verifyGoogleIdToken } = require('../utils/googleAuth');
-const { checkResendCooldown, recordOtpIssued } = require('../middleware/rateLimiter');
 
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
@@ -35,7 +32,7 @@ function isValidEmail(email) {
 }
 
 /**
- * Handle Unified Login Step 1: Validate Credentials & Issue OTP
+ * Handle Unified Login: Direct Email / Member Code + Password Authentication
  * (Supports Librarian, Admin, or Member via Email or Member Code)
  */
 async function login(req, res) {
@@ -50,27 +47,27 @@ async function login(req, res) {
       });
     }
 
-    const trimmedIdentifier = String(email).trim().toLowerCase();
+    const trimmedIdentifier = email.trim().toLowerCase();
     let account = null;
-    let accountType = null;
+    let accountType = null; // 'user' or 'member'
 
-    // Registered Librarian / Admin account lookup.
+    // 1. Try Librarian / Admin lookup
     if (login_type === 'librarian' || login_type === 'admin' || login_type === 'all') {
       const user = await db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(trimmedIdentifier);
       if (user && user.password_hash && typeof user.password_hash === 'string') {
-        if (bcrypt.compareSync(password, user.password_hash)) {
+        const isPasswordValid = bcrypt.compareSync(password, user.password_hash);
+        if (isPasswordValid) {
           account = user;
           accountType = 'user';
         }
       }
     }
 
-    // Registered Member account lookup by email or member code.
+    // 2. Try Member lookup (by verified email or member_code)
     if (!account) {
       const member = await db.prepare(`
-        SELECT * FROM members
-        WHERE (email IS NOT NULL AND LOWER(email) = ?)
-           OR LOWER(member_code) = ?
+        SELECT * FROM members 
+        WHERE (email IS NOT NULL AND LOWER(email) = ?) OR LOWER(member_code) = ?
       `).get(trimmedIdentifier, trimmedIdentifier);
 
       if (member) {
@@ -96,7 +93,7 @@ async function login(req, res) {
       }
     }
 
-    // No matching registered account or password: reject the login.
+    // Generic Authentication Failure (Prevent account enumeration)
     if (!account) {
       await logAudit(null, 'LOGIN', 'FAILED', `Failed credentials attempt for: ${trimmedIdentifier}`, clientIp);
       return res.status(401).json({
@@ -105,55 +102,50 @@ async function login(req, res) {
       });
     }
 
-    // Issue the normal application JWT immediately. Login does not require OTP.
-    const payload = accountType === 'member'
-      ? {
-          id: account.id,
-          name: account.full_name,
-          role: 'Member',
-          email: account.email,
-          member_code: account.member_code
-        }
-      : {
-          id: account.id,
-          name: account.name,
-          role: account.role || 'Librarian',
-          email: account.email
-        };
+    // Build JWT payload and user object
+    let payload = null;
+    let userObj = null;
 
-    const userObj = accountType === 'member'
-      ? {
-          id: account.id,
-          name: account.full_name,
-          role: 'Member',
-          email: account.email,
-          member_code: account.member_code,
-          phone: account.phone,
-          membership_date: account.membership_date,
-          status: account.status
-        }
-      : {
-          id: account.id,
-          name: account.name,
-          role: account.role || 'Librarian',
-          email: account.email,
-          phone: account.phone,
-          created_at: account.created_at
-        };
+    if (accountType === 'user') {
+      payload = {
+        id: account.id,
+        name: account.name,
+        role: account.role || 'Librarian',
+        email: account.email
+      };
+      userObj = {
+        id: account.id,
+        name: account.name,
+        role: account.role || 'Librarian',
+        email: account.email,
+        phone: account.phone,
+        created_at: account.created_at
+      };
+    } else {
+      payload = {
+        id: account.id,
+        name: account.full_name,
+        role: 'Member',
+        email: account.email,
+        member_code: account.member_code
+      };
+      userObj = {
+        id: account.id,
+        name: account.full_name,
+        role: 'Member',
+        email: account.email,
+        member_code: account.member_code,
+        phone: account.phone,
+        membership_date: account.membership_date,
+        status: account.status
+      };
+    }
 
     const authToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-
-    await logAudit(
-      payload.id,
-      'LOGIN',
-      'SUCCESS',
-      `User ${payload.name} (${payload.role}) authenticated with email/member code and password from ${clientIp}`,
-      clientIp
-    );
+    await logAudit(payload.id, 'LOGIN', 'SUCCESS', `User ${payload.name} (${payload.role}) authenticated successfully from ${clientIp}`, clientIp);
 
     return res.status(200).json({
       success: true,
-      otp_required: false,
       message: `Login successful. Welcome back, ${payload.name}!`,
       token: authToken,
       user: userObj
@@ -166,256 +158,9 @@ async function login(req, res) {
     });
   }
 }
-/**
- * Handle Login OTP Verification & Session Issuance
- */
-async function verifyLoginOtp(req, res) {
-  try {
-    const { temp_token, otp } = req.body;
-    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
-
-    if (!temp_token || !otp) {
-      return res.status(400).json({
-        success: false,
-        message: 'Verification token and 6-digit code are required.'
-      });
-    }
-
-    const cleanOtp = String(otp).trim();
-    if (!/^\d{6}$/.test(cleanOtp)) {
-      return res.status(400).json({
-        success: false,
-        message: 'The verification code must be exactly 6 digits.'
-      });
-    }
-
-    // Verify temp_token
-    let decoded;
-    try {
-      decoded = jwt.verify(temp_token, JWT_SECRET);
-      if (decoded.purpose !== 'OTP_VERIFY' || decoded.otp_type !== 'LOGIN') {
-        throw new Error('Invalid token purpose');
-      }
-    } catch (tokenErr) {
-      return res.status(400).json({
-        success: false,
-        message: 'Verification session has expired or is invalid. Please sign in again.'
-      });
-    }
-
-    const email = decoded.email.toLowerCase();
-
-    // Retrieve active OTP record
-    const otpRecord = await db.prepare(`
-      SELECT * FROM auth_otps 
-      WHERE LOWER(email) = ? AND otp_type = 'LOGIN' AND verified = 0 
-      ORDER BY id DESC LIMIT 1
-    `).get(email);
-
-    if (!otpRecord) {
-      return res.status(400).json({
-        success: false,
-        message: 'The verification code is incorrect or expired.'
-      });
-    }
-
-    // Check expiration
-    const now = new Date();
-    const expiresAt = new Date(otpRecord.expires_at);
-    if (now > expiresAt) {
-      await db.prepare('UPDATE auth_otps SET verified = 2 WHERE id = ?').run(otpRecord.id);
-      return res.status(400).json({
-        success: false,
-        message: 'This verification code has expired. Please request a new code.'
-      });
-    }
-
-    // Check attempts
-    if (otpRecord.attempts >= otpRecord.max_attempts) {
-      await db.prepare('UPDATE auth_otps SET verified = 2 WHERE id = ?').run(otpRecord.id);
-      return res.status(400).json({
-        success: false,
-        message: 'Too many failed attempts. This verification code has been invalidated. Please request a new code.'
-      });
-    }
-
-    // Verify OTP against bcrypt hash
-    const isOtpValid = bcrypt.compareSync(cleanOtp, otpRecord.otp_hash);
-    if (!isOtpValid) {
-      await db.prepare('UPDATE auth_otps SET attempts = attempts + 1 WHERE id = ?').run(otpRecord.id);
-      await logAudit(decoded.user_id, 'LOGIN_OTP_VERIFY', 'FAILED', `Invalid OTP attempt from ${clientIp}`, clientIp);
-      return res.status(400).json({
-        success: false,
-        message: 'The verification code is incorrect or expired.'
-      });
-    }
-
-    // Invalidate OTP (single-use)
-    await db.prepare('UPDATE auth_otps SET verified = 1 WHERE id = ?').run(otpRecord.id);
-
-    // Retrieve authoritative account data
-    let userObj = null;
-    let payload = null;
-
-    if (decoded.user_type === 'member') {
-      const member = await db.prepare('SELECT * FROM members WHERE id = ?').get(decoded.user_id);
-      if (!member) {
-        return res.status(404).json({ success: false, message: 'Member account not found.' });
-      }
-
-      payload = {
-        id: member.id,
-        name: member.full_name,
-        role: 'Member',
-        email: member.email,
-        member_code: member.member_code
-      };
-
-      userObj = {
-        id: member.id,
-        name: member.full_name,
-        role: 'Member',
-        email: member.email,
-        member_code: member.member_code,
-        phone: member.phone,
-        membership_date: member.membership_date,
-        status: member.status
-      };
-    } else {
-      const user = await db.prepare('SELECT * FROM users WHERE id = ?').get(decoded.user_id);
-      if (!user) {
-        return res.status(404).json({ success: false, message: 'User account not found.' });
-      }
-
-      payload = {
-        id: user.id,
-        name: user.name,
-        role: user.role || 'Librarian',
-        email: user.email
-      };
-
-      userObj = {
-        id: user.id,
-        name: user.name,
-        role: user.role || 'Librarian',
-        email: user.email,
-        phone: user.phone,
-        created_at: user.created_at
-      };
-    }
-
-    // Issue authoritative JWT
-    const authToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-
-    await logAudit(payload.id, 'LOGIN', 'SUCCESS', `User ${payload.name} (${payload.role}) authenticated via Email OTP from ${clientIp}`, clientIp);
-
-    return res.status(200).json({
-      success: true,
-      message: `Login successful. Welcome back, ${payload.name}!`,
-      token: authToken,
-      user: userObj
-    });
-  } catch (error) {
-    console.error('verifyLoginOtp error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to verify verification code.'
-    });
-  }
-}
 
 /**
- * Handle Resending OTP with Rate-Limit & Cooldown
- */
-async function resendOtp(req, res) {
-  try {
-    const { temp_token } = req.body;
-    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
-
-    if (!temp_token) {
-      return res.status(400).json({
-        success: false,
-        message: 'Verification token is required.'
-      });
-    }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(temp_token, JWT_SECRET);
-      if (decoded.purpose !== 'OTP_VERIFY') {
-        throw new Error('Invalid token purpose');
-      }
-    } catch (err) {
-      return res.status(400).json({
-        success: false,
-        message: 'Verification session has expired. Please restart the authentication process.'
-      });
-    }
-
-    const email = decoded.email.toLowerCase();
-
-    // Check cooldown & limits
-    const cooldownCheck = checkResendCooldown(email, 45, 3);
-    if (!cooldownCheck.allowed) {
-      return res.status(429).json({
-        success: false,
-        message: cooldownCheck.reason
-      });
-    }
-
-    // Find active OTP record
-    const activeOtp = await db.prepare(`
-      SELECT * FROM auth_otps 
-      WHERE LOWER(email) = ? AND otp_type = ? AND verified = 0 
-      ORDER BY id DESC LIMIT 1
-    `).get(email, decoded.otp_type);
-
-    if (!activeOtp) {
-      return res.status(400).json({
-        success: false,
-        message: 'No active verification session found. Please start over.'
-      });
-    }
-
-    // Generate new 6-digit OTP
-    const newOtp = generateOTP();
-    const newOtpHash = bcrypt.hashSync(newOtp, 10);
-    const newExpiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
-
-    // Update OTP record
-    await db.prepare(`
-      UPDATE auth_otps 
-      SET otp_hash = ?, attempts = 0, resend_count = resend_count + 1, last_sent_at = datetime('now'), expires_at = ? 
-      WHERE id = ?
-    `).run(newOtpHash, newExpiresAt, activeOtp.id);
-
-    // Send new OTP email
-    let recipientName = 'User';
-    if (activeOtp.metadata) {
-      try {
-        const meta = JSON.parse(activeOtp.metadata);
-        recipientName = meta.name || 'User';
-      } catch (_) {}
-    }
-
-    await sendOTPEmail(email, newOtp, decoded.otp_type, recipientName);
-    await logAudit(decoded.user_id || null, 'OTP_RESEND', 'SUCCESS', `Resent ${decoded.otp_type} OTP to ${maskEmail(email)}`, clientIp);
-
-    return res.status(200).json({
-      success: true,
-      message: 'A new 6-digit verification code has been sent to your email.'
-    });
-  } catch (error) {
-    console.error('resendOtp error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to resend verification code. Please try again.'
-    });
-  }
-}
-
-/**
- * Handle Public Member Registration Step 1: Validate Fields & Issue Registration OTP
+ * Handle Public Member Registration (Direct Account Creation)
  */
 async function register(req, res) {
   try {
@@ -456,7 +201,7 @@ async function register(req, res) {
       });
     }
 
-    // Check duplicate email across both users and members.
+    // Check duplicate email across both users and members
     const existingUser = await db.prepare('SELECT id FROM users WHERE LOWER(email) = ?').get(trimmedEmail);
     if (existingUser) {
       return res.status(400).json({
@@ -473,159 +218,12 @@ async function register(req, res) {
       });
     }
 
-    // Store the password securely with bcrypt.
-    const passwordHash = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
+    // Generate secure password hash
+    const salt = bcrypt.genSaltSync(10);
+    const passwordHash = bcrypt.hashSync(password, salt);
+
     const sanitizedPhone = phone && typeof phone === 'string' ? phone.trim() : '';
     const sanitizedAddress = address && typeof address === 'string' ? address.trim() : '';
-
-    // Generate the next unique member code.
-    const maxIdRow = await db.prepare('SELECT MAX(id) as max_id FROM members').get();
-    let nextNum = (maxIdRow?.max_id || 0) + 1;
-    let memberCode = `MEM-${String(nextNum).padStart(3, '0')}`;
-
-    let codeExists = await db.prepare('SELECT id FROM members WHERE member_code = ?').get(memberCode);
-    while (codeExists) {
-      nextNum++;
-      memberCode = `MEM-${String(nextNum).padStart(3, '0')}`;
-      codeExists = await db.prepare('SELECT id FROM members WHERE member_code = ?').get(memberCode);
-    }
-
-    const memDate = new Date().toISOString().split('T')[0];
-
-    // Registration is now direct: no email verification code is required.
-    const insertStmt = db.prepare(`
-      INSERT INTO members (member_code, full_name, email, password_hash, phone, address, membership_date, status, email_verified_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'Active', datetime('now'))
-    `);
-
-    const result = await insertStmt.run(
-      memberCode,
-      trimmedName,
-      trimmedEmail,
-      passwordHash,
-      sanitizedPhone,
-      sanitizedAddress,
-      memDate
-    );
-
-    const newMemberId = Number(result.lastInsertRowid);
-
-    await logAudit(
-      newMemberId,
-      'REGISTER',
-      'SUCCESS',
-      `New member registered directly: ${trimmedName} (${memberCode}, ${trimmedEmail})`,
-      clientIp
-    );
-
-    return res.status(201).json({
-      success: true,
-      otp_required: false,
-      message: 'Account created successfully! You can now sign in with your credentials.',
-      user: {
-        id: newMemberId,
-        member_code: memberCode,
-        name: trimmedName,
-        email: trimmedEmail,
-        role: 'Member',
-        phone: sanitizedPhone,
-        membership_date: memDate,
-        status: 'Active'
-      }
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'An error occurred during registration. Please try again.'
-    });
-  }
-}
-/**
- * Handle Registration OTP Verification & Member Activation
- */
-async function verifyRegisterOtp(req, res) {
-  try {
-    const { temp_token, otp } = req.body;
-    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
-
-    if (!temp_token || !otp) {
-      return res.status(400).json({
-        success: false,
-        message: 'Verification token and 6-digit code are required.'
-      });
-    }
-
-    const cleanOtp = String(otp).trim();
-    if (!/^\d{6}$/.test(cleanOtp)) {
-      return res.status(400).json({
-        success: false,
-        message: 'The verification code must be exactly 6 digits.'
-      });
-    }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(temp_token, JWT_SECRET);
-      if (decoded.purpose !== 'OTP_VERIFY' || decoded.otp_type !== 'REGISTER') {
-        throw new Error('Invalid token purpose');
-      }
-    } catch (err) {
-      return res.status(400).json({
-        success: false,
-        message: 'Registration verification session has expired. Please register again.'
-      });
-    }
-
-    const email = decoded.email.toLowerCase();
-
-    // Fetch active registration OTP
-    const otpRecord = await db.prepare(`
-      SELECT * FROM auth_otps 
-      WHERE LOWER(email) = ? AND otp_type = 'REGISTER' AND verified = 0 
-      ORDER BY id DESC LIMIT 1
-    `).get(email);
-
-    if (!otpRecord) {
-      return res.status(400).json({
-        success: false,
-        message: 'The verification code is incorrect or expired.'
-      });
-    }
-
-    // Check expiry
-    const now = new Date();
-    if (now > new Date(otpRecord.expires_at)) {
-      await db.prepare('UPDATE auth_otps SET verified = 2 WHERE id = ?').run(otpRecord.id);
-      return res.status(400).json({
-        success: false,
-        message: 'This verification code has expired. Please request a new code.'
-      });
-    }
-
-    // Check attempts
-    if (otpRecord.attempts >= otpRecord.max_attempts) {
-      await db.prepare('UPDATE auth_otps SET verified = 2 WHERE id = ?').run(otpRecord.id);
-      return res.status(400).json({
-        success: false,
-        message: 'Too many failed attempts. This code has been invalidated. Please register again.'
-      });
-    }
-
-    // Verify code
-    const isOtpValid = bcrypt.compareSync(cleanOtp, otpRecord.otp_hash);
-    if (!isOtpValid) {
-      await db.prepare('UPDATE auth_otps SET attempts = attempts + 1 WHERE id = ?').run(otpRecord.id);
-      return res.status(400).json({
-        success: false,
-        message: 'The verification code is incorrect or expired.'
-      });
-    }
-
-    // Mark OTP as verified
-    await db.prepare('UPDATE auth_otps SET verified = 1 WHERE id = ?').run(otpRecord.id);
-
-    const metadata = JSON.parse(otpRecord.metadata || '{}');
 
     // Auto-generate next unique member code (e.g. MEM-009)
     const maxIdRow = await db.prepare('SELECT MAX(id) as max_id FROM members').get();
@@ -641,7 +239,7 @@ async function verifyRegisterOtp(req, res) {
 
     const memDate = new Date().toISOString().split('T')[0];
 
-    // Insert verified member
+    // Insert active member
     const insertStmt = db.prepare(`
       INSERT INTO members (member_code, full_name, email, password_hash, phone, address, membership_date, status, email_verified_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, 'Active', datetime('now'))
@@ -649,11 +247,11 @@ async function verifyRegisterOtp(req, res) {
 
     const result = await insertStmt.run(
       memberCode,
-      metadata.name,
-      metadata.email,
-      metadata.password_hash,
-      metadata.phone || '',
-      metadata.address || '',
+      trimmedName,
+      trimmedEmail,
+      passwordHash,
+      sanitizedPhone,
+      sanitizedAddress,
       memDate
     );
 
@@ -663,153 +261,29 @@ async function verifyRegisterOtp(req, res) {
       newMemberId,
       'REGISTER',
       'SUCCESS',
-      `New member registered and email verified: ${metadata.name} (${memberCode}, ${metadata.email})`,
+      `New member registered: ${trimmedName} (${memberCode}, ${trimmedEmail})`,
       clientIp
     );
 
     return res.status(201).json({
       success: true,
-      message: 'Account verified and created successfully! You can now sign in with your credentials.',
+      message: 'Account created successfully! You can now sign in with your credentials.',
       user: {
         id: Number(newMemberId),
         member_code: memberCode,
-        name: metadata.name,
-        email: metadata.email,
+        name: trimmedName,
+        email: trimmedEmail,
         role: 'Member',
-        phone: metadata.phone || '',
+        phone: sanitizedPhone,
         membership_date: memDate,
         status: 'Active'
       }
     });
   } catch (error) {
-    console.error('verifyRegisterOtp error:', error);
+    console.error('Registration error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to verify registration code.'
-    });
-  }
-}
-
-/**
- * Handle Google Sign-In (OpenID Connect / Google ID Token Verification)
- */
-async function googleLogin(req, res) {
-  try {
-    const { id_token } = req.body;
-    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
-
-    if (!id_token) {
-      return res.status(400).json({
-        success: false,
-        message: 'Google ID token credential is required.'
-      });
-    }
-
-    // Authoritatively verify Google ID token with Google servers
-    let googlePayload;
-    try {
-      googlePayload = await verifyGoogleIdToken(id_token);
-    } catch (verErr) {
-      await logAudit(null, 'GOOGLE_AUTH', 'FAILED', `Google token verification error: ${verErr.message}`, clientIp);
-      return res.status(401).json({
-        success: false,
-        message: 'Google authentication failed: ' + verErr.message
-      });
-    }
-
-    const verifiedEmail = googlePayload.email.toLowerCase().trim();
-
-    // 1. Check Librarian/Admin match
-    const user = await db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(verifiedEmail);
-    if (user) {
-      // Link Google ID if not yet recorded
-      if (!user.google_id) {
-        await db.prepare("UPDATE users SET google_id = ?, google_email = ?, email_verified_at = COALESCE(email_verified_at, datetime('now')) WHERE id = ?")
-          .run(googlePayload.sub, verifiedEmail, user.id);
-      }
-
-      const payload = {
-        id: user.id,
-        name: user.name,
-        role: user.role || 'Librarian',
-        email: user.email
-      };
-
-      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-      await logAudit(user.id, 'LOGIN_GOOGLE', 'SUCCESS', `User ${user.name} logged in with Google identity`, clientIp);
-
-      return res.status(200).json({
-        success: true,
-        message: `Google authentication successful. Welcome back, ${user.role} ${user.name}!`,
-        token,
-        user: {
-          id: user.id,
-          name: user.name,
-          role: user.role || 'Librarian',
-          email: user.email,
-          phone: user.phone,
-          created_at: user.created_at
-        }
-      });
-    }
-
-    // 2. Check Member match
-    const member = await db.prepare('SELECT * FROM members WHERE email IS NOT NULL AND LOWER(email) = ?').get(verifiedEmail);
-    if (member) {
-      if (member.status === 'Suspended') {
-        await logAudit(member.id, 'LOGIN_GOOGLE', 'BLOCKED', `Suspended member Google login attempt: ${member.full_name}`, clientIp);
-        return res.status(403).json({
-          success: false,
-          message: 'Your library membership account is currently suspended. Please contact the Librarian.'
-        });
-      }
-
-      // Link Google ID if not yet recorded
-      if (!member.google_id) {
-        await db.prepare("UPDATE members SET google_id = ?, google_email = ?, email_verified_at = COALESCE(email_verified_at, datetime('now')) WHERE id = ?")
-          .run(googlePayload.sub, verifiedEmail, member.id);
-      }
-
-      const payload = {
-        id: member.id,
-        name: member.full_name,
-        role: 'Member',
-        email: member.email,
-        member_code: member.member_code
-      };
-
-      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-      await logAudit(member.id, 'LOGIN_GOOGLE', 'SUCCESS', `Member ${member.full_name} logged in with Google identity`, clientIp);
-
-      return res.status(200).json({
-        success: true,
-        message: `Google authentication successful. Welcome, ${member.full_name}!`,
-        token,
-        user: {
-          id: member.id,
-          name: member.full_name,
-          role: 'Member',
-          email: member.email,
-          member_code: member.member_code,
-          phone: member.phone,
-          membership_date: member.membership_date,
-          status: member.status
-        }
-      });
-    }
-
-    // 3. No matching library account found -> Reject safely (NO auto-creation of unrestricted accounts)
-    await logAudit(null, 'LOGIN_GOOGLE', 'UNAUTHORIZED', `Unregistered Google email attempt: ${verifiedEmail}`, clientIp);
-
-    return res.status(403).json({
-      success: false,
-      message: 'No library account is associated with this Google account. Please register first or contact the library administrator.'
-    });
-  } catch (error) {
-    console.error('googleLogin error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to authenticate with Google identity.'
+      message: 'An error occurred during registration. Please try again.'
     });
   }
 }
@@ -1290,11 +764,7 @@ async function logout(req, res) {
 
 module.exports = {
   login,
-  verifyLoginOtp,
-  resendOtp,
   register,
-  verifyRegisterOtp,
-  googleLogin,
   requestAdminLogin,
   checkAdminApprovalStatus,
   getPendingAdminRequests,

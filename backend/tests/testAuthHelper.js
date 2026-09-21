@@ -1,5 +1,4 @@
 const http = require('node:http');
-const { getTestOtp } = require('../utils/emailService');
 
 function rawRequest(method, path, body = null, token = null, port = 3000) {
   return new Promise((resolve, reject) => {
@@ -40,46 +39,14 @@ function rawRequest(method, path, body = null, token = null, port = 3000) {
 }
 
 async function loginWithOtp(identifier, password, port = 3000) {
-  const loginRes = await rawRequest('POST', '/api/auth/login', {
+  return await rawRequest('POST', '/api/auth/login', {
     email: identifier,
     password
   }, null, port);
-
-  if (loginRes.status !== 200 || !loginRes.body.temp_token) {
-    return loginRes;
-  }
-
-  let targetEmail = identifier;
-  if (!targetEmail.includes('@')) {
-    const { db } = require('../database/db');
-    const memberRow = db.prepare('SELECT email FROM members WHERE member_code = ?').get(identifier);
-    if (memberRow && memberRow.email) {
-      targetEmail = memberRow.email;
-    }
-  }
-  let otp = getTestOtp(targetEmail);
-
-  const verifyRes = await rawRequest('POST', '/api/auth/verify-otp', {
-    temp_token: loginRes.body.temp_token,
-    otp
-  }, null, port);
-
-  return verifyRes;
 }
 
 async function registerWithOtp(payload, port = 3000) {
-  const regRes = await rawRequest('POST', '/api/auth/register', payload, null, port);
-  if (regRes.status !== 200 || !regRes.body.temp_token) {
-    return regRes;
-  }
-
-  const otp = getTestOtp(payload.email);
-  const verifyRes = await rawRequest('POST', '/api/auth/verify-register-otp', {
-    temp_token: regRes.body.temp_token,
-    otp
-  }, null, port);
-
-  return verifyRes;
+  return await rawRequest('POST', '/api/auth/register', payload, null, port);
 }
 
 module.exports = {

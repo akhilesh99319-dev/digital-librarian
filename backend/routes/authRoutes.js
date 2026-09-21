@@ -4,15 +4,9 @@ const authController = require('../controllers/authController');
 const { authenticateToken, requireLibrarian } = require('../middleware/auth');
 const { authRateLimiter } = require('../middleware/rateLimiter');
 
-// Public Authentication Routes (Password & Google Sign-In)
+// Public Authentication Routes (Email / Member Code + Password)
 router.post('/login', authRateLimiter, authController.login);
-router.post('/verify-otp', authController.verifyLoginOtp);
-router.post('/resend-otp', authController.resendOtp);
-
 router.post('/register', authRateLimiter, authController.register);
-router.post('/verify-register-otp', authController.verifyRegisterOtp);
-
-router.post('/google', authRateLimiter, authController.googleLogin);
 
 // Admin Approval Routes
 router.post('/admin-request', authRateLimiter, authController.requestAdminLogin);

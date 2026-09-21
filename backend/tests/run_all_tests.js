@@ -56,6 +56,7 @@ function restoreCleanBaseline() {
     DELETE FROM members WHERE id > 8;
     UPDATE members SET email = NULL WHERE id <= 8;
     DELETE FROM auth_otps;
+    UPDATE users SET email = 'akhilesh@library.com', name = 'Akhilesh Kumar', role = 'Librarian' WHERE id = 1;
   `);
 
   console.log('--> Baseline Cleaned. Checking final state:');
@@ -119,7 +120,7 @@ async function main() {
     // 11. Final UAT, UI/UX & Production Readiness Suite
     await runScript('verify_final_uat_and_production_readiness.js');
 
-    // 12. Secure Authentication Suite (Email OTP + Google Sign-In)
+    // 12. Secure Authentication Suite (Direct Email/Member Code + Password)
     await runScript('verify_secure_auth_suite.js');
 
     // Restore clean baseline
