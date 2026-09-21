@@ -277,12 +277,12 @@ async function runSecurityMatrix() {
     assert.strictEqual(res.status, 401);
   });
 
-  // 15. Access protected route with invalid/tampered token -> 403 Forbidden
-  await step('[Protected Route] Request with forged/tampered JWT -> 403 Forbidden', async () => {
+  // 15. Access protected route with invalid/tampered token -> 401 Unauthorized
+  await step('[Protected Route] Request with forged/tampered JWT -> 401 Unauthorized', async () => {
     const res = await apiRequest('GET', '/api/auth/me', null, {
       'Authorization': 'Bearer invalid.forged.jwt_token_12345'
     });
-    assert.strictEqual(res.status, 403);
+    assert.strictEqual(res.status, 401);
   });
 
   // 16. Verify POST /api/auth/google endpoint is removed (404 Not Found)

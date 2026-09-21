@@ -62,15 +62,6 @@ class ApiClient {
     try {
       const response = await fetch(url, config);
 
-      // Handle 401 Unauthorized / Expired Session
-      if (response.status === 401) {
-        if (!window.location.pathname.endsWith('login.html')) {
-          this.clearSession();
-          window.location.href = '/login.html?expired=1';
-          return { success: false, message: 'Session expired. Redirecting to login...' };
-        }
-      }
-
       // Check if CSV download
       const contentType = response.headers.get('Content-Type');
       if (contentType && contentType.includes('text/csv')) {
@@ -79,6 +70,22 @@ class ApiClient {
       }
 
       const data = await response.json();
+
+      // Handle 401 Unauthorized or 403 Invalid/Expired Session
+      const isExpiredOrInvalidSession = response.status === 401 || (
+        response.status === 403 &&
+        data &&
+        typeof data.message === 'string' &&
+        (data.message.toLowerCase().includes('invalid or expired session') || data.message.toLowerCase().includes('authentication token is missing'))
+      );
+
+      if (isExpiredOrInvalidSession) {
+        if (!window.location.pathname.endsWith('login.html')) {
+          this.clearSession();
+          window.location.href = '/login.html?expired=1';
+          return { success: false, message: 'Session expired. Redirecting to login...' };
+        }
+      }
 
       if (!response.ok) {
         throw new Error(data.message || `Request failed with status ${response.status}`);
