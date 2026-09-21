@@ -456,7 +456,7 @@ async function register(req, res) {
       });
     }
 
-    // Check duplicate email across both users and members
+    // Check duplicate email across both users and members.
     const existingUser = await db.prepare('SELECT id FROM users WHERE LOWER(email) = ?').get(trimmedEmail);
     if (existingUser) {
       return res.status(400).json({
@@ -473,59 +473,65 @@ async function register(req, res) {
       });
     }
 
-    // Generate secure password hash
-    const salt = bcrypt.genSaltSync(10);
-    const passwordHash = bcrypt.hashSync(password, salt);
-
+    // Store the password securely with bcrypt.
+    const passwordHash = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
     const sanitizedPhone = phone && typeof phone === 'string' ? phone.trim() : '';
     const sanitizedAddress = address && typeof address === 'string' ? address.trim() : '';
 
-    // Generate 6-digit Registration OTP
-    const otp = generateOTP();
-    const otpHash = bcrypt.hashSync(otp, 10);
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    // Generate the next unique member code.
+    const maxIdRow = await db.prepare('SELECT MAX(id) as max_id FROM members').get();
+    let nextNum = (maxIdRow?.max_id || 0) + 1;
+    let memberCode = `MEM-${String(nextNum).padStart(3, '0')}`;
 
-    // Invalidate previous registration OTPs for this email
-    await db.prepare(`
-      UPDATE auth_otps 
-      SET verified = 2 
-      WHERE email = ? AND otp_type = 'REGISTER' AND verified = 0
-    `).run(trimmedEmail);
+    let codeExists = await db.prepare('SELECT id FROM members WHERE member_code = ?').get(memberCode);
+    while (codeExists) {
+      nextNum++;
+      memberCode = `MEM-${String(nextNum).padStart(3, '0')}`;
+      codeExists = await db.prepare('SELECT id FROM members WHERE member_code = ?').get(memberCode);
+    }
 
-    const metadata = JSON.stringify({
-      name: trimmedName,
-      email: trimmedEmail,
-      password_hash: passwordHash,
-      phone: sanitizedPhone,
-      address: sanitizedAddress
-    });
+    const memDate = new Date().toISOString().split('T')[0];
 
-    await db.prepare(`
-      INSERT INTO auth_otps (
-        identifier, email, otp_hash, otp_type, metadata, attempts, max_attempts, resend_count, last_sent_at, expires_at, verified, created_at
-      ) VALUES (?, ?, ?, 'REGISTER', ?, 0, 5, 0, datetime('now'), ?, 0, datetime('now'))
-    `).run(trimmedEmail, trimmedEmail, otpHash, metadata, expiresAt);
+    // Registration is now direct: no email verification code is required.
+    const insertStmt = db.prepare(`
+      INSERT INTO members (member_code, full_name, email, password_hash, phone, address, membership_date, status, email_verified_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'Active', datetime('now'))
+    `);
 
-    const tempToken = jwt.sign({
-      purpose: 'OTP_VERIFY',
-      otp_type: 'REGISTER',
-      email: trimmedEmail
-    }, JWT_SECRET, { expiresIn: '5m' });
+    const result = await insertStmt.run(
+      memberCode,
+      trimmedName,
+      trimmedEmail,
+      passwordHash,
+      sanitizedPhone,
+      sanitizedAddress,
+      memDate
+    );
 
-    // Record OTP issuance for cooldown
-    recordOtpIssued(trimmedEmail);
+    const newMemberId = Number(result.lastInsertRowid);
 
-    // Send Registration OTP Email
-    await sendOTPEmail(trimmedEmail, otp, 'REGISTER', trimmedName);
+    await logAudit(
+      newMemberId,
+      'REGISTER',
+      'SUCCESS',
+      `New member registered directly: ${trimmedName} (${memberCode}, ${trimmedEmail})`,
+      clientIp
+    );
 
-    await logAudit(null, 'REGISTER_OTP_SENT', 'SUCCESS', `Registration OTP sent to ${maskEmail(trimmedEmail)}`, clientIp);
-
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
-      otp_required: true,
-      temp_token: tempToken,
-      email_masked: maskEmail(trimmedEmail),
-      message: 'We have sent a 6-digit verification code to your email.'
+      otp_required: false,
+      message: 'Account created successfully! You can now sign in with your credentials.',
+      user: {
+        id: newMemberId,
+        member_code: memberCode,
+        name: trimmedName,
+        email: trimmedEmail,
+        role: 'Member',
+        phone: sanitizedPhone,
+        membership_date: memDate,
+        status: 'Active'
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -535,7 +541,6 @@ async function register(req, res) {
     });
   }
 }
-
 /**
  * Handle Registration OTP Verification & Member Activation
  */
