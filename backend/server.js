@@ -70,6 +70,11 @@ app.use('/api/members', memberRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/reports', reportRoutes);
 
+// Member Dashboard compatibility routes
+app.get(['/member-dashboard.html', '/member_dashboard.html'], (req, res) => {
+  res.redirect(301, '/dashboard.html');
+});
+
 // Fallback to serve index.html for root if needed
 app.get('/', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
